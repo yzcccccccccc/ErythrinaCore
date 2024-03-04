@@ -3,11 +3,32 @@
 #include <assert.h>
 
 #include "Vtop.h"
-#include "verilated.h"
 
+#ifdef VERILATOR_SIM
+#include "verilated.h"
 #include "verilated_vcd_c.h"
+#endif
+
+#ifdef NVBOARD
+#include <nvboard.h>
+#include <Vtop.h>
+
+static TOP_NAME dut;
+void nvboard_bind_all_pins(TOP_NAME* top);
+
+static void single_cycle() {
+  dut.a = rand() & 1;
+  dut.b = rand() & 1;
+  dut.eval();
+  dut.a = rand() & 1;
+  dut.b = rand() & 1;
+  dut.eval();
+}
+
+#endif
 
 int main(int argc, char** argv) {
+#ifdef VERILATOR_SIM
     VerilatedContext* contextp = new VerilatedContext;
     contextp->commandArgs(argc, argv);
     Vtop* top = new Vtop{contextp};
@@ -37,5 +58,17 @@ int main(int argc, char** argv) {
     delete top;
     tfp->close();
     delete contextp;
+#endif
+
+#ifdef NVBOARD
+    nvboard_bind_all_pins(&dut);
+    nvboard_init();
+
+
+    while(1) {
+        nvboard_update();
+        single_cycle();
+    }
+#endif
     return 0;
 }
