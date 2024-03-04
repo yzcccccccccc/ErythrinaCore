@@ -17,7 +17,7 @@ verilate_sim:
 	verilator --cc --exe --trace --build -j 0 -Wall $(HDLSRC) $(SFTSRC)
 
 sim: verilate_sim
-#$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
+	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@cd obj_dir && ./$(SIM_TARGET)
 
 view_wave:
