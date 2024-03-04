@@ -12,8 +12,6 @@ VERILATOR_VERFLAGS += --cc
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
-  
-default: $(BIN)
 
 $(shell mkdir -p $(BUILD_DIR))
 
@@ -46,7 +44,14 @@ HDLSRC = $(shell find $(abspath ./vsrc) -name "*.v")
 SFTSRC = $(shell find $(abspath ./csrc) -name "main.cpp")
 SIM_TARGET = V$(TOPNAME)
 
+
+# yosys tools
+YOSYSTA_PATH = ../yosys-sta
+SDC_FILE = $(PWD)/constr/top.sdc
+
 all:
+
+default: $(BIN)
 
 verilate:
 	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(HDLSRC)
@@ -64,8 +69,12 @@ view_wave:
 run_nvb: $(BIN)
 	@$^
 
+run_syn:
+	$(MAKE) -C $(YOSYSTA_PATH) sta RES_PATH=$(PWD) DESIGN=$(TOPNAME) SDC_FILE=$(SDC_FILE) RTL_FILES="$(VSRCS)" CLK_FREQ_MHZ=100
+
 clean:
 	-rm -rf $(BUILD_DIR)
 	-rm -rf wave.vcd
+	-rm -rf result/
 
 include ../Makefile
