@@ -1,6 +1,5 @@
 *.*
 *
-yosys-sta/
 !*/
 !/nemu/*
 !/nexus-am/*
@@ -12,3 +11,4 @@ yosys-sta/
 !.gitignore
 !init.sh
 /nvboard
+yosys-sta/
