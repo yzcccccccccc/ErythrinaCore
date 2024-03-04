@@ -42,17 +42,17 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
 # VERILATOR source
-HDLSRC = $(shell find $(abspath ./vsrc) -name "$(TOPNAME).v")
+HDLSRC = $(shell find $(abspath ./vsrc) -name "*.v")
 SFTSRC = $(shell find $(abspath ./csrc) -name "main.cpp")
 SIM_TARGET = V$(TOPNAME)
 
 all:
 
 verilate:
-	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) $(HDLSRC)
+	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(HDLSRC)
 
 verilate_sim:
-	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) $(HDLSRC) $(SFTSRC)
+	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(HDLSRC) $(SFTSRC)
 
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
