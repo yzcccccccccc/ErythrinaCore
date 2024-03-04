@@ -20,6 +20,9 @@ sim: verilate_sim
 #$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	@cd obj_dir && ./$(SIM_TARGET)
 
+view_wave:
+	gtkwave ./obj_dir/wave.vcd
+
 clean:
 	rm -rf obj_dir/* && rmdir obj_dir
 
