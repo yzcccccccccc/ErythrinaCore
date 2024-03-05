@@ -40,7 +40,7 @@ checkformat:
 
 # Verilator
 CSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-VSRCS = $(shell find $(BUILD_DIR) -name "*.v")
+VSRCS = $(shell find $(abspath $(BUILD_DIR)) -name "*.v")
 SIM_TARGET = V$(TOPNAME)
 
 verilate: verilog
@@ -80,6 +80,14 @@ $(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
 # Hint: Run 'make verilog' first!
 run_nvb: $(BIN)
 	@$^
+
+# yosys tools
+YOSYSTA_PATH = ../yosys-sta
+SDC_FILE = $(PWD)/playground/constr/top.sdc
+RESDIR = $(abspath $(BUILD_DIR))
+
+run_syn:
+	$(MAKE) -C $(YOSYSTA_PATH) sta RES_PATH=$(RESDIR) DESIGN=$(TOPNAME) SDC_FILE=$(SDC_FILE) RTL_FILES="$(VSRCS)" CLK_FREQ_MHZ=100
 
 clean:
 	-rm -rf $(BUILD_DIR)
