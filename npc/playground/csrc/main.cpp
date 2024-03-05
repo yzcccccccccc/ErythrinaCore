@@ -16,7 +16,9 @@ static TOP_NAME dut;
 void nvboard_bind_all_pins(TOP_NAME* top);
 
 void single_cycle() {
-  dut.eval();
+    dut.io_a = rand() & 1;
+    dut.io_b = rand() & 1;
+    dut.eval();
 }
 
 #endif
@@ -57,7 +59,6 @@ int main(int argc, char** argv) {
 #ifdef NVBOARD
     nvboard_bind_all_pins(&dut);
     nvboard_init();
-    reset(10);
 
     while(1) {
         nvboard_update();
