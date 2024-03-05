@@ -39,6 +39,7 @@ checkformat:
 	mill -i __.checkFormat
 
 # Verilator
+VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 CSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VSRCS = $(shell find $(abspath $(BUILD_DIR)) -name "*.v")
 SIM_TARGET = V$(TOPNAME)
@@ -47,7 +48,7 @@ verilate: verilog
 	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
 verilate_sim: verilog
-	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
+	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(VCSRCS)
 
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
