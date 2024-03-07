@@ -39,36 +39,15 @@ int main(int argc, char** argv) {
 
     // Work
     for (int i = 0; !contextp->gotFinish() && i < 100; i++){
-        int res, x0, x1, x2, x3, y;
-        x0 = 0b00;
-        x1 = 0b01;
-        x2 = 0b10;
-        x3 = 0b11;
-        y = rand() & 0b11;
-        switch (y){
-            case 0b00:
-                res = x0;
-                break;
-            case 0b01:
-                res = x1;
-                break;
-            case 0b10:
-                res = x2;
-                break;
-            case 0b11:
-                res = x3;
-                break;
-            default:;
+        int input = rand() & 0b11111111;
+        int output = 0, en = (input > 0);
+        for (int tmp = input;tmp > 0; tmp >>= 1){
+            output++;
         }
-        top->io_X0 = x0;
-        top->io_X1 = x1;
-        top->io_X2 = x2;
-        top->io_X3 = x3;
-        top->io_Y = y;
+        top->io_inputs = input;
         top->eval();
         tfp->dump(contextp->time());
-        assert(top->io_F == res);
-        printf("[SIM] io_Y = %d, res: io_F = %d\n", y, top->io_F);
+        printf("[SIM] Input: %d, out: %d, valid: %d, seg: %x\n", input, top->io_outputs, top->io_valid, top->io_seg_res);
         contextp->timeInc(1);
     }
     delete top;
