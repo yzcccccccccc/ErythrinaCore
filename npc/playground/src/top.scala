@@ -1,14 +1,18 @@
 import chisel3._
 
 class TOP extends Module {
+    val bitWidth = 32
     val io = IO(new Bundle{
-        val inputs  = Input(UInt(8.W))
-        val valid  = Output(Bool())
-        val outputs = Output(UInt(3.W))
-        val seg_res = Output(UInt(7.W))
+        val srcA    = Input(SInt(bitWidth.W))
+        val srcB    = Input(SInt(bitWidth.W))
+        val aluop   = Input(UInt(3.W))
+        val res     = Output(UInt(bitWidth.W))
+        val zero    = Output(Bool())
+        val Overflow    = Output(Bool())
+        val Carryout    = Output(Bool())
     })
 
-    val myencoder   = Module(new GenEncoder)
+    val myalu   = Module(new GenALU(bitWidth))
     
-    myencoder.io <> io
+    myalu.io <> io
 }
