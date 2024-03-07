@@ -12,3 +12,4 @@
 !init.sh
 yosys-sta/
 /nvboard
+/am-kernels
