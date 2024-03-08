@@ -13,11 +13,13 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include <stdio.h>
 #include <isa.h>
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <memory/paddr.h>
 
 static int is_batch_mode = false;
 
@@ -52,7 +54,13 @@ static int cmd_q(char *args) {
   return -1;
 }
 
-static int cmd_help(char *args);
+static int cmd_help(char *args);\
+
+static int cmd_si(char *args);\
+
+static int cmd_info(char *args);\
+
+static int cmd_x(char *args);
 
 static struct {
   const char *name;
@@ -62,7 +70,9 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
+  { "si [N]", "Continue N steps of the program, default is 1", cmd_si },
+  { "info r/w", "show reg/watch point info", cmd_info},
+  { "x N EXPR", "show memory datas of 4B * N beginning with EXPR", cmd_x}
   /* TODO: Add more commands */
 
 };
@@ -88,6 +98,59 @@ static int cmd_help(char *args) {
       }
     }
     printf("Unknown command '%s'\n", arg);
+  }
+  return 0;
+}
+
+static int cmd_si(char *args){
+  int n = 0;
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL){
+    // no args: step 1!
+    n = 1;
+  }
+  else{
+    int ite = 0;
+    while (*arg != '\0'){
+      n = n * 10 + (*arg - '0');
+      ite ++;
+      if (ite > 10)
+        return 1;
+    }
+  }
+  cpu_exec(n);
+  return 0;
+}
+
+static int cmd_info(char *args){
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL){
+    printf("Insufficient args!\n");
+    return 1;
+  }
+  if (*arg == 'r'){
+    isa_reg_display();
+    return 0;
+  }
+  if (*arg == 'w'){
+    watchpoint_display();
+    return 0;
+  }
+  printf("Unknonw parameters (r or w!)\n");
+  return 1;
+}
+
+static int cmd_x(char *args){
+  char *arg = strtok(NULL, " ");
+  int N, EXPR;          // row version =v=
+  int res = sscanf(arg, "%d %x", &N, &EXPR);
+  if (res != 2){
+    printf("Fail to parse args.\n");
+  }
+  else{
+    for (int i = 0, addr = EXPR; i < N; i++, addr += 4){
+      printf("0x%08x: 0x%08x\n", addr, paddr_read(addr, 4));
+    }
   }
   return 0;
 }
