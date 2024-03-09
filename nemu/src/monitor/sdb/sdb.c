@@ -21,6 +21,7 @@
 #include "sdb.h"
 #include <memory/paddr.h>
 #include <string.h>
+#include <utils.h>
 
 static int is_batch_mode = false;
 
@@ -52,6 +53,8 @@ static int cmd_c(char *args) {
 
 
 static int cmd_q(char *args) {
+  nemu_state.state = NEMU_QUIT;
+  printf("Goodbye! iwi\n");
   return -1;
 }
 

@@ -56,7 +56,7 @@ static struct rule {
   {"\\(", TK_LPAR},         // left parathesis
   {"\\)", TK_RPAR},         // right parathesis
   {"==", TK_EQ},        // equal
-  {"0[xX][0-9a-fA-F]+|0[oO]?[0-7]+|0[bB][01]+|[1-9][0-9]+", TK_NUM},      // numbers
+  {"0[xX][0-9a-fA-F]+|0[oO]?[0-7]+|0[bB][01]+|[1-9][0-9]*", TK_NUM},      // numbers
   {"\\$[a-zA-Z0-9]+", TK_REG},         // regs
 
 };
@@ -118,7 +118,7 @@ static bool make_token(char *e) {
           case TK_NOTYPE: break;
           case TK_NUM:
             tokens[nr_token].type = rules[i].token_type;
-            strcpy(tokens[nr_token].str, rules[i].regex);
+            memcpy(tokens[nr_token].str, e + position - substr_len, substr_len);
             nr_token++;
             break;
           default:
@@ -141,8 +141,14 @@ static bool make_token(char *e) {
 bool check_parentheses(int p, int q){
   int dep = 0;
   for (int i = p; i <= q; i++){
-    if (tokens[i].type == TK_LPAR)  dep++;
-    if (tokens[i].type == TK_RPAR)  dep--;
+    if (tokens[i].type == TK_LPAR){
+      dep++;
+      continue;
+    }
+    if (tokens[i].type == TK_RPAR){
+      dep--;
+      continue;
+    }
     if (dep == 0 && i != q)
       return false;         // like () <ope> ()
   }
@@ -166,12 +172,19 @@ int get_op_position(int p, int q, int *type){
   int cur = p, cur_priority = 2, cur_type = -1;
   for (int i = p, priority; i <= q; i++){
     if (tokens[i].type== TK_NOTYPE) continue;
-    if (tokens[i].type == TK_LPAR) dep++;
-    if (tokens[i].type == TK_RPAR) dep--;
+    if (tokens[i].type == TK_LPAR){
+      dep++;
+      continue;
+    }
+    if (tokens[i].type == TK_RPAR){
+      dep--;
+      continue;
+    }
     if (dep != 0) continue;
     if (tokens[i].type == TK_NUM || tokens[i].type == TK_REG) continue;     // numbers
     if (!is_operator(tokens[i].type)){
       *type = -1;
+      assert(0);
       return -1;
     }
     if ((priority = get_priority(tokens[i].type)) <= cur_priority){
@@ -242,6 +255,8 @@ word_t expr(char *e, bool *success) {
 
   /* TODO: Insert codes to evaluate the expression. */
   int len =strlen(e);
+  *success = 1;
+  printf("%s\n", e);
   word_t res = eval(0, len - 1, success);
 
   return res;
