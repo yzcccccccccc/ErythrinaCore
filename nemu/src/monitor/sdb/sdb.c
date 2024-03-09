@@ -70,9 +70,9 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-  { "si [N]", "Continue N steps of the program, default is 1", cmd_si },
-  { "info r/w", "show reg/watch point info", cmd_info},
-  { "x N EXPR", "show memory datas of 4B * N beginning with EXPR", cmd_x}
+  { "si", "si [N]. Continue N steps of the program, default is 1", cmd_si },
+  { "info", "info r/w. show reg/watch point info", cmd_info},
+  { "x", "x N EXPR. show memory datas of 4B * N beginning with EXPR", cmd_x}
   /* TODO: Add more commands */
 
 };
@@ -141,15 +141,23 @@ static int cmd_info(char *args){
 }
 
 static int cmd_x(char *args){
-  char *arg = strtok(NULL, " ");
+  char *arg1 = strtok(NULL, " ");
+  char *arg2 = strtok(NULL, " ");
   int N, EXPR;          // row version =v=
-  int res = sscanf(arg, "%d %x", &N, &EXPR);
-  if (res != 2){
-    printf("Fail to parse args.\n");
+  if (arg1 == NULL || arg2 == NULL){
+    printf("Insufficient args.\n");
   }
   else{
+    sscanf(arg1, "%d", &N);
+    sscanf(arg2, "%x", &EXPR);
+    printf("%d 0x%x\n", N, EXPR);
     for (int i = 0, addr = EXPR; i < N; i++, addr += 4){
-      printf("0x%08x: 0x%08x\n", addr, paddr_read(addr, 4));
+      if (in_pmem(addr))
+        printf("0x%08x: 0x%08x\n", addr, paddr_read(addr, 4));
+      else{
+        printf("Exit because of out of boundary.\n");
+        break;
+      }
     }
   }
   return 0;
