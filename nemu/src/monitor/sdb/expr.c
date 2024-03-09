@@ -13,18 +13,30 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
+#include <assert.h>
 #include <isa.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <string.h>
+#include <stdlib.h>
+#include <errno.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
 
   /* TODO: Add more token types */
-
+  TK_NUM,
+  TK_REG,
+  TK_ADD,
+  TK_DIV,
+  TK_MUL,
+  TK_SUB,
+  TK_LPAR,
+  TK_RPAR,
 };
 
 static struct rule {
@@ -37,8 +49,16 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
-  {"\\+", '+'},         // plus
+  {"\\+", TK_ADD},         // plus
+  {"\\/", TK_DIV},         // devide
+  {"-", TK_SUB},           // subtract
+  {"\\*", TK_MUL},         // multiply
+  {"\\(", TK_LPAR},         // left parathesis
+  {"\\)", TK_RPAR},         // right parathesis
   {"==", TK_EQ},        // equal
+  {"0[xX][0-9a-fA-F]+|0[oO]?[0-7]+|0[bB][01]+|[1-9][0-9]+", TK_NUM},      // numbers
+  {"\\$[a-zA-Z0-9]+", TK_REG},         // regs
+
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -95,7 +115,14 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+          case TK_NOTYPE: break;
+          case TK_NUM:
+            tokens[nr_token].type = rules[i].token_type;
+            strcpy(tokens[nr_token].str, rules[i].regex);
+            nr_token++;
+            break;
+          default:
+            tokens[nr_token++].type = rules[i].token_type;
         }
 
         break;
@@ -111,6 +138,101 @@ static bool make_token(char *e) {
   return true;
 }
 
+bool check_parentheses(int p, int q){
+  int dep = 0;
+  for (int i = p; i <= q; i++){
+    if (tokens[i].type == TK_LPAR)  dep++;
+    if (tokens[i].type == TK_RPAR)  dep--;
+    if (dep == 0 && i != q)
+      return false;         // like () <ope> ()
+  }
+  assert(dep == 0);
+  return true;
+}
+
+int get_priority(int type){
+  if (type == TK_MUL || type == TK_DIV)
+    return 1;
+  else
+    return 0;
+}
+
+int is_operator(int type){
+  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_DIV;
+}
+
+int get_op_position(int p, int q, int *type){
+  int dep = 0;
+  int cur = p, cur_priority = 2, cur_type = -1;
+  for (int i = p, priority; i <= q; i++){
+    if (tokens[i].type== TK_NOTYPE) continue;
+    if (tokens[i].type == TK_LPAR) dep++;
+    if (tokens[i].type == TK_RPAR) dep--;
+    if (dep != 0) continue;
+    if (tokens[i].type == TK_NUM || tokens[i].type == TK_REG) continue;     // numbers
+    if (!is_operator(tokens[i].type)){
+      *type = -1;
+      return -1;
+    }
+    if ((priority = get_priority(tokens[i].type)) <= cur_priority){
+      cur_priority = priority;
+      cur = i;
+      cur_type = tokens[i].type;
+    }
+  }
+  *type = cur_type;
+  return cur;
+}
+
+uint32_t eval(int p, int q, bool *success){
+  if (*success == 0)
+    return 0;
+  if (p > q){
+    *success = 0;
+    return 0;
+  }
+  else{
+    if (p == q){
+      assert(tokens[p].type == TK_NUM);     // to add regs in the future.
+      uint32_t res = (uint32_t)(strtol(tokens[p].str, NULL, 0));
+      assert(errno == 0);
+      return res;
+    }
+    else 
+      if (check_parentheses(p, q)){
+        return eval(p + 1, q - 1, success);
+      }
+      else{
+        int optype;
+        int op = get_op_position(p, q, &optype);
+        assert(optype != -1);
+        uint32_t val1 = eval(p, op - 1, success), val2 = eval(op + 1, q, success);
+        switch(optype){
+          case TK_ADD:
+            return val1 + val2;
+            break;
+          case TK_SUB:
+            return val1 - val2;
+            break;
+          case TK_MUL:
+            return val1 * val2;
+            break;
+          case TK_DIV:
+            if (val2 == 0){
+              printf("Div0 error.\n");
+              success = 0;
+              return 0;
+            }
+            else {
+              return val1 / val2;
+            }
+            break;
+          default: assert(0);
+        }
+      }
+  }
+}
+
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
@@ -119,7 +241,8 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  int len =strlen(e);
+  word_t res = eval(0, len - 1, success);
 
-  return 0;
+  return res;
 }

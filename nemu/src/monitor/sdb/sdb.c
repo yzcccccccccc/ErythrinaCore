@@ -20,6 +20,7 @@
 #include <readline/history.h>
 #include "sdb.h"
 #include <memory/paddr.h>
+#include <string.h>
 
 static int is_batch_mode = false;
 
@@ -60,7 +61,9 @@ static int cmd_si(char *args);\
 
 static int cmd_info(char *args);\
 
-static int cmd_x(char *args);
+static int cmd_x(char *args);\
+
+static int cmd_p(char *args);\
 
 static struct {
   const char *name;
@@ -72,7 +75,8 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
   { "si", "si [N]. Continue N steps of the program, default is 1", cmd_si },
   { "info", "info r/w. show reg/watch point info", cmd_info},
-  { "x", "x N EXPR. show memory datas of 4B * N beginning with EXPR", cmd_x}
+  { "x", "x N EXPR. show memory datas of 4B * N beginning with EXPR", cmd_x},
+  { "p", "p EXPR. calculate the result of EXPR", cmd_p},
   /* TODO: Add more commands */
 
 };
@@ -150,17 +154,30 @@ static int cmd_x(char *args){
   else{
     sscanf(arg1, "%d", &N);
     sscanf(arg2, "%x", &EXPR);
-    printf("%d 0x%x\n", N, EXPR);
     for (int i = 0, addr = EXPR; i < N; i++, addr += 4){
       if (in_pmem(addr))
         printf("0x%08x: 0x%08x\n", addr, paddr_read(addr, 4));
       else{
-        printf("Exit because of out of boundary.\n");
+        printf("Exit because of out of boundary [0x%x,0x%x].\n", PMEM_LEFT, PMEM_RIGHT);
         break;
       }
     }
   }
   return 0;
+}
+
+int cmd_p(char *args){
+  bool success = 0;
+  char *e = strtok(NULL, "\n");
+  int res = expr(e, &success);
+  if (success){
+    printf("Res:%d\n", res);
+    return 1;
+  }
+  else{
+    printf("Invalid expression.\n");
+    return 0;
+  }
 }
 
 void sdb_set_batch_mode() {
