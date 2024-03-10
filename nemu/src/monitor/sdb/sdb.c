@@ -172,9 +172,9 @@ static int cmd_x(char *args){
 int cmd_p(char *args){
   bool success = 0;
   char *e = strtok(NULL, "\n");
-  int res = expr(e, &success);
+  uint32_t res = expr(e, &success);
   if (success){
-    printf("Res:%d\n", res);
+    printf("Res:0x%x (or %lu)\n", res, (long)res);
     return 1;
   }
   else{

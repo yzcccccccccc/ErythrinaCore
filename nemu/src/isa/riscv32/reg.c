@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <string.h>
 #include "local-include/reg.h"
 
 const char *regs[] = {
@@ -24,6 +25,7 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
+  // for riscv32
   for (int i = 0; i < 32; i++){
     printf("%s: 0x%08x\n", regs[i], gpr(i));
   }
@@ -31,5 +33,16 @@ void isa_reg_display() {
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
+  *success = 0;
+  if (strcmp(s, "pc") == 0){
+    *success = 1;
+    return cpu.pc;
+  }
+  for (int i = 0; i < 32; i++){
+    if (strcmp(s, regs[i]) == 0){
+      *success = 1;
+      return gpr(i);
+    }
+  }
   return 0;
 }

@@ -116,7 +116,7 @@ static bool make_token(char *e) {
 
         switch (rules[i].token_type) {
           case TK_NOTYPE: break;
-          case TK_NUM:
+          case TK_NUM: case TK_REG:
             tokens[nr_token].type = rules[i].token_type;
             memcpy(tokens[nr_token].str, e + position - substr_len, substr_len);
             nr_token++;
@@ -206,9 +206,17 @@ uint32_t eval(int p, int q, bool *success){
   }
   else{
     if (p == q){
-      assert(tokens[p].type == TK_NUM);     // to add regs in the future.
-      uint32_t res = (uint32_t)(strtol(tokens[p].str, NULL, 0));
-      assert(errno == 0);
+      assert(tokens[p].type == TK_NUM || tokens[p].type == TK_REG);
+      uint32_t res = 0;
+      if (tokens[p].type == TK_NUM){
+        res = (uint32_t)(strtol(tokens[p].str, NULL, 0));
+        assert(errno == 0);
+      }
+      if (tokens[p].type == TK_REG){
+        bool suc = 0;
+        res = (uint32_t)(isa_reg_str2val((tokens[p].str + 1), &suc));
+        assert(suc == 1);
+      }
       return res;
     }
     else 
