@@ -56,7 +56,7 @@ static struct rule {
   {"\\(", TK_LPAR},         // left parathesis
   {"\\)", TK_RPAR},         // right parathesis
   {"==", TK_EQ},        // equal
-  {"0[xX][0-9a-fA-F]+|0[oO]?[0-7]+|0[bB][01]+|[1-9][0-9]*", TK_NUM},      // numbers
+  {"0[xX][0-9a-fA-F]+|0[oO]?[0-7]+|0[bB][01]+|[1-9][0-9]*|0", TK_NUM},      // numbers
   {"\\$[a-zA-Z0-9]+", TK_REG},         // regs
 
 };
@@ -87,7 +87,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[64] __attribute__((used)) = {};
+static Token tokens[1024] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -165,7 +165,7 @@ int get_priority(int type){
 }
 
 int is_operator(int type){
-  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_DIV;
+  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_SUB;
 }
 
 int get_op_position(int p, int q, int *type){
@@ -229,7 +229,8 @@ uint32_t eval(int p, int q, bool *success){
         int optype;
         int op = get_op_position(p, q, &optype);
         assert(optype != -1);
-        uint32_t val1 = eval(p, op - 1, success), val2 = eval(op + 1, q, success);
+        uint32_t val1 = eval(p, op - 1, success);
+        uint32_t val2 = eval(op + 1, q, success);
         switch(optype){
           case TK_ADD:
             return val1 + val2;

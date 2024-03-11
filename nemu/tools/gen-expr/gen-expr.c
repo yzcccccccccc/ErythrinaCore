@@ -36,11 +36,11 @@ static char *code_format =
 "  return 0; "
 "}";
 
-uint32_t choose(uint32_t n){
+long choose(long n){
   return rand() % n;
 }
 
-int getlen(uint32_t n){
+int getlen(long n){
   if (n == 0)
     return 1;
   int len = 0;
@@ -51,15 +51,15 @@ int getlen(uint32_t n){
   return len;
 }
 
-uint32_t gen_num(){
-  uint32_t num, bound = 1000;
+long gen_num(){
+  long num, bound = 1000;
   int len;
   for (;;){
     //printf("%d ", bound);
     num = choose(bound);
     len = getlen(num);
     if (len <= buf_remain){
-      sprintf((buf + buf_cur), "%u", num);
+      sprintf((buf + buf_cur), "%ld", num);
       buf_cur += len;
       buf_remain -= len;
       return num;
@@ -99,8 +99,8 @@ int gen_rand_op(){
   return rt;
 }
 
-static uint32_t gen_rand_expr() {
-  uint32_t res = 0;
+static long gen_rand_expr() {
+  long res = 0;
   int opt = choose(3);
   if ((end = clock()) - start > GENTIME || buf_remain <= 2){
     opt = 0;
@@ -122,8 +122,8 @@ static uint32_t gen_rand_expr() {
     case 2:{
       if (buf_remain >= 3){
         int cur = buf_cur, remain = buf_remain;
-        uint32_t val1 = gen_rand_expr(), val2;
-        while (buf_remain < 2){
+        long val1 = gen_rand_expr(), val2;
+        while (buf_remain < 2 || val1 < 0){
           buf_cur = cur;
           buf_remain = remain;
           val1 = gen_rand_expr();
@@ -132,13 +132,18 @@ static uint32_t gen_rand_expr() {
         if (op == OP_DIV){
           cur = buf_cur;
           remain = buf_remain;
-          while ((val2 = gen_rand_expr()) == 0){
+          while ((val2 = gen_rand_expr()) <= 0){
             buf_cur = cur;
             buf_remain = remain;
           }
         }
         else{
-          val2 = gen_rand_expr();
+          cur = buf_cur;
+          remain = buf_remain;
+          while ((val2 = gen_rand_expr()) < 0){
+            buf_cur = cur;
+            buf_remain = remain;
+          }
         }
         switch (op) {
           case OP_ADD:
@@ -183,7 +188,7 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc /tmp/.code.c -o /tmp/.expr -Werror");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
