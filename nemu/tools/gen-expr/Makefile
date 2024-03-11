@@ -15,4 +15,9 @@
 
 NAME = gen-expr
 SRCS = gen-expr.c
+
+gen:
+	./build/gen-expr 1000 > input
+run:
+	./build/gen-expr
 include $(NEMU_HOME)/scripts/build.mk

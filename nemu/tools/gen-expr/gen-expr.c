@@ -20,9 +20,14 @@
 #include <assert.h>
 #include <string.h>
 
+clock_t start, end;
+
 // this should be enough
-static char buf[65536] = {};
-static char code_buf[65536 + 128] = {}; // a little larger than `buf`
+int buf_cur, buf_remain;
+#define BUFLEN 100
+#define GENTIME 4000
+static char buf[BUFLEN];
+static char code_buf[BUFLEN + 128] = {}; // a little larger than `buf`
 static char *code_format =
 "#include <stdio.h>\n"
 "int main() { "
@@ -31,20 +36,145 @@ static char *code_format =
 "  return 0; "
 "}";
 
-static void gen_rand_expr() {
-  buf[0] = '\0';
+uint32_t choose(uint32_t n){
+  return rand() % n;
+}
+
+int getlen(uint32_t n){
+  if (n == 0)
+    return 1;
+  int len = 0;
+  while (n){
+    n /= 10;
+    len++;
+  }
+  return len;
+}
+
+uint32_t gen_num(){
+  uint32_t num, bound = 1000;
+  int len;
+  for (;;){
+    //printf("%d ", bound);
+    num = choose(bound);
+    len = getlen(num);
+    if (len <= buf_remain){
+      sprintf((buf + buf_cur), "%u", num);
+      buf_cur += len;
+      buf_remain -= len;
+      return num;
+    }
+    else{
+      bound = 1;
+      for (int i = 0; i < buf_remain; i++)  bound *= 10;
+    }
+  }
+}
+
+enum{
+  OP_ADD,
+  OP_SUB,
+  OP_MUL,
+  OP_DIV
+};
+
+int gen_rand_op(){
+  int rt = choose(4);
+  switch (rt) {
+    case OP_ADD:
+      buf[buf_cur] = '+';
+      break;
+    case OP_SUB:
+      buf[buf_cur] = '-';
+      break;
+    case OP_DIV:
+      buf[buf_cur] = '/';
+      break;
+    case OP_MUL:
+      buf[buf_cur] = '*';
+      break;
+  }
+  buf_cur++;
+  buf_remain--;
+  return rt;
+}
+
+static uint32_t gen_rand_expr() {
+  uint32_t res = 0;
+  int opt = choose(3);
+  if ((end = clock()) - start > GENTIME || buf_remain <= 2){
+    opt = 0;
+  }
+  switch (opt) {
+    case 0:{
+      res = gen_num();
+      break;
+    }
+    case 1:{
+      if (buf_remain >= 3){
+        buf_remain -= 2;    // '('')'
+        buf[buf_cur++] = '(';
+        res = gen_rand_expr();
+        buf[buf_cur++] = ')';
+      }
+      break;
+    }
+    case 2:{
+      if (buf_remain >= 3){
+        int cur = buf_cur, remain = buf_remain;
+        uint32_t val1 = gen_rand_expr(), val2;
+        while (buf_remain < 2){
+          buf_cur = cur;
+          buf_remain = remain;
+          val1 = gen_rand_expr();
+        }
+        int op = gen_rand_op();
+        if (op == OP_DIV){
+          cur = buf_cur;
+          remain = buf_remain;
+          while ((val2 = gen_rand_expr()) == 0){
+            buf_cur = cur;
+            buf_remain = remain;
+          }
+        }
+        else{
+          val2 = gen_rand_expr();
+        }
+        switch (op) {
+          case OP_ADD:
+            res = val1 + val2;
+            break;
+          case OP_SUB:
+            res = val1 - val2;
+            break;
+          case OP_MUL:
+            res = val1 * val2;
+            break;
+          case OP_DIV:
+            res = val1 / val2;
+            break;
+        }
+      }
+      break;
+    }
+  }
+  return res;
 }
 
 int main(int argc, char *argv[]) {
   int seed = time(0);
   srand(seed);
-  int loop = 1;
+  int loop = 10;
   if (argc > 1) {
     sscanf(argv[1], "%d", &loop);
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    buf_cur = 0;
+    buf_remain = BUFLEN;
+    start = clock();
     gen_rand_expr();
+    buf[buf_cur] = '\0';
 
     sprintf(code_buf, code_format, buf);
 
