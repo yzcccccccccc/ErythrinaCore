@@ -165,16 +165,20 @@ bool check_parentheses(int p, int q){
 
 int get_priority(int type){
   if (type == TK_MUL || type == TK_DIV)
-    return 2;
+    return 3;
   else
     if (type == TK_ADD || type == TK_SUB)
-      return 1;
+      return 2;
     else
-      return 0;
+      if (type == TK_EQ || type == TK_UNEQ)
+        return 1;
+      else
+        return 0;
 }
 
 int is_operator(int type){
-  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_SUB || type == TK_EQ || type == TK_UNEQ;
+  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_SUB 
+      || type == TK_EQ || type == TK_UNEQ || type == TK_AND;
 }
 
 int get_op_position(int p, int q, int *type){
@@ -272,6 +276,12 @@ uint32_t eval(int p, int q, bool *success){
                 return val1 / val2;
               }
               break;
+            case TK_EQ:
+              return val1 == val2;
+            case TK_UNEQ:
+              return val1 != val2;
+            case TK_AND:
+              return val1 && val2;
             default: assert(0);
           }
         }
