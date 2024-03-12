@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include <errno.h>
 #include <stdio.h>
 #include <isa.h>
 #include <cpu/cpu.h>
@@ -68,6 +69,10 @@ static int cmd_x(char *args);\
 
 static int cmd_p(char *args);\
 
+static int cmd_d(char *args);\
+
+static int cmd_w(char *args);\
+
 static struct {
   const char *name;
   const char *description;
@@ -80,6 +85,8 @@ static struct {
   { "info", "info r/w. show reg/watch point info", cmd_info},
   { "x", "x N EXPR. show memory datas of 4B * N beginning with EXPR", cmd_x},
   { "p", "p EXPR. calculate the result of EXPR", cmd_p},
+  { "d", "d NO. delete the watchpoint", cmd_d},
+  { "w", "w EXPR. add watchpoint", cmd_w},
   /* TODO: Add more commands */
 
 };
@@ -185,6 +192,26 @@ int cmd_p(char *args){
     printf("Invalid expression.\n");
     return 0;
   }
+}
+
+int cmd_d(char *args){
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL){
+    printf("Insufficient args.\n");
+    return 0;
+  }
+  else{
+    int NO = strtol(arg, NULL, 0);
+    assert(errno == 0);
+    del_watchpoint(NO);
+    return 0;
+  }
+}
+
+int cmd_w(char *args){
+  char *expr = strtok(NULL, "\n");
+  add_watchpoint(expr);
+  return 0;
 }
 
 void sdb_set_batch_mode() {

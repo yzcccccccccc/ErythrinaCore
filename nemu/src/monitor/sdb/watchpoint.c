@@ -16,17 +16,56 @@
 #include "sdb.h"
 
 #define NR_WP 32
+#define BUFLEN 32
 
 typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
 
   /* TODO: Add more members if necessary */
+  char buf[BUFLEN];
+  uint32_t hisval;
 
 } WP;
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
+
+WP *new_wp(){
+  if (free_ == NULL)
+    return NULL;
+  else{
+    WP *ptr = free_;
+    free_ = free_->next;
+    if (head == NULL){
+      head = ptr;
+      ptr->next = NULL;
+    }
+    else{
+      ptr->next = head->next;
+      head->next = ptr;
+    }
+    return ptr;
+  }
+}
+
+void free_wp(WP *wp){
+  WP *pre_ptr = head;
+  assert(pre_ptr != NULL);
+  while (pre_ptr->next != wp){
+    pre_ptr = pre_ptr->next;
+    assert(pre_ptr != NULL);
+  }
+  pre_ptr->next = wp->next;
+  if (free_ == NULL){
+    free_ = wp;
+    wp->next = NULL;
+  }
+  else{
+    wp->next = free_->next;
+    free_ = wp;
+  }
+}
 
 void init_wp_pool() {
   int i;
@@ -40,7 +79,56 @@ void init_wp_pool() {
 }
 
 /* TODO: Implement the functionality of watchpoint */
-void watchpoint_display(){
-  
+
+// return 0 for unchanged
+int watchpoint_scan(){
+  int change = 0;
+  for (WP *ptr = head;ptr != NULL; ptr = ptr->next){
+    bool suc = 1;
+    uint32_t val = expr(ptr->buf, &suc);
+    if (val != ptr->hisval){
+      printf("Watchpoint %d (%s) changed.\n", ptr->NO, ptr->buf);
+      change = 1;
+    }
+    ptr->hisval = val;
+  }
+  return change;
 }
 
+void watchpoint_display(){
+  WP *ptr = head; 
+  printf("[watch points]\n");
+  int cnt = 0;
+  while (ptr != NULL){
+    printf("%03d %s (val:%u)\n", ptr->NO, ptr->buf, ptr->hisval);
+    ptr = ptr->next;
+    cnt ++;
+  }
+  printf("(%d watchpoints)\n", cnt);
+}
+
+// return number of watchppoint
+int add_watchpoint(char *buf){
+  WP *ptr = new_wp();
+  assert(ptr != NULL);
+  bool suc = 1;
+  ptr->hisval = expr(buf, &suc);
+  if (!suc){
+    printf("Invalid expression.\n");
+    return 0;
+  }
+  strcpy(ptr->buf, buf);
+  return ptr->NO;
+}
+
+void del_watchpoint(int NO){
+  for (WP *ptr = head; ptr != NULL; ptr = ptr->next){
+    if (ptr->NO == NO){
+      printf("Delete watchpoint %d (%s).\n", NO, ptr->buf);
+      free_wp(ptr);
+      return;
+    }
+  }
+  printf("Unknown watchpoint.\n");
+  return;
+}

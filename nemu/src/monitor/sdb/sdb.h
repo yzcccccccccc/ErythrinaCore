@@ -21,5 +21,8 @@
 word_t expr(char *e, bool *success);
 
 void watchpoint_display();
+int add_watchpoint(char *buf);
+void del_watchpoint(int NO);
+int watchpoint_scan();
 
 #endif
