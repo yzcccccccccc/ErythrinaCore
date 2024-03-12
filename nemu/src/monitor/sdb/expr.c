@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include "common.h"
+#include "memory/paddr.h"
 #include <assert.h>
 #include <isa.h>
 
@@ -37,6 +38,9 @@ enum {
   TK_SUB,
   TK_LPAR,
   TK_RPAR,
+  TK_UNEQ,
+  TK_AND,
+  TK_DEREF,
 };
 
 static struct rule {
@@ -56,6 +60,8 @@ static struct rule {
   {"\\(", TK_LPAR},         // left parathesis
   {"\\)", TK_RPAR},         // right parathesis
   {"==", TK_EQ},        // equal
+  {"!=", TK_UNEQ},      // !=
+  {"&&", TK_AND},       // &&
   {"0[xX][0-9a-fA-F]+|0[oO]?[0-7]+|0[bB][01]+|[1-9][0-9]*|0", TK_NUM},      // numbers
   {"\\$[a-zA-Z0-9]+", TK_REG},         // regs
 
@@ -159,18 +165,21 @@ bool check_parentheses(int p, int q){
 
 int get_priority(int type){
   if (type == TK_MUL || type == TK_DIV)
-    return 1;
+    return 2;
   else
-    return 0;
+    if (type == TK_ADD || type == TK_SUB)
+      return 1;
+    else
+      return 0;
 }
 
 int is_operator(int type){
-  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_SUB;
+  return type == TK_MUL || type == TK_DIV || type == TK_ADD || type == TK_SUB || type == TK_EQ || type == TK_UNEQ;
 }
 
 int get_op_position(int p, int q, int *type){
   int dep = 0;
-  int cur = p, cur_priority = 2, cur_type = -1;
+  int cur = p, cur_priority = 3, cur_type = -1;
   for (int i = p, priority; i <= q; i++){
     if (tokens[i].type== TK_NOTYPE) continue;
     if (tokens[i].type == TK_LPAR){
@@ -182,7 +191,7 @@ int get_op_position(int p, int q, int *type){
       continue;
     }
     if (dep != 0) continue;
-    if (tokens[i].type == TK_NUM || tokens[i].type == TK_REG) continue;     // numbers
+    if (tokens[i].type == TK_NUM || tokens[i].type == TK_REG || tokens[i].type == TK_DEREF) continue;     // numbers or deref
     if (!is_operator(tokens[i].type)){
       *type = -1;
       assert(0);
@@ -226,32 +235,45 @@ uint32_t eval(int p, int q, bool *success){
         return eval(p + 1, q - 1, success);
       }
       else{
-        int optype;
-        int op = get_op_position(p, q, &optype);
-        assert(optype != -1);
-        uint32_t val1 = eval(p, op - 1, success);
-        uint32_t val2 = eval(op + 1, q, success);
-        switch(optype){
-          case TK_ADD:
-            return val1 + val2;
-            break;
-          case TK_SUB:
-            return val1 - val2;
-            break;
-          case TK_MUL:
-            return val1 * val2;
-            break;
-          case TK_DIV:
-            if (val2 == 0){
-              printf("Div0 error.\n");
-              success = 0;
-              return 0;
-            }
-            else {
-              return val1 / val2;
-            }
-            break;
-          default: assert(0);
+        if (tokens[p].type == TK_DEREF){
+          uint32_t addr = eval(p + 1, q, success);
+          if (in_pmem(addr)){
+            return paddr_read(addr, 4);
+          }
+          else{
+            printf("Invlaid address: 0x%x\n", addr);
+            *success = 0;
+            return 0;
+          }
+        }
+        else{
+          int optype;
+          int op = get_op_position(p, q, &optype);
+          assert(optype != -1);
+          uint32_t val1 = eval(p, op - 1, success);
+          uint32_t val2 = eval(op + 1, q, success);
+          switch(optype){
+            case TK_ADD:
+              return val1 + val2;
+              break;
+            case TK_SUB:
+              return val1 - val2;
+              break;
+            case TK_MUL:
+              return val1 * val2;
+              break;
+            case TK_DIV:
+              if (val2 == 0){
+                printf("Div0 error.\n");
+                success = 0;
+                return 0;
+              }
+              else {
+                return val1 / val2;
+              }
+              break;
+            default: assert(0);
+          }
         }
       }
   }
@@ -265,6 +287,11 @@ word_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
+  for (int i = 0; i < nr_token; i++){
+    if (tokens[i].type == TK_MUL && (i == 0 || is_operator(tokens[i - 1].type)))
+      tokens[i].type = TK_DEREF;
+  }
+
   *success = 1;
   word_t res = eval(0, nr_token - 1, success);
 

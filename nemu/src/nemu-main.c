@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
 #endif
 
-// for debugging expr()
+/* for debugging expr()
   Log("Testing expr()...\n");
   FILE *input = fopen("/home/yzcc/ysyx-workbench/nemu/tools/gen-expr/input", "r");
   uint32_t res;
@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     Log("Buf:%s, %s (%u, std:%u), %s\n", buf, (expr_res == res)?"pass":"fail", expr_res, res, suc?"success":"fail");
     assert(expr_res == res);
   }
+  */
 
   /* Start engine. */
   engine_start();

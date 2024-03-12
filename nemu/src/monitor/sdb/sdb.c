@@ -150,7 +150,7 @@ static int cmd_info(char *args){
 static int cmd_x(char *args){
   char *arg1 = strtok(NULL, " ");
   char *arg2 = strtok(NULL, " ");
-  int N, EXPR;          // row version =v=
+  int N, EXPR;          // raw version =v=
   if (arg1 == NULL || arg2 == NULL){
     printf("Insufficient args.\n");
   }
@@ -172,6 +172,10 @@ static int cmd_x(char *args){
 int cmd_p(char *args){
   bool success = 0;
   char *e = strtok(NULL, "\n");
+  if (e == NULL){
+    printf("Inefficient args.\n");
+    return 0;
+  }
   uint32_t res = expr(e, &success);
   if (success){
     printf("Res:0x%x (or %lu)\n", res, (long)res);
