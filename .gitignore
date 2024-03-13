@@ -11,6 +11,6 @@
 !.gitignore
 !init.sh
 yosys-sta/
-/nvboard
 /am-kernels
 /fceux-am
+/nvboard
