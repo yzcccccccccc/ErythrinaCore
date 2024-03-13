@@ -12,5 +12,5 @@
 !init.sh
 yosys-sta/
 /am-kernels
-/fceux-am
 /nvboard
+/fceux-am
