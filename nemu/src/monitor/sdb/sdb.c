@@ -210,6 +210,7 @@ int cmd_d(char *args){
 
 int cmd_w(char *args){
   char *expr = strtok(NULL, "\n");
+  assert(expr != NULL);
   add_watchpoint(expr);
   return 0;
 }
@@ -219,6 +220,7 @@ void sdb_set_batch_mode() {
 }
 
 void sdb_mainloop() {
+  sdb_set_batch_mode();
   if (is_batch_mode) {
     cmd_c(NULL);
     return;

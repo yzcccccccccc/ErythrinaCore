@@ -13,8 +13,17 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "cpu/cpu.h"
 #include <isa.h>
 #include <memory/paddr.h>
+
+void restart() {
+  /* Set the initial program counter. */
+  cpu.pc = RESET_VECTOR;
+
+  /* The zero register is always 0. */
+  cpu.gpr[0] = 0;
+}
 
 // this is not consistent with uint8_t
 // but it is ok since we do not access the array directly
@@ -26,15 +35,13 @@ static const uint32_t img [] = {
   0xdeadbeef,  // some data
 };
 
-static void restart() {
-  /* Set the initial program counter. */
-  cpu.pc = RESET_VECTOR;
-
-  /* The zero register is always 0. */
-  cpu.gpr[0] = 0;
-}
-
 void init_isa() {
+  // ISA-Check
+  //u_test();
+  //i_test();
+  //b_test();
+  //r_test();
+
   /* Load built-in image. */
   memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
 

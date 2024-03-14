@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     Log("Buf:%s, %s (%u, std:%u), %s\n", buf, (expr_res == res)?"pass":"fail", expr_res, res, suc?"success":"fail");
     assert(expr_res == res);
   }
-  */
+*/
 
   /* Start engine. */
   engine_start();

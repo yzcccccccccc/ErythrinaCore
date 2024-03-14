@@ -55,4 +55,12 @@ word_t isa_query_intr();
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc);
 void isa_difftest_attach();
 
+extern void restart();
+
+// simple test
+extern void u_test();
+extern void i_test();
+extern void b_test();
+extern void r_test();
+
 #endif
