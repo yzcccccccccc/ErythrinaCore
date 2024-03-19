@@ -1,4 +1,4 @@
-import ErithrinaCore._
+import ErythrinaCore._
 import circt.stage._
 
 object Elaborate extends App {

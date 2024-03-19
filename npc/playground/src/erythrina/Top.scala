@@ -1,4 +1,4 @@
-package ErithrinaCore
+package ErythrinaCore
 
 import chisel3._
 
