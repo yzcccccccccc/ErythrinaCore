@@ -3,9 +3,9 @@ package ErythrinaCore
 import chisel3._
 
 class TOP extends Module {
-    val io = IO(new ALUIO)
+    val io = IO(new IFUIO)
 
-    val myalu = Module(new ALU)
+    val myIFU = Module(new IFU)
 
-    myalu.io <> io
+    myIFU.io <> io
 }
