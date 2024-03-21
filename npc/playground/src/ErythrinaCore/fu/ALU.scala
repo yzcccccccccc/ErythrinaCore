@@ -27,23 +27,31 @@ object ALUop{
   def usesub(aluop: UInt) = (aluop(3,2) === 0.U) & (aluop(1,0) =/= 0.U)
 }
 
-class ALUIO extends Bundle with ALUtrait{
+class ALUIO_in extends Bundle with ALUtrait{
   val src1 = Input(UInt(XLEN.W))
   val src2 = Input(UInt(XLEN.W))
   val aluop = Input(UInt(ALUopLEN.W))
+}
+
+class ALUIO_out extends Bundle with ALUtrait{
   val res = Output(UInt(XLEN.W))
+}
+
+class ALUIO extends Bundle with ALUtrait{
+  val ALUin   = new ALUIO_in
+  val ALUout  = new ALUIO_out
 }
 
 class ALU extends Module with ALUtrait{
   val io = IO(new ALUIO)
 
-  val (src1, src2, aluop) = (io.src1, io.src2, io.aluop)
+  val (src1, src2, aluop) = (io.ALUin.src1, io.ALUin.src2, io.ALUin.aluop)
 
   val UseSub = ALUop.usesub(aluop)
   val shamt = src2(4, 0)
 
   val add_sub_res = (src1 +& (src2 ^ Fill(XLEN, UseSub))) + UseSub
 
-  io.res := add_sub_res
+  io.ALUout.res := add_sub_res
 
 }

@@ -5,28 +5,37 @@ import chisel3.util._
 
 trait RegTrait extends ErythrinaDefault{
     val RegopLen    = 2
+    val RegNum          = 32
+    val RegAddrLen      = 5         // log(32)
 }
 
 // RegFile
-class RegFileIO extends Bundle with RegTrait{
+class RegFileIN extends Bundle with RegTrait{
     // 2 Read Ports
     val raddr1  = Input(UInt(RegAddrLen.W))
     val rdata1  = Output(UInt(XLEN.W))
     val raddr2  = Input(UInt(RegAddrLen.W))
     val rdata2  = Output(UInt(XLEN.W))
+}
 
+class RegFileOUT extends Bundle with RegTrait{
     // 1 Write Ports
     val waddr   = Input(UInt(RegAddrLen.W))
     val wdata   = Input(UInt(XLEN.W))
 }
 
-object RegFile extends Module with ErythrinaDefault {
+class RegFileIO extends Bundle with RegTrait{
+    val readIO  = new RegFileIN
+    val writeIO = new RegFileOUT
+}
+
+object RegFile extends Module with RegTrait {
     val io = IO(new RegFileIO)
 
     val RegArray = RegInit(VecInit(Seq.fill(RegNum)(0.U(XLEN.W))))
 
-    RegArray(io.waddr) := Mux(io.waddr === 0.U, 0.U, io.wdata)
+    RegArray(io.writeIO.waddr) := Mux(io.writeIO.waddr === 0.U, 0.U, io.writeIO.wdata)
 
-    io.rdata1 := RegArray(io.raddr1)
-    io.rdata2 := RegArray(io.raddr2)
+    io.readIO.rdata1 := RegArray(io.readIO.raddr1)
+    io.readIO.rdata2 := RegArray(io.readIO.raddr2)
 }
