@@ -34,7 +34,8 @@ class ALUIO_in extends Bundle with ALUtrait{
 }
 
 class ALUIO_out extends Bundle with ALUtrait{
-  val res = Output(UInt(XLEN.W))
+  val zero  = Output(Bool())
+  val res   = Output(UInt(XLEN.W))
 }
 
 class ALUIO extends Bundle with ALUtrait{
@@ -52,6 +53,6 @@ class ALU extends Module with ALUtrait{
 
   val add_sub_res = (src1 +& (src2 ^ Fill(XLEN, UseSub))) + UseSub
 
-  io.ALUout.res := add_sub_res
-
+  io.ALUout.res   := add_sub_res
+  io.ALUout.zero  := (io.ALUout.res === 0.U)
 }

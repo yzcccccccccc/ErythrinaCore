@@ -66,11 +66,13 @@ class IDU extends Module with IDUtrait{
     val rf_wen = ~(instType === TypeB || instType === TypeS)
 
     // to EXU!
+    io.IDU2EXU.valid            := 1.B
     io.IDU2EXU.bits.ALUin.src1  := src1
     io.IDU2EXU.bits.ALUin.src2  := src2
     io.IDU2EXU.bits.ALUin.aluop := aluop
     io.IDU2EXU.bits.BPUop       := bpuop
     io.IDU2EXU.bits.LSUop       := lsuop
+    io.IDU2EXU.bits.data        := rdata2
     io.IDU2EXU.bits.rd          := rd
     io.IDU2EXU.bits.rf_wen      := rf_wen
     io.IDU2EXU.bits.pc          := pc

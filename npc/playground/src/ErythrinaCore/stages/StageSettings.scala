@@ -32,9 +32,43 @@ class ID2EXzip extends Bundle with IDUtrait{
   val BPUop = UInt(BPUopLEN.W)
 
   // for LSU (MEM)
+  val data  = UInt(XLEN.W)
   val LSUop = UInt(LSUopLen.W)
 
   // for WBU (WB)
   val rd      = UInt(RegAddrLen.W)
   val rf_wen  = Bool() 
+}
+
+// EXU
+trait EXUtrait extends ErythrinaDefault with FUtrait{
+
+}
+
+class EX2MEMzip extends Bundle with EXUtrait{
+  val inst  = UInt(XLEN.W)
+  val pc    = UInt(XLEN.W)
+
+  // for LSU (MEM)
+  val LSUop = UInt(LSUopLen.W)
+  val data  = UInt(XLEN.W)
+  val addr  = UInt(XLEN.W)
+
+  // for WBU (WB)
+  val rd      = UInt(RegAddrLen.W)
+  val rf_wen  = Bool()
+}
+
+// MEMU
+trait MEMUtrait extends ErythrinaDefault with FUtrait{
+
+}
+
+class MEM2WBzip extends Bundle with MEMUtrait{
+  val inst  = UInt(XLEN.W)
+  val pc    = UInt(XLEN.W)
+
+  // for WBU (WB)
+  val rf_wen      = Bool()
+  val RegWriteIO  = Flipped(new RegFileOUT)
 }
