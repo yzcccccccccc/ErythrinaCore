@@ -40,9 +40,12 @@ class MemManager extends Module with ErythrinaDefault{
     // Request
     val MemReqReady = io.MemReq.ready
     val MemReqValid = io.IFU_Req.valid | io.MEMU_Req.valid
+    io.IFU_Req.ready    := MemReqReady
+    io.MEMU_Req.ready   := MemReqReady
     io.MemReq.valid     := MemReqValid
     io.MemReq.bits.addr := Mux(io.MEMU_Req.valid, io.MEMU_Req.bits.addr, io.IFU_Req.bits.addr)
     io.MemReq.bits.mask := Mux(io.MEMU_Req.valid, io.MEMU_Req.bits.mask, io.IFU_Req.bits.mask)
+    io.MemReq.bits.data := io.MEMU_Req.bits.data
 
     // Response
     val MemRespReady    = Mux(io.MEMU_Req.valid, io.MEMU_Resp.ready, io.IFU_Resp.ready)

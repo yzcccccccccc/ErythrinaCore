@@ -9,7 +9,7 @@ class WBUIO extends Bundle with WBUtrait{
     val MEMU2WBU    = Flipped(Decoupled(new MEM2WBzip))
 
     // RegFile
-    val RegWriteIO  = new RegFileOUT
+    val RegWriteIO  = Flipped(new RegFileOUT)
 
     // Commit(Debug)
     val inst_commit = new ErythrinaCommit

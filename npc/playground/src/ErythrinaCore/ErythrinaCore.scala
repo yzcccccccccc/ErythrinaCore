@@ -20,6 +20,12 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     val EXU_inst    = Module(new EXU)
     val MEMU_inst   = Module(new MEMU)
     val WBU_inst    = Module(new WBU)
+    
+    // regfile
+    val regfile     = Module(new RegFile)
+    regfile.io.readIO <> IDU_inst.io.RFRead
+    regfile.io.writeIO <> WBU_inst.io.RegWriteIO
+
 
     // pipelines
     IFU_inst.io.IFU2IDU <> IDU_inst.io.IFU2IDU

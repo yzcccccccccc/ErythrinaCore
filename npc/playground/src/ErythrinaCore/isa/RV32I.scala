@@ -41,8 +41,8 @@ object RV32I_U extends InstrType{
   def AUIPC   = BitPat("b???????_?????_?????_???_?????_00101_11")
 
   val table = Array(
-    LUI           -> List(TypeU, ALUop.dir, LSUop.nop),
-    AUIPC         -> List(TypeU, ALUop.add, LSUop.nop)
+    LUI           -> List(TypeU, ALUop.dir, LSUop.nop, BPUop.nop),
+    AUIPC         -> List(TypeU, ALUop.add, LSUop.nop, BPUop.nop)
   )
 }
 
@@ -113,5 +113,5 @@ object RV32I_B extends InstrType{
 }
 
 object RV32I extends InstrType{
-  val table = RV32I_I.table ++ RV32I_B.table ++ RV32I_J.table ++ RV32I_R.table ++ RV32I_S.table ++ RV32I_U.table
+  val table = RV32I_J.table ++ RV32I_I.table ++ RV32I_B.table ++ RV32I_R.table ++ RV32I_S.table ++ RV32I_U.table
 }

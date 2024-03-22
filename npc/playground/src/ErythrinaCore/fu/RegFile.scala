@@ -29,7 +29,7 @@ class RegFileIO extends Bundle with RegTrait{
     val writeIO = new RegFileOUT
 }
 
-object RegFile extends Module with RegTrait {
+class RegFile extends Module with RegTrait {
     val io = IO(new RegFileIO)
 
     val RegArray = RegInit(VecInit(Seq.fill(RegNum)(0.U(XLEN.W))))
