@@ -70,7 +70,7 @@ class MEMU extends Module with MEMUtrait{
     io.MEMU2WBU.valid       := 1.B
     io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
     io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst
-    io.MEMU2WBU.bits.rf_wen := io.EXU2MEMU.bits.rf_wen
     io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd
     io.MEMU2WBU.bits.RegWriteIO.wdata   := LoadRes
+    io.MEMU2WBU.bits.RegWriteIO.wen     := io.EXU2MEMU.bits.rf_wen
 }

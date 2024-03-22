@@ -69,7 +69,6 @@ class MEM2WBzip extends Bundle with MEMUtrait{
   val pc    = UInt(XLEN.W)
 
   // for WBU (WB)
-  val rf_wen      = Bool()
   val RegWriteIO  = Flipped(new RegFileOUT)
 }
 
