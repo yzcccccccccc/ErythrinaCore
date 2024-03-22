@@ -12,7 +12,7 @@ VERILATOR = verilator
 # Flags
 VERILATOR_NVFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
-VERILATOR_SIMFLAGS += --cc --exe --trace --build -j 0 -CFLAGS "-DVERILATOR_SIM"
+VERILATOR_SIMFLAGS += --cc --exe --trace --build -j 4 -CFLAGS "-DVERILATOR_SIM"
 VERILATOR_VERFLAGS += --cc
 
 test:
@@ -39,8 +39,9 @@ checkformat:
 	mill -i __.checkFormat
 
 # Verilator
-VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-CSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+# VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+VCSRCS = $(shell find $(abspath ./playground/csrc) -name "main.cpp")		# for verilator
+CSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
 VSRCS = $(shell find $(abspath $(BUILD_DIR)) -name "*.v")
 SIM_TARGET = V$(TOPNAME)
 

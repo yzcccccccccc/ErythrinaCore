@@ -20,19 +20,19 @@ object RV32I_I extends InstrType{
   def SRAI  = BitPat("b0100000_?????_?????_101_?????_00100_11")
 
   val table = Array(
-    LB            -> List(TypeI, ALUop.add, LSUop.lb, BPUop.nop),
-    LH            -> List(TypeI, ALUop.add, LSUop.lh, BPUop.nop),
-    LW            -> List(TypeI, ALUop.add, LSUop.lw, BPUop.nop),
-    LBU           -> List(TypeI, ALUop.add, LSUop.lbu, BPUop.nop),
-    LHU           -> List(TypeI, ALUop.add, LSUop.lhu, BPUop.nop),
-    ADDI          -> List(TypeI, ALUop.add, LSUop.nop, BPUop.nop),
-    SLTI          -> List(TypeI, ALUop.slt, LSUop.nop, BPUop.nop),
-    SLTIU         -> List(TypeI, ALUop.sltu, LSUop.nop, BPUop.nop),
-    XORI          -> List(TypeI, ALUop.xor, LSUop.nop, BPUop.nop),
-    ANDI          -> List(TypeI, ALUop.and, LSUop.nop, BPUop.nop),
-    SLLI          -> List(TypeI, ALUop.sll, LSUop.nop, BPUop.nop),
-    SRLI          -> List(TypeI, ALUop.srl, LSUop.nop, BPUop.nop),
-    SRAI          -> List(TypeI, ALUop.sra, LSUop.nop, BPUop.nop)
+    LB            -> List(TypeI, ALUop.add, LSUop.lb, BPUop.nop, CSRop.nop),
+    LH            -> List(TypeI, ALUop.add, LSUop.lh, BPUop.nop, CSRop.nop),
+    LW            -> List(TypeI, ALUop.add, LSUop.lw, BPUop.nop, CSRop.nop),
+    LBU           -> List(TypeI, ALUop.add, LSUop.lbu, BPUop.nop, CSRop.nop),
+    LHU           -> List(TypeI, ALUop.add, LSUop.lhu, BPUop.nop, CSRop.nop),
+    ADDI          -> List(TypeI, ALUop.add, LSUop.nop, BPUop.nop, CSRop.nop),
+    SLTI          -> List(TypeI, ALUop.slt, LSUop.nop, BPUop.nop, CSRop.nop),
+    SLTIU         -> List(TypeI, ALUop.sltu, LSUop.nop, BPUop.nop, CSRop.nop),
+    XORI          -> List(TypeI, ALUop.xor, LSUop.nop, BPUop.nop, CSRop.nop),
+    ANDI          -> List(TypeI, ALUop.and, LSUop.nop, BPUop.nop, CSRop.nop),
+    SLLI          -> List(TypeI, ALUop.sll, LSUop.nop, BPUop.nop, CSRop.nop),
+    SRLI          -> List(TypeI, ALUop.srl, LSUop.nop, BPUop.nop, CSRop.nop),
+    SRAI          -> List(TypeI, ALUop.sra, LSUop.nop, BPUop.nop, CSRop.nop)
   )
 }
 
@@ -41,8 +41,8 @@ object RV32I_U extends InstrType{
   def AUIPC   = BitPat("b???????_?????_?????_???_?????_00101_11")
 
   val table = Array(
-    LUI           -> List(TypeU, ALUop.dir, LSUop.nop, BPUop.nop),
-    AUIPC         -> List(TypeU, ALUop.add, LSUop.nop, BPUop.nop)
+    LUI           -> List(TypeU, ALUop.dir, LSUop.nop, BPUop.nop, CSRop.nop),
+    AUIPC         -> List(TypeU, ALUop.add, LSUop.nop, BPUop.nop, CSRop.nop)
   )
 }
 
@@ -59,16 +59,16 @@ object RV32I_R extends InstrType{
   def AND   = BitPat("b0000000_?????_?????_111_?????_01100_11")
 
   val table = Array(
-    ADD           -> List(TypeR, ALUop.add, LSUop.nop, BPUop.nop),
-    SUB           -> List(TypeR, ALUop.sub, LSUop.nop, BPUop.nop),
-    SLL           -> List(TypeR, ALUop.sll, LSUop.nop, BPUop.nop),
-    SLT           -> List(TypeR, ALUop.slt, LSUop.nop, BPUop.nop),
-    SLTU          -> List(TypeR, ALUop.sltu, LSUop.nop, BPUop.nop),
-    XOR           -> List(TypeR, ALUop.xor, LSUop.nop, BPUop.nop),
-    SRL           -> List(TypeR, ALUop.srl, LSUop.nop, BPUop.nop),
-    SRA           -> List(TypeR, ALUop.sra, LSUop.nop, BPUop.nop),
-    OR            -> List(TypeR, ALUop.or, LSUop.nop, BPUop.nop),
-    AND           -> List(TypeR, ALUop.and, LSUop.nop, BPUop.nop)
+    ADD           -> List(TypeR, ALUop.add, LSUop.nop, BPUop.nop, CSRop.nop),
+    SUB           -> List(TypeR, ALUop.sub, LSUop.nop, BPUop.nop, CSRop.nop),
+    SLL           -> List(TypeR, ALUop.sll, LSUop.nop, BPUop.nop, CSRop.nop),
+    SLT           -> List(TypeR, ALUop.slt, LSUop.nop, BPUop.nop, CSRop.nop),
+    SLTU          -> List(TypeR, ALUop.sltu, LSUop.nop, BPUop.nop, CSRop.nop),
+    XOR           -> List(TypeR, ALUop.xor, LSUop.nop, BPUop.nop, CSRop.nop),
+    SRL           -> List(TypeR, ALUop.srl, LSUop.nop, BPUop.nop, CSRop.nop),
+    SRA           -> List(TypeR, ALUop.sra, LSUop.nop, BPUop.nop, CSRop.nop),
+    OR            -> List(TypeR, ALUop.or, LSUop.nop, BPUop.nop, CSRop.nop),
+    AND           -> List(TypeR, ALUop.and, LSUop.nop, BPUop.nop, CSRop.nop)
   )
 }
 
@@ -78,9 +78,9 @@ object RV32I_S extends InstrType{
   def SW    = BitPat("b???????_?????_?????_010_?????_01000_11")
 
   val table = Array(
-    SB            -> List(TypeS, ALUop.add, LSUop.sb, BPUop.nop),
-    SH            -> List(TypeS, ALUop.add, LSUop.sh, BPUop.nop),
-    SW            -> List(TypeS, ALUop.add, LSUop.sw, BPUop.nop)
+    SB            -> List(TypeS, ALUop.add, LSUop.sb, BPUop.nop, CSRop.nop),
+    SH            -> List(TypeS, ALUop.add, LSUop.sh, BPUop.nop, CSRop.nop),
+    SW            -> List(TypeS, ALUop.add, LSUop.sw, BPUop.nop, CSRop.nop)
   )
 }
 
@@ -89,8 +89,8 @@ object RV32I_J extends InstrType{
   def JALR  = BitPat("b???????_?????_?????_000_?????_11001_11")
 
   val table = Array(
-    JAL           -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jump),
-    JALR          -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jump)
+    JAL           -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jump, CSRop.nop),
+    JALR          -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jump, CSRop.nop)
   )
 }
 
@@ -103,12 +103,12 @@ object RV32I_B extends InstrType{
   def BGEU  = BitPat("b???????_?????_?????_111_?????_11000_11")
 
   val table = Array(
-    BEQ           -> List(TypeB, ALUop.sub, LSUop.nop, BPUop.beq),
-    BNE           -> List(TypeB, ALUop.sub, LSUop.nop, BPUop.bne),
-    BLT           -> List(TypeB, ALUop.slt, LSUop.nop, BPUop.blt),
-    BGE           -> List(TypeB, ALUop.slt, LSUop.nop, BPUop.bge),
-    BLTU          -> List(TypeB, ALUop.sltu, LSUop.nop, BPUop.bltu),
-    BGEU          -> List(TypeB, ALUop.sltu, LSUop.nop, BPUop.bgeu)
+    BEQ           -> List(TypeB, ALUop.sub, LSUop.nop, BPUop.beq, CSRop.nop),
+    BNE           -> List(TypeB, ALUop.sub, LSUop.nop, BPUop.bne, CSRop.nop),
+    BLT           -> List(TypeB, ALUop.slt, LSUop.nop, BPUop.blt, CSRop.nop),
+    BGE           -> List(TypeB, ALUop.slt, LSUop.nop, BPUop.bge, CSRop.nop),
+    BLTU          -> List(TypeB, ALUop.sltu, LSUop.nop, BPUop.bltu, CSRop.nop),
+    BGEU          -> List(TypeB, ALUop.sltu, LSUop.nop, BPUop.bgeu, CSRop.nop)
   )
 }
 

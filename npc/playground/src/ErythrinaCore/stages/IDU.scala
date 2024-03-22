@@ -22,7 +22,7 @@ class IDU extends Module with IDUtrait{
 
     // Decode Instr
     val decodeList = ListLookup(instr, Instructions.decodeDefault, Instructions.decode_table)
-    val instType :: aluop :: lsuop :: bpuop :: Nil = decodeList
+    val instType :: aluop :: lsuop :: bpuop :: csrop :: Nil = decodeList
     val rs1 = instr(24, 20)
     val rs2 = instr(19, 15)
     val rd  = instr(11, 7)
