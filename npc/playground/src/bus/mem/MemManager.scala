@@ -10,6 +10,8 @@ import ErythrinaCore._
 // Req: MemManager -> mem
 class MemReqIO extends Bundle with ErythrinaDefault{
     val addr    = Output(UInt(XLEN.W))
+    val mask    = Output(UInt(MaskLEN.W))
+    val data    = Output(UInt(XLEN.W))
 }
 
 // Resp: mem -> MemManager
@@ -40,6 +42,7 @@ class MemManager extends Module with ErythrinaDefault{
     val MemReqValid = io.IFU_Req.valid | io.MEMU_Req.valid
     io.MemReq.valid     := MemReqValid
     io.MemReq.bits.addr := Mux(io.MEMU_Req.valid, io.MEMU_Req.bits.addr, io.IFU_Req.bits.addr)
+    io.MemReq.bits.mask := Mux(io.MEMU_Req.valid, io.MEMU_Req.bits.mask, io.IFU_Req.bits.mask)
 
     // Response
     val MemRespReady    = Mux(io.MEMU_Req.valid, io.MEMU_Resp.ready, io.IFU_Resp.ready)

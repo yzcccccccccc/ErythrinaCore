@@ -25,4 +25,14 @@ object LSUop{
 class LSUIO extends Bundle with LSUtrait{
   val addr    = Input(UInt(XLEN.W))
   val lsuop   = Input(UInt(LSUopLen.W))
+  val data    = Output(UInt(XLEN.W))
+}
+
+class LSU extends Module with LSUtrait{
+  val io = IO(new LSUIO)
+
+  val addr  = io.addr
+  val lsuop = io.lsuop
+
+  // to be continued in the future
 }

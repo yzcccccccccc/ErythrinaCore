@@ -14,6 +14,8 @@ class IDUIO extends Bundle with IDUtrait{
 
 class IDU extends Module with IDUtrait{
     val io = IO(new IDUIO)
+
+    io.IFU2IDU.ready    := 1.B
     
     val instr   = io.IFU2IDU.bits.inst
     val pc      = io.IFU2IDU.bits.pc
@@ -72,7 +74,7 @@ class IDU extends Module with IDUtrait{
     io.IDU2EXU.bits.ALUin.aluop := aluop
     io.IDU2EXU.bits.BPUop       := bpuop
     io.IDU2EXU.bits.LSUop       := lsuop
-    io.IDU2EXU.bits.data        := rdata2
+    io.IDU2EXU.bits.data2store  := rdata2
     io.IDU2EXU.bits.rd          := rd
     io.IDU2EXU.bits.rf_wen      := rf_wen
     io.IDU2EXU.bits.pc          := pc

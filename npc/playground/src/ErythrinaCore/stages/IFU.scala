@@ -22,6 +22,8 @@ class IFU extends Module with IFUtrait{
   pc := snpc
   io.IFU_memReq.valid     := 1.B
   io.IFU_memReq.bits.addr := pc
+  io.IFU_memReq.bits.mask := 0.U
+  io.IFU_memReq.bits.data := 0.U
 
 
   // inst
