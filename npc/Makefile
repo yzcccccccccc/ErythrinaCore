@@ -1,4 +1,4 @@
-TOPNAME = TOP
+TOPNAME ?= ErythrinaCore
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
@@ -12,8 +12,11 @@ VERILATOR = verilator
 # Flags
 VERILATOR_NVFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
-VERILATOR_SIMFLAGS += --cc --exe --trace --build -j 4 -CFLAGS "-DVERILATOR_SIM"
-VERILATOR_VERFLAGS += --cc
+VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "-DVERILATOR_SIM"
+VERILATOR_VERFLAGS += -cc --trace
+
+# Mill
+MILL_ARGS_ALL += --split-verilog
 
 test:
 	mill -i __.test
@@ -21,10 +24,10 @@ test:
 verilog:
 	$(call git_commit, "generate verilog")
 #	mkdir -p $(BUILD_DIR)
-	mill -i __.test.runMain Elaborate --target-dir $(BUILD_DIR)
+	mill -i __.test.runMain Elaborate --target-dir $(BUILD_DIR) $(MILL_ARGS_ALL)
 
 help:
-	mill -i __.test.runMain Elaborate --help
+	mill -i __.test.runMain Elaborate --help $(MILL_ARGS_ALL)
 
 compile:
 	mill -i __.compile
@@ -40,15 +43,15 @@ checkformat:
 
 # Verilator
 # VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-VCSRCS = $(shell find $(abspath ./playground/csrc) -name "main.cpp")		# for verilator
-CSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
-VSRCS = $(shell find $(abspath $(BUILD_DIR)) -name "*.v")
+VCSRCS ?= $(shell find $(abspath ./playground/csrc) -name "main.cpp")		# for verilator
+CSRCS ?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
+VSRCS ?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
 SIM_TARGET = V$(TOPNAME)
 
-verilate: verilog
+verilate:
 	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
-verilate_sim: verilog
+verilate_sim:
 	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(VCSRCS)
 
 sim: verilate_sim

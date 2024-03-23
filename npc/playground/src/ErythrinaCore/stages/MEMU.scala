@@ -24,7 +24,7 @@ class MEMU extends Module with MEMUtrait{
 
     // MemReq
     val addr = io.EXU2MEMU.bits.addr
-    io.MEMU_memReq.valid        := 1.B
+    io.MEMU_memReq.valid        := io.EXU2MEMU.bits.LSUop =/= LSUop.nop
     io.MEMU_memReq.bits.addr    := Cat(addr(XLEN - 1, 2), 0.asUInt(2.W))        // 4 Bits align?
 
     // MemResp

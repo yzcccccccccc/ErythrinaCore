@@ -5,6 +5,26 @@ import chisel3.util._
 
 import utils._
 
+class halter extends BlackBox with HasBlackBoxInline{
+    val io = IO(new Bundle {
+        val halt_trigger    = Input(Bool())
+    })
+    
+    setInline("halter.sv",
+    s"""module halter(
+    |   input   wire halt_trigger
+    |);
+    |import "DPI-C" function void halt();
+    |always @(*) begin
+    |   if (halt_trigger) begin
+    |       halt();
+    |   end
+    |end
+    |endmodule
+    """.stripMargin)
+}
+
+
 // IDU!
 class IDUIO extends Bundle with IDUtrait{
     val IFU2IDU = Flipped(Decoupled(new IF2IDzip))
@@ -66,6 +86,10 @@ class IDU extends Module with IDUtrait{
     ))
 
     val rf_wen = ~(instType === TypeB || instType === TypeS)
+
+    // check ebreak
+    val HaltCtrl = Module(new halter)
+    HaltCtrl.io.halt_trigger    := csrop === CSRop.ebreak
 
     // to EXU!
     io.IDU2EXU.valid            := 1.B
