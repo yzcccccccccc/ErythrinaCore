@@ -8,6 +8,7 @@ import utils._
 class EXUIO extends Bundle with EXUtrait{
     val IDU2EXU     = Flipped(Decoupled(new ID2EXzip))
     val EXU2MEMU    = Decoupled(new EX2MEMzip)
+    val EX2BPU      = Flipped(new EXU2BPU)
 }
 
 class EXU extends Module with EXUtrait{
@@ -22,6 +23,8 @@ class EXU extends Module with EXUtrait{
     ALU0.io.ALUin <> io.IDU2EXU.bits.ALUin
 
     // TODO: give the result to BPU
+    // to BPU
+    io.EX2BPU.aluout <> ALU0.io.ALUout
 
     // to MEM!
     io.EXU2MEMU.valid       := io.IDU2EXU.valid

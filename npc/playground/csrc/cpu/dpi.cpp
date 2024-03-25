@@ -1,3 +1,4 @@
+#include "cpu.h"
 #include "svdpi.h"
 #include "VSoc__Dpi.h"
 
@@ -5,14 +6,12 @@
 #include "memory.h"
 #include <cstdio>
 
-int stop = 0;
 extern "C" void halt_sim(){
-    stop = 1;
+    stop = CPU_HALT;
     return;
 }
 
 extern "C" int mem_read(int paddr){
-    printf("MemRead 0x%08x\n", paddr);
     return pmem_read(paddr);
 }
 

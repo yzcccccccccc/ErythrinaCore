@@ -1,5 +1,6 @@
 #include "common.h"
 #include "memory.h"
+#include "dpi.h"
 #include <cassert>
 #include <cstdio>
 #include <cstdint>
@@ -30,6 +31,7 @@ uint32_t host_write(void *addr, uint32_t data, uint32_t mask){
 
 uint32_t pmem_read(paddr_t addr){
     uint32_t host_index = addr - MEMBASE;
+    npc_alert(host_index + 3 < MEMSIZE);
     assert(host_index + 3 < MEMSIZE);
     uint32_t res = host_read(guest2host(addr));
     //printf("[Trace]: MemRead at 0x%08x, res: 0x%08x\n", addr, res);
@@ -38,7 +40,8 @@ uint32_t pmem_read(paddr_t addr){
 
 uint32_t pmem_write(paddr_t addr, uint32_t data, uint32_t mask){
     uint32_t host_index = addr - MEMBASE;
-    assert(host_index + 3 < MEMSIZE);
+    printf("[mtrace]: write at 0x%08x, data 0x%08x\n", addr, data);
+    npc_alert(host_index + 3 < MEMSIZE);
     //printf("[Trace]: MemWrite at 0x%08x\n", addr);
     return host_write(guest2host(addr), data, mask);
 }

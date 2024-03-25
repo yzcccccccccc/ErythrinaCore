@@ -9,6 +9,8 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 
+int cycle = 0;
+CPU_state stop;
 
 void wave_record(VerilatedVcdC *tfp, VerilatedContext *contx){
     if (DUMP_WAVE){
@@ -27,6 +29,11 @@ void single_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
     half_cycle(dut, tfp, contextp);
     
     half_cycle(dut, tfp, contextp);
+
+    cycle++;
+    if (cycle > CYCLE_BOUND){
+        stop = CPU_ABORT_INSTR_BOUND;
+    }
 }
 
 void CPU_sim(){
@@ -49,7 +56,8 @@ void CPU_sim(){
     half_cycle(dut, tfp, contx);
 
     // Simulate
-    while (!stop){
+    stop = CPU_RUN;
+    while (stop == CPU_RUN){
         if (dut->io_commit_rf_wen){
             printf("[Trace]: PC=0x%08x, Inst=0x%08x, rf_waddr=0x%x, rf_wdata=0x%08x\n",
                 dut->io_commit_pc, dut->io_commit_inst,
@@ -59,6 +67,15 @@ void CPU_sim(){
     }
 
     // End
+    if (stop == CPU_HALT){
+        printf("[Hit Trap] Halt from ebreak.\n");
+    }
+    else{
+        if (stop == CPU_ABORT_MEMLEAK)
+            printf("[Hit Trap] Halt from memory leak.\n");
+        else
+            printf("[Hit Trap] Halt from hitting instructions bound.\n");
+    }
     delete dut;
     if (DUMP_WAVE){
         tfp->close();

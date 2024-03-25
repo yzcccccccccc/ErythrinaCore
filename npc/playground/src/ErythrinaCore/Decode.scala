@@ -15,9 +15,10 @@ trait InstrType extends ErythrinaDefault{
 }
 
 object SrcType {
-  def reg = "b00".U
-  def pc  = "b01".U
-  def imm = "b11".U
+  def reg   = "b00".U
+  def pc    = "b01".U
+  def const = "b10".U
+  def imm   = "b11".U
 }
 
 object Instructions extends InstrType{

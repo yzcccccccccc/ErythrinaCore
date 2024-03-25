@@ -9,6 +9,7 @@ import bus.mem._
 
 class IFUIO extends Bundle with IFUtrait{
   val IFU2IDU = Decoupled(new IF2IDzip)         // pipeline ctrl, to IDU
+  val BPU2IFU = Flipped(new RedirectInfo)
   val IFU_memReq  = Decoupled(new MemReqIO)
   val IFU_memResp = Flipped(Decoupled(new MemRespIO))
 }
@@ -20,7 +21,11 @@ class IFU extends Module with IFUtrait{
   val pc    = RegInit(RESETVEC.U)
   val snpc  = pc + 4.U
   when (io.IFU_memResp.fire){
-    pc := snpc
+    when (io.BPU2IFU.redirect){
+      pc := io.BPU2IFU.target
+    }.otherwise{
+      pc := snpc
+    }
   }
   
   val valid_r = Reg(Bool())

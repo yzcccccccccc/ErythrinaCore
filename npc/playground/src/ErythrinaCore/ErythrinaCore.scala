@@ -26,6 +26,13 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     regfile.io.readIO <> IDU_inst.io.RFRead
     regfile.io.writeIO <> WBU_inst.io.RegWriteIO
 
+    // BPU
+    val BPU_inst    = Module(new BPU)
+    IFU_inst.io.BPU2IFU <> BPU_inst.io.IF_Redirect
+    IDU_inst.io.BPU2IDU <> BPU_inst.io.ID_Redirect
+    IDU_inst.io.ID2BPU  <> BPU_inst.io.ID2BPU
+    EXU_inst.io.EX2BPU  <> BPU_inst.io.EX2BPU
+
     // pipelines
     IFU_inst.io.IFU2IDU <> IDU_inst.io.IFU2IDU
     IDU_inst.io.IDU2EXU <> EXU_inst.io.IDU2EXU

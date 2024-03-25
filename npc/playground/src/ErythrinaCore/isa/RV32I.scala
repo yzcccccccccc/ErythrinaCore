@@ -89,8 +89,8 @@ object RV32I_J extends InstrType{
   def JALR  = BitPat("b???????_?????_?????_000_?????_11001_11")
 
   val table = Array(
-    JAL           -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jump, CSRop.nop),
-    JALR          -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jump, CSRop.nop)
+    JAL           -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jal, CSRop.nop),
+    JALR          -> List(TypeJ, ALUop.add, LSUop.nop, BPUop.jalr, CSRop.nop)
   )
 }
 

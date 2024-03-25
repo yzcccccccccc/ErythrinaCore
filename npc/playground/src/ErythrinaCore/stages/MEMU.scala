@@ -67,10 +67,11 @@ class MEMU extends Module with MEMUtrait{
     io.MEMU_memReq.bits.data    := io.EXU2MEMU.bits.data2store
 
     // to WBU!
+    val isload = io.MEMU_memReq.valid & mask === 0.U
     io.MEMU2WBU.valid       := io.EXU2MEMU.valid
     io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
     io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst
     io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd
-    io.MEMU2WBU.bits.RegWriteIO.wdata   := LoadRes
+    io.MEMU2WBU.bits.RegWriteIO.wdata   := Mux(isload, LoadRes, io.EXU2MEMU.bits.addr)
     io.MEMU2WBU.bits.RegWriteIO.wen     := io.EXU2MEMU.bits.rf_wen
 }

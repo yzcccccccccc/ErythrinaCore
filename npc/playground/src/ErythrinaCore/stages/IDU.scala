@@ -23,12 +23,13 @@ class halter extends BlackBox with HasBlackBoxInline{
     """.stripMargin)
 }
 
-
 // IDU!
 class IDUIO extends Bundle with IDUtrait{
     val IFU2IDU = Flipped(Decoupled(new IF2IDzip))
     val IDU2EXU = Decoupled(new ID2EXzip)
-    val RFRead = Flipped(new RegFileIN)
+    val ID2BPU = Flipped(new IDU2BPU)           // 2 BPU
+    val RFRead  = Flipped(new RegFileIN)        // 2 Regfile
+    val BPU2IDU = Flipped(new RedirectInfo)
 }
 
 class IDU extends Module with IDUtrait{
@@ -42,8 +43,8 @@ class IDU extends Module with IDUtrait{
     // Decode Instr
     val decodeList = ListLookup(instr, Instructions.decodeDefault, Instructions.decode_table)
     val instType :: aluop :: lsuop :: bpuop :: csrop :: Nil = decodeList
-    val rs1 = instr(24, 20)
-    val rs2 = instr(19, 15)
+    val rs2 = instr(24, 20)
+    val rs1 = instr(19, 15)
     val rd  = instr(11, 7)
 
     // RegFile
@@ -51,12 +52,13 @@ class IDU extends Module with IDUtrait{
     io.RFRead.raddr2 := rs2
 
     // Get src
+    val immj = Mux(instr(3, 3) === 1.B, SignExt(Cat(instr(31), instr(19, 12), instr(20), instr(30, 21), 0.U(1.W)), XLEN), SignExt(instr(31, 20), XLEN))
     val imm = LookupTree(instType, List(
         TypeI   -> SignExt(instr(31, 20), XLEN),
         TypeS   -> SignExt(Cat(instr(31, 25), instr(11, 7)), XLEN),
         TypeB   -> SignExt(Cat(instr(31), instr(7), instr(30, 25), instr(11, 8), 0.U(1.W)), XLEN),
         TypeU   -> SignExt(Cat(instr(31, 12), 0.U(12.W)), XLEN),
-        TypeJ   -> SignExt(Cat(instr(31), instr(19, 12), instr(20), instr(30, 21), 0.U(1.W)), XLEN)
+        TypeJ   -> immj
     ))
     val rdata1 = io.RFRead.rdata1
     val rdata2 = io.RFRead.rdata2
@@ -66,13 +68,13 @@ class IDU extends Module with IDUtrait{
     val srcTypeList = List(             // type -> (src1_type, src2_type)
         TypeI   -> (SrcType.reg, SrcType.imm),
         TypeB   -> (SrcType.reg, SrcType.reg),
-        TypeJ   -> (SrcType.pc, SrcType.imm),
+        TypeJ   -> (SrcType.pc, SrcType.const),
         TypeR   -> (SrcType.reg, SrcType.reg),
         TypeS   -> (SrcType.reg, SrcType.imm),
         TypeU   -> (SrcType.imm, SrcType.pc)
     )
     val src1_type = LookupTree(instType, srcTypeList.map(p => (p._1, p._2._1)))
-    val src2_type = LookupTree(instType, srcTypeList.map(p => (p._1, p._2._1)))
+    val src2_type = LookupTree(instType, srcTypeList.map(p => (p._1, p._2._2)))
     val src1 = LookupTree(src1_type, List(
         SrcType.imm     -> imm,
         SrcType.pc      -> pc,
@@ -81,7 +83,8 @@ class IDU extends Module with IDUtrait{
     val src2 = LookupTree(src2_type, List(
         SrcType.imm     -> imm,
         SrcType.pc      -> pc,
-        SrcType.reg     -> rdata2
+        SrcType.reg     -> rdata2,
+        SrcType.const   -> 4.U
     ))
 
     val rf_wen = ~(instType === TypeB || instType === TypeS)
@@ -89,6 +92,12 @@ class IDU extends Module with IDUtrait{
     // check ebreak
     val HaltCtrl = Module(new halter)
     HaltCtrl.io.halt_trigger    := csrop === CSRop.ebreak
+
+    // to BPU
+    io.ID2BPU.bpuop := bpuop
+    io.ID2BPU.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
+    io.ID2BPU.src2  := imm
+    io.ID2BPU.pc    := pc
 
     // to EXU!
     io.IDU2EXU.valid            := io.IFU2IDU.valid
