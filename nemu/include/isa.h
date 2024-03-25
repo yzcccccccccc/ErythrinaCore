@@ -17,6 +17,7 @@
 #define __ISA_H__
 
 // Located at src/isa/$(GUEST_ISA)/include/isa-def.h
+#include "common.h"
 #include <isa-def.h>
 
 // The macro `__GUEST_ISA__` is defined in $(CFLAGS).
@@ -62,5 +63,15 @@ extern void u_test();
 extern void i_test();
 extern void b_test();
 extern void r_test();
+
+// ftrace
+struct funcarray{
+    word_t entry_point;
+    word_t size;
+    char name[128];
+};
+#define FUNC_NUM 20
+extern struct funcarray funcs[FUNC_NUM];
+extern int funcs_cnt;
 
 #endif

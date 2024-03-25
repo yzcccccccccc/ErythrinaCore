@@ -225,6 +225,10 @@ void sdb_mainloop() {
     return;
   }
 
+#ifndef CONFIG_WATCHPOINT
+  printf("Warning: Watchpoint is not functioning.\n");
+#endif
+
   for (char *str; (str = rl_gets()) != NULL; ) {
     char *str_end = str + strlen(str);
 

@@ -15,8 +15,10 @@
 
 #include "common.h"
 #include "debug.h"
+#include "isa.h"
 #include "local-include/reg.h"
 #include "macro.h"
+#include "utils.h"
 #include <cpu/cpu.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
@@ -62,6 +64,48 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
 void tracer(uint32_t pc, int rd, uint32_t val){
   //if (CONFIG_TRACE == 1)
     //printf("COMMIT pc:0x%x, dest:%s, val:0x%x\n", pc, reg_name(rd), val);
+}
+
+// ftrace
+static int fdepth = 0;
+char flogbuf[100000];
+void ftrace(word_t pc, word_t tar_pc, int rd, word_t val){
+  int isret = 0;
+  if (rd == 0){ // ret
+    isret = 1;
+  }
+
+  char *buf = flogbuf;
+  buf += snprintf(buf, sizeof(flogbuf), "0x%x ", pc);
+  // call
+  if (!isret){
+    for (int i = 0; i < funcs_cnt; i++){
+      if (funcs[i].entry_point == tar_pc){
+        for (int j = 0; j < fdepth; j++){
+          buf += snprintf(buf, sizeof(flogbuf), "\t");
+        }
+        fdepth++;
+        buf += snprintf(buf, sizeof(flogbuf), " call %s (0x%x)", funcs[i].name, tar_pc);
+        log_write("[ftrace] %s\n", flogbuf);
+        return;
+      }
+    }
+    assert(0);
+  }
+  else{
+    for (int i = 0; i < funcs_cnt; i++){
+      if (tar_pc >= funcs[i].entry_point && tar_pc <= funcs[i].entry_point + funcs[i].size){
+        for (int j = 0; j < fdepth; j++){
+          buf += snprintf(buf, sizeof(flogbuf), "\t");
+        }
+        fdepth--;
+        buf += snprintf(buf, sizeof(flogbuf), " ret %s (0x%x)", funcs[i].name, tar_pc);
+        log_write("[ftrace] %s\n", flogbuf);
+        return;
+      }
+    }
+    assert(0);
+  }
 }
 
 static int decode_exec(Decode *s) {
@@ -114,8 +158,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 010 ????? 01000 11", sw     , S, Mw(src1 + imm, 4, src2));
   
   // J-Type
-  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, {R(rd) = s->pc + 4; s->dnpc = s->pc + imm; tracer(s->pc, rd, R(rd));});
-  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, {s->dnpc = (src1 + imm)&(~1); R(rd) = s->pc + 4; tracer(s->pc, rd, R(rd));});
+  INSTPAT("??????? ????? ????? ??? ????? 11011 11", jal    , J, {R(rd) = s->pc + 4; s->dnpc = s->pc + imm; tracer(s->pc, rd, R(rd)); ftrace(s->pc, s->dnpc, rd, R(rd));});
+  INSTPAT("??????? ????? ????? 000 ????? 11001 11", jalr   , I, {s->dnpc = (src1 + imm)&(~1); R(rd) = s->pc + 4; tracer(s->pc, rd, R(rd)); ftrace(s->pc, s->dnpc, rd, R(rd));});
 
   // B-Type
   INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, {if ((int32_t)src1 == (int32_t)src2) s->dnpc = s->pc + imm;});

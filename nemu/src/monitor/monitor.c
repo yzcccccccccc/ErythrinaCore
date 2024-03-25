@@ -13,8 +13,11 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
+#include "macro.h"
 #include <isa.h>
 #include <memory/paddr.h>
+#include <stdio.h>
 
 void init_rand();
 void init_log(const char *log_file);
@@ -44,7 +47,82 @@ void sdb_set_batch_mode();
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
+static char *elf_file = NULL;
 static int difftest_port = 1234;
+
+#include <elf.h>
+typedef MUXDEF(CONFIG_ISA64, ELF64_Ehdr, Elf32_Ehdr) Ehdr;
+typedef MUXDEF(CONFIG_ISA64, ELF64_Shder, Elf32_Shdr) Shdr;
+typedef MUXDEF(CONFIG_ISA64, ELF64_Sym, Elf32_Sym) Sym;
+#define STRBUFLEN 10000
+char strbuf[STRBUFLEN];
+int funcs_cnt;
+struct funcarray funcs[FUNC_NUM];
+void ftrace_init(){
+  if (elf_file == NULL){
+    Log("No Elf File, exiting ftrace_init...");
+    return;
+  }
+  FILE *elf = fopen(elf_file, "rb");
+  Assert(elf, "Can not open '%s'", elf_file);
+
+  fseek(elf, 0, SEEK_SET);
+  int ret;
+
+  // Get the ELF header
+  Ehdr elf_header;
+  ret = fread(&elf_header, sizeof(elf_header), 1, elf);
+  assert(ret == 1);
+  word_t sh_offset = elf_header.e_shoff;
+
+  // Get the .strtab offset
+  Shdr sec_header;
+  fseek(elf, sh_offset, SEEK_SET);
+retry_str:
+  ret = fread(&sec_header, sizeof(sec_header), 1, elf);
+  assert(ret == 1);
+  if (sec_header.sh_type != SHT_STRTAB)
+    goto retry_str;
+  assert(sec_header.sh_size < STRBUFLEN);
+  //word_t tmp_offset = ftell(elf);
+  fseek(elf, sec_header.sh_offset, SEEK_SET);
+  ret = fread(strbuf, sec_header.sh_size, 1, elf);
+  assert(ret == 1);
+  //if (strcmp(strbuf, ".strtab")){
+  //  fseek(elf, tmp_offset, SEEK_SET);
+  //  goto retry_str;
+  //}
+
+  // Get the .symtab offset
+  fseek(elf, sh_offset, SEEK_SET);
+retry_sym:
+  ret = fread(&sec_header, sizeof(sec_header), 1, elf);
+  assert(ret == 1);
+  if (sec_header.sh_type != SHT_SYMTAB)
+    goto retry_sym;
+  word_t sym_offset = sec_header.sh_offset;
+  word_t sym_size = sec_header.sh_size;
+
+  // initialize function names
+  Sym sym_entry;
+  fseek(elf, sym_offset, SEEK_SET);
+  for (word_t rd_sz = 0; rd_sz < sym_size; rd_sz += sizeof(sym_entry)){
+    ret = fread(&sym_entry, sizeof(sym_entry), 1, elf);
+    assert(ret == 1);
+    if ((sym_entry.st_info & 0xf) == STT_FUNC){
+      assert(funcs_cnt < FUNC_NUM);
+      funcs[funcs_cnt].entry_point = sym_entry.st_value;
+      strcpy(funcs[funcs_cnt].name, (strbuf + sym_entry.st_name));
+      funcs[funcs_cnt].size = sym_entry.st_size;
+      Log("[ftrace init] Find func %s at 0x%x, size 0x%x", 
+        funcs[funcs_cnt].name,
+        funcs[funcs_cnt].entry_point,
+        funcs[funcs_cnt].size
+      );
+      funcs_cnt++;
+    }
+  }
+}
 
 static long load_img() {
   if (img_file == NULL) {
@@ -64,6 +142,9 @@ static long load_img() {
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
 
+  Log("Parsing ELF File, ftrace initializing...");
+  ftrace_init();
+
   fclose(fp);
   return size;
 }
@@ -78,12 +159,13 @@ static int parse_args(int argc, char *argv[]) {
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
+      case 'e': elf_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);

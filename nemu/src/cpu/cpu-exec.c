@@ -34,16 +34,28 @@ static bool g_print_step = false;
 
 void device_update();
 
+// iringbuf
+#define IRINGBUF_LEN 16     // contains 16 instructions
+int iringbuf_ptr = 0;
+char iringbuf[IRINGBUF_LEN][128];
+
+// TODO: print the iringbuf when an error occurs
+
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
-  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  if (ITRACE_COND){
+    log_write("[itrace] %s\n", _this->logbuf);
+    strcpy(iringbuf[(iringbuf_ptr++)%IRINGBUF_LEN], _this->logbuf);
+  }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+#ifdef CONFIG_WATCHPOINT
   if (watchpoint_scan()){
     printf("Stop. Watchpoints changed.\n");
     nemu_state.state = NEMU_STOP;
   }
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
