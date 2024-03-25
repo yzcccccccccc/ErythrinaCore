@@ -6,11 +6,16 @@
 #include <cstdint>
 #include <cstdio>
 #include <assert.h>
+#include <cstring>
 
 static char *img_file = NULL;
 
 void load_img(){
-    assert(img_file != NULL);
+    if (img_file == NULL){
+        printf("Use defaut image.\n");
+        memcpy(guest2host(PC_RSTVEC), default_inst, sizeof(default_inst));
+        return;
+    }
 
     FILE *fp = fopen(img_file, "rb");
     assert(fp != NULL);
@@ -30,8 +35,7 @@ void load_img(){
 
 // init environment, mainly copy .bin to memory...
 void init_env(int argc, char **argv){
-    assert(argc >= 2);
-
-    img_file = argv[1];
+    if (argc >= 2)
+        img_file = argv[1];
     load_img();
 }

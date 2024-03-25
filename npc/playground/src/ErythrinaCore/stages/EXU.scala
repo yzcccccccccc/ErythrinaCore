@@ -24,7 +24,7 @@ class EXU extends Module with EXUtrait{
     // TODO: give the result to BPU
 
     // to MEM!
-    io.EXU2MEMU.valid       := 1.B
+    io.EXU2MEMU.valid       := io.IDU2EXU.valid
     io.EXU2MEMU.bits.inst   := io.IDU2EXU.bits.inst
     io.EXU2MEMU.bits.pc     := io.IDU2EXU.bits.pc
     io.EXU2MEMU.bits.LSUop  := io.IDU2EXU.bits.LSUop

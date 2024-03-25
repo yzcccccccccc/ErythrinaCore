@@ -91,7 +91,7 @@ class IDU extends Module with IDUtrait{
     HaltCtrl.io.halt_trigger    := csrop === CSRop.ebreak
 
     // to EXU!
-    io.IDU2EXU.valid            := 1.B
+    io.IDU2EXU.valid            := io.IFU2IDU.valid
     io.IDU2EXU.bits.ALUin.src1  := src1
     io.IDU2EXU.bits.ALUin.src2  := src2
     io.IDU2EXU.bits.ALUin.aluop := aluop
@@ -99,7 +99,7 @@ class IDU extends Module with IDUtrait{
     io.IDU2EXU.bits.LSUop       := lsuop
     io.IDU2EXU.bits.data2store  := rdata2
     io.IDU2EXU.bits.rd          := rd
-    io.IDU2EXU.bits.rf_wen      := rf_wen
+    io.IDU2EXU.bits.rf_wen      := rf_wen & io.IFU2IDU.valid
     io.IDU2EXU.bits.pc          := pc
     io.IDU2EXU.bits.inst        := instr
 }

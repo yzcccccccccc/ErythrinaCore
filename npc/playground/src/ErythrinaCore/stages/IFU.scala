@@ -19,8 +19,13 @@ class IFU extends Module with IFUtrait{
   // pc
   val pc    = RegInit(RESETVEC.U)
   val snpc  = pc + 4.U
-  pc := snpc
-  io.IFU_memReq.valid     := ~reset.asBool
+  when (io.IFU_memResp.fire){
+    pc := snpc
+  }
+  
+  val valid_r = Reg(Bool())
+  valid_r := ~reset.asBool
+  io.IFU_memReq.valid     := valid_r
   io.IFU_memReq.bits.addr := pc
   io.IFU_memReq.bits.mask := 0.U
   io.IFU_memReq.bits.data := 0.U
@@ -31,7 +36,7 @@ class IFU extends Module with IFUtrait{
   val inst = io.IFU_memResp.bits.data
 
   // zip
-  io.IFU2IDU.valid       := 1.B
+  io.IFU2IDU.valid       := io.IFU_memResp.fire
   io.IFU2IDU.bits.inst   := inst
   io.IFU2IDU.bits.pc     := pc
 }

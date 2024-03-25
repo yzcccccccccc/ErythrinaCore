@@ -1,4 +1,4 @@
-TOPNAME ?= ErythrinaCore
+TOPNAME ?= Soc
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 $(shell mkdir -p $(BUILD_DIR))
