@@ -9,15 +9,14 @@ class halter extends BlackBox with HasBlackBoxInline{
     val io = IO(new Bundle {
         val halt_trigger    = Input(Bool())
     })
-    
     setInline("halter.sv",
     s"""module halter(
     |   input   wire halt_trigger
     |);
-    |import "DPI-C" function void halt();
+    |import "DPI-C" function void halt_sim();
     |always @(*) begin
     |   if (halt_trigger) begin
-    |       halt();
+    |       halt_sim();
     |   end
     |end
     |endmodule

@@ -12,7 +12,7 @@ VERILATOR = verilator
 # Flags
 VERILATOR_NVFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
-VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "-DVERILATOR_SIM"
+VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "-DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include"
 VERILATOR_VERFLAGS += -cc --trace
 
 # Mill
@@ -42,11 +42,13 @@ checkformat:
 	mill -i __.checkFormat
 
 # Verilator
-# VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-VCSRCS ?= $(shell find $(abspath ./playground/csrc) -name "main.cpp")		# for verilator
+VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+#VCSRCS ?= $(shell find $(abspath ./playground/csrc) -name "main.cpp")		# for verilator
 CSRCS ?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
 VSRCS ?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
 SIM_TARGET = V$(TOPNAME)
+
+IMG ?= 
 
 verilate:
 	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
@@ -56,7 +58,7 @@ verilate_sim:
 
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(OBJ_DIR)/$(SIM_TARGET)
+	$(OBJ_DIR)/$(SIM_TARGET) $(IMG)
 
 view_wave:
 	$(GTKWAVE) ./wave.vcd
