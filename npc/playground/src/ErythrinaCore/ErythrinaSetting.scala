@@ -16,4 +16,5 @@ class ErythrinaCommit extends Bundle with ErythrinaDefault with RegTrait{
     val rf_wen      = Output(Bool())
     val rf_waddr    = Output(UInt(RegAddrLen.W))
     val rf_wdata    = Output(UInt(XLEN.W))
+    val valid       = Output(Bool())
 }

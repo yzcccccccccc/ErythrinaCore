@@ -4,10 +4,12 @@
 #include <assert.h>
 
 #include "cpu.h"
+#include "sdb.h"
 #include "util.h"
 
 int main(int argc, char** argv) {
     init_env(argc, argv);
-    CPU_sim();
+    //CPU_sim();
+    sdb_main();
     return 0;
 }

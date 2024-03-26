@@ -3,5 +3,6 @@
 
 #define DUMP_WAVE 1
 #define CYCLE_BOUND 100
+#define INSTR_BOUND 100
 
 #endif

@@ -12,7 +12,10 @@ VERILATOR = verilator
 # Flags
 VERILATOR_NVFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
-VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "-DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include"
+VLDFLAGS += -lreadline
+VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include \
+			
+VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
 VERILATOR_VERFLAGS += -cc --trace
 
 # Mill

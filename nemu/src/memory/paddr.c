@@ -54,8 +54,10 @@ void init_mem() {
 }
 
 void mtrace(paddr_t addr, word_t res, char *info, int len){
+#ifdef CONFIG_MTRACE
   if (addr >= CONFIG_MTRACE_LBOUND && addr <= CONFIG_MTRACE_RBOUND)
     log_write("[mtrace] %s at 0x%x, data 0x%x, len %d\n", info, addr, res, len);
+#endif
 }
 
 word_t paddr_read(paddr_t addr, int len) {

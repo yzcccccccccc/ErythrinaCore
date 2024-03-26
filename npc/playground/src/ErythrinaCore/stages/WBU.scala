@@ -26,4 +26,5 @@ class WBU extends Module with WBUtrait{
     io.inst_commit.rf_wen   := io.MEMU2WBU.bits.RegWriteIO.wen
     io.inst_commit.rf_wdata := io.MEMU2WBU.bits.RegWriteIO.wdata
     io.inst_commit.rf_waddr := io.MEMU2WBU.bits.RegWriteIO.waddr
+    io.inst_commit.valid    := io.MEMU2WBU.valid
 }
