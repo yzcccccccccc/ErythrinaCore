@@ -5,9 +5,6 @@
 #include <cstdio>
 #include <cstdint>
 
-// TODO: only for simulation...
-static uint8_t pmem[MEMSIZE];
-
 uint8_t* guest2host(paddr_t paddr){
     return pmem + paddr - MEMBASE;
 }

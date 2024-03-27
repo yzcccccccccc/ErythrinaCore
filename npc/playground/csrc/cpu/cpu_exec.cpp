@@ -1,5 +1,7 @@
 // for CPU simulations
 #include "common.h"
+#include "difftest.h"
+#include "isa.h"
 #include "setting.h"
 #include "memory.h"
 #include "cpu.h"
@@ -10,7 +12,7 @@
 #include "verilated_vcd_c.h"
 
 int cycle = 0;
-CPU_state npc_state;
+NPC_state npc_state;
 
 void wave_record(VerilatedVcdC *tfp, VerilatedContext *contx){
     if (DUMP_WAVE){
@@ -84,6 +86,9 @@ void report(){
         case CPU_ABORT_CYCLE_BOUND:
             printf("[Hit Trap] %sAbort%s from hitting cycles bound.\n", FontRed, Restore);
             break;
+        case CPU_ABORT_DIFF_ERR:
+            printf("[Hit Trap] %sAbort%s from difftesting fail.\n", FontRed, Restore);
+            break;
         default:
             printf("[Hit Trap] Unknown signal.\n");
     }
@@ -107,6 +112,11 @@ void execute(uint32_t n){
                 dut->io_commit_pc, dut->io_commit_inst,
                 dut->io_commit_rf_waddr, dut->io_commit_rf_wdata,
                 dut->io_commit_rf_wen);
+        single_cycle(dut, tfp, contx);
+        update_npcstate();
+        //if (dut->io_commit_rf_wen)
+        //    CPU_state.gpr[dut->io_commit_rf_waddr] = dut->io_commit_rf_wdata;
+        difftest_step(CPU_state.pc);
         single_cycle(dut, tfp, contx);
     }
     if (npc_state != CPU_RUN){

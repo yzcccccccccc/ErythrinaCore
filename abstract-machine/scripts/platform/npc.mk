@@ -22,3 +22,6 @@ image: $(IMAGE).elf
 
 run: image
 	$(MAKE) -C $(NPC_HOME) sim IMG=$(IMAGE).bin
+
+view_wave:
+	$(MAKE) -C $(NPC_HOME) view_wave

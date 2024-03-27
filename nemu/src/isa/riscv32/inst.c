@@ -67,9 +67,12 @@ void tracer(uint32_t pc, int rd, uint32_t val){
 }
 
 // ftrace
+#ifdef CONFIG_FTRACE
 static int fdepth = 0;
 char flogbuf[100000];
+#endif
 void ftrace(word_t pc, word_t tar_pc, int rd, word_t val){
+#ifdef CONFIG_FTRACE
   int isret = 0;
   if (rd == 0){ // ret
     isret = 1;
@@ -106,6 +109,7 @@ void ftrace(word_t pc, word_t tar_pc, int rd, word_t val){
     }
     assert(0);
   }
+#endif
 }
 
 static int decode_exec(Decode *s) {

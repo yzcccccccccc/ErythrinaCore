@@ -8,10 +8,11 @@ typedef enum{
     CPU_ABORT_MEMLEAK,
     CPU_ABORT_INSTR_BOUND,
     CPU_ABORT_CYCLE_BOUND,
+    CPU_ABORT_DIFF_ERR,
     CPU_HALT_GOOD,
     CPU_HALT_BAD
-}CPU_state;
-extern CPU_state npc_state;
+}NPC_state;
+extern NPC_state npc_state;
 
 extern void CPU_sim();
 extern void init_CPU();
