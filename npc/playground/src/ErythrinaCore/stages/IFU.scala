@@ -8,6 +8,7 @@ import bus.mem._
 // Instruction Fetch Stage (pipeline, to be continued)
 
 class IFUIO extends Bundle with IFUtrait{
+  val step    = Input(Bool())
   val IFU2IDU = Decoupled(new IF2IDzip)         // pipeline ctrl, to IDU
   val BPU2IFU = Flipped(new RedirectInfo)
   val IFU_memReq  = Decoupled(new MemReqIO)
@@ -20,7 +21,7 @@ class IFU extends Module with IFUtrait{
   // pc
   val pc    = RegInit(RESETVEC.U)
   val snpc  = pc + 4.U
-  when (io.IFU_memResp.fire){
+  when (io.step){
     when (io.BPU2IFU.redirect){
       pc := io.BPU2IFU.target
     }.otherwise{
@@ -41,7 +42,13 @@ class IFU extends Module with IFUtrait{
   val inst = io.IFU_memResp.bits.data
 
   // zip
-  io.IFU2IDU.valid       := io.IFU_memResp.fire
+  val inst_valid = Reg(Bool())
+  when (io.IFU_memResp.fire){
+    inst_valid  := 1.B
+  }.elsewhen(io.step){
+    inst_valid  := 0.B
+  }
+  io.IFU2IDU.valid       := inst_valid
   io.IFU2IDU.bits.inst   := inst
   io.IFU2IDU.bits.pc     := pc
 }

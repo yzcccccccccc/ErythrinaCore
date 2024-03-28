@@ -68,12 +68,14 @@ long load_img(){
     fclose(fp);
     return size;
 }
-
+long img_size;
 // init environment, mainly copy .bin to memory...
 void init_env(int argc, char **argv){
     parse_args(argc, argv);
 
-    long img_size = load_img();
+    img_size = load_img();
 
     init_difftest(diff_so_file, img_size, difftest_port);
+
+    init_disasm("riscv32-pc-linux-gnu");
 }

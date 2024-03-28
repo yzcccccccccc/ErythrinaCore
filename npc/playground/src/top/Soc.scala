@@ -9,12 +9,17 @@ class Soc extends Module {
 
     val erythrinacore = Module(new ErythrinaCore)
 
-    val simMem  = Module(new SimpleRam)
+    val InstMem = Module(new SimpleRam)
+    val DataMem = Module(new SimpleRam) 
 
     erythrinacore.io.InstCommit <> io_commit
     
-    simMem.io.clock := clock
-    simMem.io.reset := reset
-    erythrinacore.io.MemReq <> simMem.io.RamReq
-    erythrinacore.io.MemResp <> simMem.io.RamResp
+    InstMem.io.clock := clock
+    InstMem.io.reset := reset
+    erythrinacore.io.MemReq1 <> InstMem.io.RamReq
+    erythrinacore.io.MemResp1 <> InstMem.io.RamResp
+    DataMem.io.clock := clock
+    DataMem.io.reset := reset
+    erythrinacore.io.MemReq2  <> DataMem.io.RamReq
+    erythrinacore.io.MemResp2 <> DataMem.io.RamResp
 }

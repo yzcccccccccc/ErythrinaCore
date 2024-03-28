@@ -19,7 +19,7 @@ class MemRespIO extends Bundle with ErythrinaDefault{
     val data    = Input(UInt(XLEN.W))
 }
 
-class MemManagerIO extends Bundle with ErythrinaDefault{
+class MemManager2x1IO extends Bundle with ErythrinaDefault{
     // to memory
     val MemReq  = Decoupled(new MemReqIO)
     val MemResp = Flipped(Decoupled(new MemRespIO))
@@ -33,8 +33,8 @@ class MemManagerIO extends Bundle with ErythrinaDefault{
     val MEMU_Resp   = Decoupled(new MemRespIO)
 }
 
-class MemManager extends Module with ErythrinaDefault{
-    val io = IO(new MemManagerIO)
+class MemManager2x1 extends Module with ErythrinaDefault{
+    val io = IO(new MemManager2x1IO)
     // is an arbiter needed here? -> MEMU First!
 
     // Request
@@ -56,5 +56,29 @@ class MemManager extends Module with ErythrinaDefault{
     io.IFU_Resp.bits.data   := io.MemResp.bits.data
     io.MEMU_Resp.valid      := MemRespValid
     io.MEMU_Resp.bits.data  := io.MemResp.bits.data
-    
+}
+
+class MemManager2x2IO extends Bundle with ErythrinaDefault{
+    // to memory
+    val MemReq1  = Decoupled(new MemReqIO)
+    val MemResp1 = Flipped(Decoupled(new MemRespIO))
+
+    val MemReq2  = Decoupled(new MemReqIO)
+    val MemResp2 = Flipped(Decoupled(new MemRespIO))
+
+    // for IF
+    val IFU_Req     = Flipped(Decoupled(new MemReqIO))
+    val IFU_Resp    = Decoupled(new MemRespIO)
+
+    // for MEM
+    val MEMU_Req    = Flipped(Decoupled(new MemReqIO))
+    val MEMU_Resp   = Decoupled(new MemRespIO)
+}
+
+class MemManager2x2 extends Module with ErythrinaDefault{
+    val io = IO(new MemManager2x2IO)
+    io.MemReq1  <> io.IFU_Req
+    io.MemResp1 <> io.IFU_Resp
+    io.MemReq2  <> io.MEMU_Req
+    io.MemResp2 <> io.MEMU_Resp
 }

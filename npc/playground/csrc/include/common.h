@@ -14,6 +14,8 @@ static const uint32_t default_inst[] = {
     0x00100073      // ebreak
 };
 
+// inst size
+extern long img_size;
 // Font
 static const char FontRed[]     = "\033[1;31m";
 static const char FontGreen[]   = "\033[1;32m";

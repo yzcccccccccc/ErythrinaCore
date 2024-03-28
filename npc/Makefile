@@ -9,11 +9,15 @@ export PATH := $(PATH):$(abspath ./utils)
 GTKWAVE = gtkwave
 VERILATOR = verilator
 
+# for llvm
+CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
+LIBS += $(shell llvm-config --libs)
+
 # Flags
 VERILATOR_NVFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
-VLDFLAGS += -lreadline
-VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include \
+VLDFLAGS += -lreadline ${LIBS}
+VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include ${CXXFLAGS}\
 			
 VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
 VERILATOR_VERFLAGS += -cc --trace

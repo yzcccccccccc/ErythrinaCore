@@ -31,6 +31,8 @@ uint32_t pmem_read(paddr_t addr){
     npc_alert(host_index + 3 < MEMSIZE);
     assert(host_index + 3 < MEMSIZE);
     uint32_t res = host_read(guest2host(addr));
+    if (addr >= PC_RSTVEC + img_size)
+        printf("[mtrace]: read at 0x%08x, data 0x%08x\n", addr, res);
     //printf("[Trace]: MemRead at 0x%08x, res: 0x%08x\n", addr, res);
     return res;
 }

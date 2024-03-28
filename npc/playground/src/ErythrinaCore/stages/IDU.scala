@@ -99,6 +99,9 @@ class IDU extends Module with IDUtrait{
     io.ID2BPU.src2  := imm
     io.ID2BPU.pc    := pc
 
+    // to IFU!
+    //io.IFU2IDU.ready            := io.IDU2EXU.valid & io.IDU2EXU.ready
+
     // to EXU!
     io.IDU2EXU.valid            := io.IFU2IDU.valid
     io.IDU2EXU.bits.ALUin.src1  := src1

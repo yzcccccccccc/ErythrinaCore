@@ -26,6 +26,9 @@ class EXU extends Module with EXUtrait{
     // to BPU
     io.EX2BPU.aluout <> ALU0.io.ALUout
 
+    // to IDU
+    //io.IDU2EXU.ready        := io.IDU2EXU.valid & io.EXU2MEMU.ready
+
     // to MEM!
     io.EXU2MEMU.valid       := io.IDU2EXU.valid
     io.EXU2MEMU.bits.inst   := io.IDU2EXU.bits.inst

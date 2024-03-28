@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "cpu.h"
 #include "dpi.h"
+#include "util.h"
 
 #include "VSoc.h"
 #include "verilated.h"
@@ -105,11 +106,15 @@ void collect(){
     delete contx;
 }
 
+char inst_disasm[100];
 void execute(uint32_t n){
     for (;n > 0 && npc_state == CPU_RUN; n--){
         while (!dut->io_commit_valid && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
-        printf("[Trace]: PC=0x%08x, Inst=0x%08x, rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n",
-                dut->io_commit_pc, dut->io_commit_inst,
+
+        //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+        disassemble(inst_disasm, 100, dut->io_commit_pc, (uint8_t *)&(dut->io_commit_inst), 4);
+        printf("[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n\n",
+                dut->io_commit_pc, dut->io_commit_inst, inst_disasm,
                 dut->io_commit_rf_waddr, dut->io_commit_rf_wdata,
                 dut->io_commit_rf_wen);
         single_cycle(dut, tfp, contx);

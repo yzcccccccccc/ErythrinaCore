@@ -7,6 +7,7 @@ import bus.mem._
 import utils._
 
 class MEMUIO extends Bundle with MEMUtrait{
+    val en          = Input(Bool())
     val EXU2MEMU    = Flipped(Decoupled(new EX2MEMzip))
     val MEMU2WBU    = Decoupled(new MEM2WBzip)
 
@@ -24,7 +25,7 @@ class MEMU extends Module with MEMUtrait{
 
     // MemReq
     val addr = io.EXU2MEMU.bits.addr
-    io.MEMU_memReq.valid        := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid
+    io.MEMU_memReq.valid        := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid & io.en
     io.MEMU_memReq.bits.addr    := Cat(addr(XLEN - 1, 2), 0.asUInt(2.W))        // 4 Bits align?
 
     // MemResp
@@ -66,9 +67,12 @@ class MEMU extends Module with MEMUtrait{
     io.MEMU_memReq.bits.mask    := mask
     io.MEMU_memReq.bits.data    := io.EXU2MEMU.bits.data2store
 
+    // to EXU
+    //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready
+
     // to WBU!
     val isload = io.MEMU_memReq.valid & mask === 0.U
-    io.MEMU2WBU.valid       := io.EXU2MEMU.valid
+    io.MEMU2WBU.valid       := (io.MEMU_memResp.fire | ~io.MEMU_memReq.valid)
     io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
     io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst
     io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd

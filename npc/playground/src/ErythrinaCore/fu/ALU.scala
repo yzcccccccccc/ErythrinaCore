@@ -2,6 +2,9 @@ package ErythrinaCore
 
 import chisel3._
 import chisel3.util._
+import utils.LookupTree
+import utils.LookupTreeDefault
+import utils.ZeroExt
 
 // ALU: for Arithmetic Operations
 
@@ -19,7 +22,6 @@ object ALUop{
   def and   = "b0100".U
   def or    = "b0101".U
   def xor   = "b0110".U
-  def nor   = "b0111".U
   def srl   = "b1010".U
   def sra   = "b1011".U
   def sll   = "b1100".U
@@ -48,11 +50,27 @@ class ALU extends Module with ALUtrait{
 
   val (src1, src2, aluop) = (io.ALUin.src1, io.ALUin.src2, io.ALUin.aluop)
 
-  val UseSub = ALUop.usesub(aluop)
-  val shamt = src2(4, 0)
+  val UseSub  = ALUop.usesub(aluop)
+  val shamt   = src2(4, 0)
+  val src2in  = src2 ^ Fill(XLEN, UseSub)
 
-  val add_sub_res = (src1 +& (src2 ^ Fill(XLEN, UseSub))) + UseSub
+  val add_sub_res = (src1 +& src2in) + UseSub
+  val sltu_res  = ~add_sub_res(XLEN)
+  val overflow  = (src1(XLEN-1) & src2in(XLEN-1) & ~add_sub_res(XLEN-1)) | (~src1(XLEN-1) & ~src2in(XLEN-1) & add_sub_res(XLEN-1))
+  val slt_res   = overflow ^ add_sub_res(XLEN-1)
 
-  io.ALUout.res   := add_sub_res
+  val res = LookupTreeDefault(aluop, add_sub_res, List(
+    ALUop.dir   -> src1,
+    ALUop.slt   -> ZeroExt(slt_res, XLEN),
+    ALUop.sltu  -> ZeroExt(sltu_res, XLEN),
+    ALUop.and   -> (src1 & src2),
+    ALUop.xor   -> (src1 ^ src2),
+    ALUop.or    -> (src1 | src2),
+    ALUop.srl   -> (src1 >> shamt),
+    ALUop.sra   -> (src1.asSInt >> shamt).asUInt,
+    ALUop.sll   -> (src1 << shamt)(XLEN-1, 0)
+  ))
+
+  io.ALUout.res   := res
   io.ALUout.zero  := (io.ALUout.res === 0.U)
 }

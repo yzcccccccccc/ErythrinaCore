@@ -6,6 +6,7 @@ import chisel3.util._
 import utils._
 
 class WBUIO extends Bundle with WBUtrait{
+    val step        = Input(Bool())
     val MEMU2WBU    = Flipped(Decoupled(new MEM2WBzip))
 
     // RegFile
@@ -21,10 +22,12 @@ class WBU extends Module with WBUtrait{
     io.MEMU2WBU.ready   := 1.B
 
     io.MEMU2WBU.bits.RegWriteIO <> io.RegWriteIO
+    io.RegWriteIO.wen   := io.MEMU2WBU.bits.RegWriteIO.wen & io.step
+    
     io.inst_commit.pc       := io.MEMU2WBU.bits.pc
     io.inst_commit.inst     := io.MEMU2WBU.bits.inst
     io.inst_commit.rf_wen   := io.MEMU2WBU.bits.RegWriteIO.wen
     io.inst_commit.rf_wdata := io.MEMU2WBU.bits.RegWriteIO.wdata
     io.inst_commit.rf_waddr := io.MEMU2WBU.bits.RegWriteIO.waddr
-    io.inst_commit.valid    := io.MEMU2WBU.valid
+    io.inst_commit.valid    := io.MEMU2WBU.valid & io.step
 }
