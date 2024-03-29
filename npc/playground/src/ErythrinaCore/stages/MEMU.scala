@@ -64,14 +64,25 @@ class MEMU extends Module with MEMUtrait{
         LSUop.sh    -> ("b0011".U << (addr(1, 0) & "b10".U)),
         LSUop.sw    -> "b1111".U
     ))
+    val st_data = LookupTree(lsuop, List(
+        LSUop.sb    -> (io.EXU2MEMU.bits.data2store(7, 0) << (addr(1, 0) << 3.U)),      // *8
+        LSUop.sh    -> (io.EXU2MEMU.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
+        LSUop.sw    -> (io.EXU2MEMU.bits.data2store)
+    ))
     io.MEMU_memReq.bits.mask    := mask
-    io.MEMU_memReq.bits.data    := io.EXU2MEMU.bits.data2store
+    io.MEMU_memReq.bits.data    := st_data
 
     // to EXU
     //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready
 
     // to WBU!
-    val isload = io.MEMU_memReq.valid & mask === 0.U
+    val isload = LookupTreeDefault(lsuop, false.B, List(
+        LSUop.lb    -> true.B,
+        LSUop.lbu   -> true.B,
+        LSUop.lh    -> true.B,
+        LSUop.lhu   -> true.B,
+        LSUop.lw    -> true.B
+    ))
     io.MEMU2WBU.valid       := (io.MEMU_memResp.fire | ~io.MEMU_memReq.valid)
     io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
     io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst

@@ -13,6 +13,7 @@ class SimpleRamIO extends Bundle{
 
 class SimpleRam extends BlackBox with HasBlackBoxInline {
   val io = IO(new SimpleRamIO)
+  // TODO: to be fixed (FSM maybe?)
   setInline("simpleram.sv",
     s"""module SimpleRam(
     |   input   clock,
@@ -36,26 +37,25 @@ class SimpleRam extends BlackBox with HasBlackBoxInline {
     | assign RamResp_valid = Resp_valid_r;
     | assign RamResp_bits_data = Resp_data_r;
     |
-    | //  Read
+    | //  Read & Write
     | always @(posedge clock) begin
     |   if (reset)
     |     Resp_valid_r <= 0;
     |   else begin
-    |     if (RamReq_valid & ~Resp_valid_r) begin
+    |     if (RamReq_valid & ~Resp_valid_r & RamReq_bits_mask == 4'b0) begin
     |       Resp_valid_r <= 1;
     |       Resp_data_r <= mem_read(RamReq_bits_addr);
     |     end
     |     else
-    |       Resp_valid_r <= 0;
+    |       if (RamReq_bits_mask != 4'b0 & RamReq_valid & ~Resp_valid_r) begin
+    |         mem_write(RamReq_bits_addr, RamReq_bits_mask, RamReq_bits_data);
+    |         Resp_valid_r <= 1;
+    |       end
+    |       else
+    |         Resp_valid_r  <= 0;
     |   end
     | end
     |
-    | // Write
-    | always @(*) begin
-    |   if (RamReq_bits_mask != 4'b0) begin
-    |     mem_write(RamReq_bits_addr, RamReq_bits_mask, RamReq_bits_data);
-    |   end
-    | end
     |endmodule
     """.stripMargin);
 }

@@ -56,6 +56,7 @@ VSRCS ?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
 SIM_TARGET = V$(TOPNAME)
 
 IMG ?= 
+ARG ?= 
 DIFF_SO ?= $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 verilate: verilog
@@ -66,7 +67,7 @@ verilate_sim:
 
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
-	$(OBJ_DIR)/$(SIM_TARGET) -d $(DIFF_SO) $(IMG)
+	$(OBJ_DIR)/$(SIM_TARGET) -d $(DIFF_SO) -b $(ARG) $(IMG)
 
 view_wave:
 	$(GTKWAVE) ./wave.vcd

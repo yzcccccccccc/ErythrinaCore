@@ -105,6 +105,11 @@ void sdb_main(){
     init_CPU();
     init_sdb();
 
+    if (is_batch_mode){
+      execute(-1);
+      return;
+    }
+
     for (char *str; (str = rl_gets()) != NULL; ) {
         char *str_end = str + strlen(str);
 
@@ -130,4 +135,5 @@ void sdb_main(){
 
         if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
+  return;
 }

@@ -9,6 +9,7 @@ import bus.mem._
 
 class IFUIO extends Bundle with IFUtrait{
   val step    = Input(Bool())
+  val req_en  = Input(Bool())
   val IFU2IDU = Decoupled(new IF2IDzip)         // pipeline ctrl, to IDU
   val BPU2IFU = Flipped(new RedirectInfo)
   val IFU_memReq  = Decoupled(new MemReqIO)
@@ -31,7 +32,7 @@ class IFU extends Module with IFUtrait{
   
   val valid_r = Reg(Bool())
   valid_r := ~reset.asBool
-  io.IFU_memReq.valid     := valid_r
+  io.IFU_memReq.valid     := valid_r & io.req_en
   io.IFU_memReq.bits.addr := pc
   io.IFU_memReq.bits.mask := 0.U
   io.IFU_memReq.bits.data := 0.U

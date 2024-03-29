@@ -38,15 +38,15 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 }
 
 bool checkregs(rv32_CPU_state *ref, uint32_t pc){
+    if (ref->pc != CPU_state.pc){
+        printf("[difftest] NPC error, ref_r pc: 0x%08x, nemu pc: 0x%08x\n", ref->pc, CPU_state.pc);
+        return false;
+    }
     for (int i = 0; i < REG_NUM; i++){
         if (ref->gpr[i] != CPU_state.gpr[i]){
             printf("[difftest] At pc 0x%08x, Reg %s error, ref: 0x%08x, npc: 0x%08x\n", pc, get_regname(i), ref->gpr[i], CPU_state.gpr[i]);
             return false;
         }
-    }
-    if (ref->pc != CPU_state.pc){
-        printf("[difftest] NPC error, ref_r pc: 0x%08x, nemu pc: 0x%08x\n", ref->pc, CPU_state.pc);
-        return false;
     }
   return true;
 
