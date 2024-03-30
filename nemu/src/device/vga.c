@@ -74,15 +74,34 @@ static inline void update_screen() {
 void vga_update_screen() {
   // TODO: call `update_screen()` when the sync register is non-zero,
   // then zero out the sync register
+  uint32_t sync = vgactl_port_base[1];
+  if (sync != 0){
+    update_screen();
+    vgactl_port_base[1] = 0;
+  }
+}
+
+/*
+off:
+  0   height  | width
+  4   sync?
+  8   x       | y         (FBDRAW)
+  12  w       | h         (FBDRAW)
+  16  pixels pointer      (FBDRAM)    really required?
+*/
+
+static void vga_io_handler(uint32_t offset, int len, bool is_write){
+  vga_update_screen();
 }
 
 void init_vga() {
-  vgactl_port_base = (uint32_t *)new_space(8);
+  vgactl_port_base = (uint32_t *)new_space(8);      // 8*4 bytes
   vgactl_port_base[0] = (screen_width() << 16) | screen_height();
+  vgactl_port_base[1] = 0;
 #ifdef CONFIG_HAS_PORT_IO
   add_pio_map ("vgactl", CONFIG_VGA_CTL_PORT, vgactl_port_base, 8, NULL);
 #else
-  add_mmio_map("vgactl", CONFIG_VGA_CTL_MMIO, vgactl_port_base, 8, NULL);
+  add_mmio_map("vgactl", CONFIG_VGA_CTL_MMIO, vgactl_port_base, 8, vga_io_handler);
 #endif
 
   vmem = new_space(screen_size());

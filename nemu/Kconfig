@@ -156,6 +156,11 @@ config MTRACE
   bool "Enable memory operations(r/w) tracer"
   default n
 
+  config DTRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable device operations(r/w) tracer"
+  default n
+
 config MTRACE_LBOUND
   depends on MTRACE
   int "Left boundary of memory to be traced"

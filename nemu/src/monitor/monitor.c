@@ -54,7 +54,7 @@ static int difftest_port = 1234;
 typedef MUXDEF(CONFIG_ISA64, ELF64_Ehdr, Elf32_Ehdr) Ehdr;
 typedef MUXDEF(CONFIG_ISA64, ELF64_Shder, Elf32_Shdr) Shdr;
 typedef MUXDEF(CONFIG_ISA64, ELF64_Sym, Elf32_Sym) Sym;
-#define STRBUFLEN 10000
+#define STRBUFLEN 10000000
 char strbuf[STRBUFLEN];
 int funcs_cnt;
 struct funcarray funcs[FUNC_NUM];
@@ -142,8 +142,10 @@ static long load_img() {
   int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
   assert(ret == 1);
 
+#ifdef CONFIG_FTRACE
   Log("Parsing ELF File, ftrace initializing...");
   ftrace_init();
+#endif
 
   fclose(fp);
   return size;

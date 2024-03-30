@@ -5,6 +5,8 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
+#define BUFLEN 400
+
 void my_print_num(int num){
   if (num < 0){
     putch('-');
@@ -20,26 +22,26 @@ void my_print_num(int num){
 }
 
 int printf(const char *fmt, ...) {
-  char pbuf[100];
+  char pbuf[BUFLEN];
 
   // write to pbuf
   va_list ap;
   va_start(ap, fmt);
-  int cnt = vsprintf(pbuf, fmt, ap);
+  int len = vsprintf(pbuf, fmt, ap);
   va_end(ap);
-
+  assert(len < BUFLEN);
 
   // write to port
   for (int i = 0; pbuf[i] != '\0'; i++)
     putch(pbuf[i]);
-  return cnt;
+  return len;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
-  char vsbuf[100];
-  int cnt = 0;
+  char vsbuf[BUFLEN];
   char *s;
-  int d, pad_num = 0;
+  int d, pad_num = 0, pad_ch = 0;
+  char *out_in = out;
 
   while (*fmt){
     if (*fmt != '%'){
@@ -50,7 +52,6 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       fmt++;
       switch (*fmt){
         case 's':
-          cnt++;
           s = va_arg(ap, char*);
           while (*s != '\0'){
             *out = *s;
@@ -58,8 +59,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
             s++;
           }
           break;
-        case 'd':
-          cnt++;
+        case 'd': case 'x':   // TODO: Add Hex!
           d = va_arg(ap, int);
           int len = 0;
           if (d < 0){
@@ -76,19 +76,31 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
               vsbuf[len] = d % 10 + '0';
             }
             for (int i = len; i < pad_num; i++){
-              *out = '0';
+              *out = pad_ch;
               out++;
             }
+            pad_num = 0;
             for (int i = 0; i < len; i++){
               *out = vsbuf[len - i - 1];
               out++;
             }
           }
           break;
-        case '0':   // format 0...
-          pad_num = 0;
+        case 'c':
+          d = va_arg(ap, int);
+          *out = d;
+          out++;
+          break;
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+        // format 0...
+          if (*fmt == '0')
+            pad_ch = '0';
+          else
+            pad_ch = ' ';
+          pad_num = *fmt - '0';
           fmt++;
-          while (*fmt != 'd' && *fmt != '0'){
+          while (*fmt != 'd' && *fmt != 'x' && *fmt != '\0'){
             pad_num = pad_num * 10 + (*fmt - '0');
             fmt++;
           }
@@ -96,21 +108,24 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           assert(pad_num != 0);
           fmt--;
           break;
-        default: assert(0);
+        default:
+          printf("%s", fmt);
+          assert(0);
       }
     }
     fmt++;
   }
   *out = '\0';
-  return cnt;
+  return (out - out_in);
 }
 
 int sprintf(char *out, const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  int cnt = vsprintf(out, fmt, ap);
+  int len = vsprintf(out, fmt, ap);
   va_end(ap);
-  return cnt;
+  assert(len < BUFLEN);
+  return len;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
