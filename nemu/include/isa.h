@@ -70,7 +70,7 @@ struct funcarray{
     word_t size;
     char name[128];
 };
-#define FUNC_NUM 20
+#define FUNC_NUM 100
 extern struct funcarray funcs[FUNC_NUM];
 extern int funcs_cnt;
 

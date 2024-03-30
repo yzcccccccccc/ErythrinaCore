@@ -82,7 +82,7 @@ void paddr_write(paddr_t addr, int len, word_t data) {
     return;
   }
 #ifdef CONFIG_DEVICE
-  IFDEF(CONFIG_MTRACE, mtrace(addr, data, "mmio write", len));
+  IFDEF(CONFIG_MTRACE, {mtrace(addr, data, "mmio write", len); mmio_write(addr, len, data); return;});
 #endif
   out_of_bound(addr);
 }
