@@ -7,10 +7,12 @@
 #include "cpu.h"
 #include "dpi.h"
 #include "util.h"
+#include "device.h"
 
 #include "VSoc.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+#include <cstdint>
 
 int cycle = 0;
 NPC_state npc_state;
@@ -34,7 +36,7 @@ void single_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
     half_cycle(dut, tfp, contextp);
 
     cycle++;
-    if (cycle > CYCLE_BOUND){
+    if (cycle > (uint32_t)CYCLE_BOUND){
         npc_state = CPU_ABORT_CYCLE_BOUND;
     }
 }
@@ -112,11 +114,14 @@ void execute(uint32_t n){
         while (!dut->io_commit_valid && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
 
         //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-        disassemble(inst_disasm, 100, dut->io_commit_pc, (uint8_t *)&(dut->io_commit_inst), 4);
-        printf("[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n\n",
-                dut->io_commit_pc, dut->io_commit_inst, inst_disasm,
-                dut->io_commit_rf_waddr, dut->io_commit_rf_wdata,
-                dut->io_commit_rf_wen);
+        if (ITRACE){
+            disassemble(inst_disasm, 100, dut->io_commit_pc, (uint8_t *)&(dut->io_commit_inst), 4);
+            printf("[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n\n",
+                    dut->io_commit_pc, dut->io_commit_inst, inst_disasm,
+                    dut->io_commit_rf_waddr, dut->io_commit_rf_wdata,
+                    dut->io_commit_rf_wen);
+        }
+
         single_cycle(dut, tfp, contx);
         update_npcstate();
         //if (dut->io_commit_rf_wen)
@@ -132,6 +137,8 @@ void execute(uint32_t n){
 
 void init_CPU(){
     init_verilate();
+
+    init_device();
 
     CPU_reset();
 }

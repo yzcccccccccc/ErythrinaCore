@@ -18,7 +18,7 @@ VERILATOR_NVFLAGS += -MMD --build -cc  \
 				-O3 --x-assign fast --x-initial fast --noassert
 VLDFLAGS += -lreadline ${LIBS}
 VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include ${CXXFLAGS}\
-			
+
 VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
 VERILATOR_VERFLAGS += -cc --trace
 

@@ -1,4 +1,5 @@
 #include "difftest.h"
+#include "setting.h"
 #include "common.h"
 #include "cpu.h"
 #include "isa.h"
@@ -53,9 +54,11 @@ bool checkregs(rv32_CPU_state *ref, uint32_t pc){
 }
 
 void difftest_step(uint32_t pc){
-    rv32_CPU_state ref_r;
-    ref_difftest_exec(1);
-    ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-    if (!checkregs(&ref_r, pc))
-        npc_state = CPU_ABORT_DIFF_ERR;
+    if (DIFF_TEST){
+        rv32_CPU_state ref_r;
+        ref_difftest_exec(1);
+        ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+        if (!checkregs(&ref_r, pc))
+            npc_state = CPU_ABORT_DIFF_ERR;
+    }
 }
