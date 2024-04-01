@@ -156,7 +156,12 @@ config MTRACE
   bool "Enable memory operations(r/w) tracer"
   default n
 
-  config DTRACE
+config ETRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable exception operations(r/w) tracer"
+  default n
+
+config DTRACE
   depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
   bool "Enable device operations(r/w) tracer"
   default n

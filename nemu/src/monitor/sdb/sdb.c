@@ -130,6 +130,7 @@ static int cmd_si(char *args){
       ite ++;
       if (ite > 10)
         return 1;
+      arg++;
     }
   }
   cpu_exec(n);

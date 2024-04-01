@@ -15,6 +15,7 @@
 
 #include "common.h"
 #include "debug.h"
+#include "isa-def.h"
 #include "isa.h"
 #include "local-include/reg.h"
 #include "macro.h"
@@ -26,6 +27,38 @@
 #define R(i) gpr(i)
 #define Mr vaddr_read
 #define Mw vaddr_write
+
+word_t isa_csr_read(int num){
+  if (num == MEPC)
+    return cpu.mepc;
+  if (num == MSTATUS)
+    return cpu.mstatus;
+  if (num == MCAUSE)
+    return cpu.mcause;
+  if (num == MSTVEC)
+    return cpu.mstvec;
+  assert(0);
+}
+
+void isa_csr_write(int num, word_t data){
+  if (num == MEPC){
+    cpu.mepc = data;
+    return;
+  }
+  if (num == MSTATUS){
+    cpu.mstatus = data;
+    return;
+  }
+  if (num == MCAUSE){
+    cpu.mcause = data;
+    return;
+  }
+  if (num == MSTVEC){
+    cpu.mstvec = data;
+    return;
+  }
+  assert(0);
+}
 
 enum {
   TYPE_I, TYPE_U, TYPE_S, TYPE_J, TYPE_R, TYPE_B,
@@ -182,6 +215,13 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 101 ????? 01100 11", divu   , R, {R(rd) = src1 / src2; tracer(s->pc, rd, R(rd));});
   INSTPAT("0000001 ????? ????? 011 ????? 01100 11", mulhu  , R, {R(rd) = ((uint64_t)src1 * (uint64_t)src2) >> 32;});
 
+  // CSR
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, {R(rd) = isa_csr_read(imm); isa_csr_write(imm, src1);});
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, {word_t t = isa_csr_read(imm); isa_csr_write(imm, t | src1); R(rd) = t;});
+
+  // TODO mstatus/status
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, {s->dnpc = cpu.mepc;});
+  INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, {s->dnpc = isa_raise_intr(11, s->pc);});
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
   INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
   INSTPAT_END();

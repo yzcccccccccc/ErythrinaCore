@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "debug.h"
 #include "utils.h"
 #include <cpu/cpu.h>
 #include <cpu/decode.h>
@@ -25,7 +26,7 @@
  * This is useful when you use the `si' command.
  * You can modify this value as you want.
  */
-#define MAX_INST_TO_PRINT 10
+#define MAX_INST_TO_PRINT 1000
 
 CPU_state cpu = {};
 uint64_t g_nr_guest_inst = 0;
@@ -130,6 +131,13 @@ void cpu_exec(uint64_t n) {
 
   uint64_t timer_end = get_time();
   g_timer += timer_end - timer_start;
+
+  if (nemu_state.state == NEMU_ABORT){
+    printf("IRING BUF\n");
+    for (int i = 0; i < IRINGBUF_LEN; i++){
+      printf("%s\n", iringbuf[i]);
+    }
+  }
 
   switch (nemu_state.state) {
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;

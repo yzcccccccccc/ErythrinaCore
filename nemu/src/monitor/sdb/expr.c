@@ -223,8 +223,11 @@ uint32_t eval(int p, int q, bool *success){
       assert(tokens[p].type == TK_NUM || tokens[p].type == TK_REG);
       uint32_t res = 0;
       if (tokens[p].type == TK_NUM){
-        res = (uint32_t)(strtol(tokens[p].str, NULL, 0));
-        assert(errno == 0);
+        char *endc;
+        res = (uint32_t)(strtol(tokens[p].str, &endc, 0));
+        assert(*endc == '\0');
+        //printf("%x\n", res);
+        //assert(errno == 0);
       }
       if (tokens[p].type == TK_REG){
         bool suc = 0;
