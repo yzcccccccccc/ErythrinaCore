@@ -37,11 +37,33 @@ int printf(const char *fmt, ...) {
   return len;
 }
 
-int vsprintf(char *out, const char *fmt, va_list ap) {
+char *int2str(long val, char *out, int pad_len, char pad_ch){
+  if (val < 0){
+    *out = '-';
+    val = -val;
+    out++;
+  }
   char vsbuf[BUFLEN];
+  int len = 0;
+  for (;val > 0; val /= 10, len++){
+    vsbuf[len] = val % 10 + '0';
+  }
+  for (int i = len; i < pad_len; i++){
+    *out = pad_ch;
+    out++;
+  }
+  for (int i = 0; i < len; i++){
+    *out = vsbuf[len - i - 1];
+    out++;
+  }
+  return out;
+}
+
+int vsprintf(char *out, const char *fmt, va_list ap) {
   char *s;
-  int d, pad_num = 0, pad_ch = 0;
+  int pad_len = 0, pad_ch = 0;
   char *out_in = out;
+  long d;
 
   while (*fmt){
     if (*fmt != '%'){
@@ -61,30 +83,13 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           break;
         case 'd': case 'x':   // TODO: Add Hex!
           d = va_arg(ap, int);
-          int len = 0;
-          if (d < 0){
-            d = -d;
-            *out = '-';
-            out++;
-          }
-          if (d == 0){
-            *out = '0';
-            out++;
-          }
-          else{
-            for (;d > 0; d /= 10, len++){
-              vsbuf[len] = d % 10 + '0';
-            }
-            for (int i = len; i < pad_num; i++){
-              *out = pad_ch;
-              out++;
-            }
-            pad_num = 0;
-            for (int i = 0; i < len; i++){
-              *out = vsbuf[len - i - 1];
-              out++;
-            }
-          }
+          out = int2str(d, out, pad_len, pad_ch);
+          pad_len = 0;
+          break;
+        case 'l':
+          fmt++;
+          assert(*fmt == 'd' || *fmt == 'x');
+          d = va_arg(ap, long);
           break;
         case 'c':
           d = va_arg(ap, int);
@@ -98,14 +103,14 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
             pad_ch = '0';
           else
             pad_ch = ' ';
-          pad_num = *fmt - '0';
+          pad_len = *fmt - '0';
           fmt++;
           while (*fmt != 'd' && *fmt != 'x' && *fmt != '\0'){
-            pad_num = pad_num * 10 + (*fmt - '0');
+            pad_len = pad_len * 10 + (*fmt - '0');
             fmt++;
           }
           assert(*fmt != '\0');
-          assert(pad_num != 0);
+          assert(pad_len != 0);
           fmt--;
           break;
         default:
