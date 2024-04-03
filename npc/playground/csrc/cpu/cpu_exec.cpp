@@ -16,6 +16,7 @@
 
 int cycle = 0;
 NPC_state npc_state;
+uint32_t npc_val;
 
 void wave_record(VerilatedVcdC *tfp, VerilatedContext *contx){
     if (DUMP_WAVE){
@@ -80,8 +81,11 @@ void report(){
         case CPU_HALT_BAD:
             printf("[Hit Trap] Halt from ebreak. Hit %sBad%s Trap\n", FontRed, Restore);
             break;
+        case CPU_ABORT_INSTERR:
+            printf("[Hit Trap] %sAbort%s due to unknown instuctions.\n", FontRed, Restore);
+            break;
         case CPU_ABORT_MEMLEAK:
-            printf("[Hit Trap] %sAbort%s from memory leak.\n", FontRed, Restore);
+            printf("[Hit Trap] %sAbort%s from memory leak at 0x%08x.\n", FontRed, Restore, npc_val);
             break;
         case CPU_ABORT_INSTR_BOUND:
             printf("[Hit Trap] %sAbort%s from hitting instructions bound.\n", FontRed, Restore);
@@ -109,6 +113,7 @@ void collect(){
 }
 
 char inst_disasm[100];
+FILE *logfile;
 void execute(uint32_t n){
     for (;n > 0 && npc_state == CPU_RUN; n--){
         while (!dut->io_commit_valid && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
@@ -116,7 +121,7 @@ void execute(uint32_t n){
         //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
         if (ITRACE){
             disassemble(inst_disasm, 100, dut->io_commit_pc, (uint8_t *)&(dut->io_commit_inst), 4);
-            printf("[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n\n",
+            fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n\n",
                     dut->io_commit_pc, dut->io_commit_inst, inst_disasm,
                     dut->io_commit_rf_waddr, dut->io_commit_rf_wdata,
                     dut->io_commit_rf_wen);
@@ -141,6 +146,10 @@ void init_CPU(){
     init_device();
 
     CPU_reset();
+
+    if (ITRACE){
+        logfile = fopen("example.log", "w");
+    }
 }
 
 void CPU_sim(){

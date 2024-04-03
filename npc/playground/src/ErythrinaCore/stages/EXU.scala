@@ -28,7 +28,6 @@ class EXU extends Module with EXUtrait{
     // to CSR
     val csrop = io.IDU2EXU.bits.CSRop
     io.EX2CSR.csrop := csrop
-    io.EX2CSR.pc    := io.IDU2EXU.bits.pc
     io.EX2CSR.src1  := io.IDU2EXU.bits.src1
     io.EX2CSR.src2  := io.IDU2EXU.bits.src2
     val csr_res = io.EX2CSR.rdata

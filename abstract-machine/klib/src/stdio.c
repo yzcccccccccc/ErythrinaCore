@@ -7,7 +7,7 @@
 
 #define BUFLEN 400
 
-void my_print_num(int num){
+void my_print_num(long num){
   if (num < 0){
     putch('-');
     num = -num; 
@@ -90,6 +90,8 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           fmt++;
           assert(*fmt == 'd' || *fmt == 'x');
           d = va_arg(ap, long);
+          out = int2str(d, out, pad_len, pad_ch);
+          pad_len = 0;
           break;
         case 'c':
           d = va_arg(ap, int);

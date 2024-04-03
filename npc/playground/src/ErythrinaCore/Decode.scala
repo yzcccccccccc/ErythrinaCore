@@ -5,13 +5,14 @@ import chisel3.util._
 
 // Instruction Type
 trait InstrType extends ErythrinaDefault{
-  def TypeI = "b000".U
-  def TypeR = "b001".U
-  def TypeS = "b010".U
-  def TypeU = "b011".U
-  def TypeJ = "b100".U
-  def TypeB = "b101".U
-  def TypeN = "b110".U
+  def TypeI   = "b000".U
+  def TypeR   = "b001".U
+  def TypeS   = "b010".U
+  def TypeU   = "b011".U
+  def TypeJ   = "b100".U
+  def TypeB   = "b101".U
+  def TypeN   = "b110".U
+  def TypeER  = "b111".U    // error
 }
 
 object SrcType {
@@ -22,6 +23,6 @@ object SrcType {
 }
 
 object Instructions extends InstrType{
-  val decodeDefault = List(TypeN, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.nop)
+  val decodeDefault = List(TypeER, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.nop)
   def decode_table = RV32I.table ++ RV32CSR.table ++ Previledge.table
 }

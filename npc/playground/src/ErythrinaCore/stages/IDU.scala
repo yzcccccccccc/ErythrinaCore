@@ -36,6 +36,7 @@ class IDU extends Module with IDUtrait{
     // Get src
     val immj = Mux(instr(3, 3) === 1.B, SignExt(Cat(instr(31), instr(19, 12), instr(20), instr(30, 21), 0.U(1.W)), XLEN), SignExt(instr(31, 20), XLEN))
     val imm = LookupTree(instType, List(
+        TypeN   -> SignExt(instr(31, 20), XLEN),
         TypeI   -> SignExt(instr(31, 20), XLEN),
         TypeS   -> SignExt(Cat(instr(31, 25), instr(11, 7)), XLEN),
         TypeB   -> SignExt(Cat(instr(31), instr(7), instr(30, 25), instr(11, 8), 0.U(1.W)), XLEN),
@@ -73,14 +74,19 @@ class IDU extends Module with IDUtrait{
 
     // CSR srcs
     val usei = CSRop.usei(csrop)
-    val csr_src1 = Mux(usei, ZeroExt(rs1, XLEN), rdata1)
-    val csr_src2 = Mux(instType === TypeI, imm, pc)     // TypeI and TypeN
+    val csr_typI = Mux(usei, ZeroExt(rs1, XLEN), rdata1)
+    val csr_src1 = Mux(instType === TypeN, pc, csr_typI) // TypeN and TypeI
+    val csr_src2 = imm     
 
     // to BPU
     io.ID2BPU.bpuop := bpuop
     io.ID2BPU.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
     io.ID2BPU.src2  := imm
     io.ID2BPU.pc    := pc
+
+    // known inst
+    val HaltUnkonwInst = Module(new haltUnknownInst)
+    HaltUnkonwInst.io.halt_trigger := instType === TypeER & io.IFU2IDU.valid
 
     // to IFU!
     //io.IFU2IDU.ready            := io.IDU2EXU.valid & io.IDU2EXU.ready

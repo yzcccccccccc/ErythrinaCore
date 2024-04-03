@@ -13,8 +13,8 @@ object Previledge extends  InstrType{
     def MRET    = BitPat("b0011000_00010_00000_000_00000_11100_11")
 
     val table = Array(
-        EBREAK      -> List(TypeI, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.jmp),
-        ECALL       -> List(TypeI, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.jmp),
-        MRET        -> List(TypeI, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.jmp)
+        EBREAK      -> List(TypeN, ALUop.nop, LSUop.nop, BPUop.csr, CSRop.jmp),
+        ECALL       -> List(TypeN, ALUop.nop, LSUop.nop, BPUop.csr, CSRop.jmp),
+        MRET        -> List(TypeN, ALUop.nop, LSUop.nop, BPUop.csr, CSRop.jmp)
     )
 }

@@ -62,7 +62,8 @@ uint32_t try_device_write(paddr_t paddr, uint32_t data, uint32_t mask, bool *suc
 static uint8_t *serial_base = NULL;
 void serial_handler(uint32_t offset, bool iswrite){
     assert(iswrite);
-    putchar(serial_base[0]);
+    printf("%c", serial_base[0]);
+    //putchar(serial_base[0]);
 }
 
 void init_serial(){

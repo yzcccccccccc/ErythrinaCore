@@ -29,6 +29,7 @@ object RV32I_I extends InstrType{
     SLTI          -> List(TypeI, ALUop.slt, LSUop.nop, BPUop.nop, CSRop.nop),
     SLTIU         -> List(TypeI, ALUop.sltu, LSUop.nop, BPUop.nop, CSRop.nop),
     XORI          -> List(TypeI, ALUop.xor, LSUop.nop, BPUop.nop, CSRop.nop),
+    ORI           -> List(TypeI, ALUop.or, LSUop.nop, BPUop.nop, CSRop.nop),
     ANDI          -> List(TypeI, ALUop.and, LSUop.nop, BPUop.nop, CSRop.nop),
     SLLI          -> List(TypeI, ALUop.sll, LSUop.nop, BPUop.nop, CSRop.nop),
     SRLI          -> List(TypeI, ALUop.srl, LSUop.nop, BPUop.nop, CSRop.nop),

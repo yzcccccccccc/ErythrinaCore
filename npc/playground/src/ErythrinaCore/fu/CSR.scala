@@ -6,24 +6,6 @@ import chisel3.util._
 import utils._
 import chisel3.util.circt.Mux2Cell
 
-class halter extends BlackBox with HasBlackBoxInline{
-    val io = IO(new Bundle {
-        val halt_trigger    = Input(Bool())
-    })
-    setInline("halter.sv",
-    s"""module halter(
-    |   input   wire halt_trigger
-    |);
-    |import "DPI-C" function void halt_sim();
-    |always @(*) begin
-    |   if (halt_trigger) begin
-    |       halt_sim();
-    |   end
-    |end
-    |endmodule
-    """.stripMargin)
-}
-
 object CSRop {
     def nop     = "b1000".U
     def jmp     = "b0000".U
@@ -48,7 +30,6 @@ class EXU2CSRzip extends Bundle with CSRtrait{
     val src1    = Input(UInt(XLEN.W))
     val src2    = Input(UInt(XLEN.W))
     val csrop   = Input(UInt(CSRopLEN.W))
-    val pc      = Input(UInt(XLEN.W))
     val rdata   = Output(UInt(XLEN.W))
 }
 
@@ -85,7 +66,6 @@ class CSR extends Module with ErythrinaDefault{
     val src1    = io.EXU2CSR.src1
     val src2    = io.EXU2CSR.src2
     val csrop   = io.EXU2CSR.csrop
-    val pc      = io.EXU2CSR.pc
 
     // priv
     def privECALL   = 0x000.U
@@ -130,7 +110,7 @@ class CSR extends Module with ErythrinaDefault{
         isSET   -> (csrval | src1),
         isCLR   -> (csrval & ~src1)
     ))
-    when (io.en){
+    when (io.en & csr_wen){
         switch (csrnum){
             is (CSRnum.mcause){
                 mcause  := csr_new
@@ -148,12 +128,12 @@ class CSR extends Module with ErythrinaDefault{
     }
 
     // TODO halt if is EBREAK
-    val HaltCtrl = Module(new halter)
-    HaltCtrl.io.halt_trigger    := isEBREAK
+    val HaltEbreak = Module(new haltEbreak)
+    HaltEbreak.io.halt_trigger    := isEBREAK
 
     // ecall
-    when (isECALL){
-        mepc    := pc
+    when (isECALL & io.en){ // update in WB?
+        mepc    := src1
         mcause  := TrapCause.MECALL
     }
 }
