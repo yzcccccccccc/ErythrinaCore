@@ -22,6 +22,10 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     val MEMU_inst   = Module(new MEMU)
     val WBU_inst    = Module(new WBU)
 
+    val BPU_inst    = Module(new BPU)
+    val CSR_inst    = Module(new CSR)
+    val regfile     = Module(new RegFile)
+
     // FSM
     val sIF :: sIF_Recv :: sID :: sEX :: sMEM :: sMEM_Recv :: sWB :: Nil = Enum(7)
     val state   = RegInit(sIF)
@@ -64,26 +68,29 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     IFU_inst.io.step    := state === sWB
     WBU_inst.io.step    := state === sWB
     MEMU_inst.io.en     := state === sMEM
+    CSR_inst.io.en      := state === sWB
+
+    // CSR
+    CSR_inst.io.CSR2BPU <> BPU_inst.io.CSR2BPU
+    CSR_inst.io.EXU2CSR <> EXU_inst.io.EX2CSR
     
-    // regfile
-    val regfile     = Module(new RegFile)
+    // regfile 
     regfile.io.readIO <> IDU_inst.io.RFRead
     regfile.io.writeIO <> WBU_inst.io.RegWriteIO
 
-    // BPU
-    val BPU_inst    = Module(new BPU)
+    // BPU  
     IFU_inst.io.BPU2IFU <> BPU_inst.io.IF_Redirect
     IDU_inst.io.BPU2IDU <> BPU_inst.io.ID_Redirect
     IDU_inst.io.ID2BPU  <> BPU_inst.io.ID2BPU
     EXU_inst.io.EX2BPU  <> BPU_inst.io.EX2BPU
 
-    // pipelines
+    // TODO: pipelines
     IFU_inst.io.IFU2IDU <> IDU_inst.io.IFU2IDU
     IDU_inst.io.IDU2EXU <> EXU_inst.io.IDU2EXU
     EXU_inst.io.EXU2MEMU <> MEMU_inst.io.EXU2MEMU
     MEMU_inst.io.MEMU2WBU <> WBU_inst.io.MEMU2WBU
 
-    // mem
+    // TODO: mem (change to LSU)
     val MM_inst     = Module(new MemManager2x2)
     MM_inst.io.MemReq1 <> io.MemReq1
     MM_inst.io.MemResp1 <> io.MemResp1

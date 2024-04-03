@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 // FU trait
-trait FUtrait extends ErythrinaDefault with ALUtrait with LSUtrait with BPUtrait with RegTrait{
+trait FUtrait extends ErythrinaDefault with ALUtrait with LSUtrait with BPUtrait with RegTrait with CSRtrait{
 
 }
 
@@ -27,9 +27,12 @@ class ID2EXzip extends Bundle with IDUtrait{
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 
-  // for ALU, BPU (EX)
-  val ALUin = new ALUIO_in
+  // for ALU, BPU (EX), CSR
+  val src1  = UInt(XLEN.W)
+  val src2  = UInt(XLEN.W)
+  val ALUop = UInt(ALUopLEN.W)
   val BPUop = UInt(BPUopLEN.W)
+  val CSRop = UInt(CSRopLEN.W)
 
   // for LSU (MEM)
   val data2store  = UInt(XLEN.W)

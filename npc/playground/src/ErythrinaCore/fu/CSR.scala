@@ -3,7 +3,157 @@ package ErythrinaCore
 import chisel3._
 import chisel3.util._
 
+import utils._
+import chisel3.util.circt.Mux2Cell
+
+class halter extends BlackBox with HasBlackBoxInline{
+    val io = IO(new Bundle {
+        val halt_trigger    = Input(Bool())
+    })
+    setInline("halter.sv",
+    s"""module halter(
+    |   input   wire halt_trigger
+    |);
+    |import "DPI-C" function void halt_sim();
+    |always @(*) begin
+    |   if (halt_trigger) begin
+    |       halt_sim();
+    |   end
+    |end
+    |endmodule
+    """.stripMargin)
+}
+
 object CSRop {
-    def nop     = "b0000".U
-    def ebreak  = "b0001".U
+    def nop     = "b1000".U
+    def jmp     = "b0000".U
+    def wrt     = "b0001".U         // write
+    def set     = "b0010".U         // set
+    def clr     = "b0011".U
+    def wrti    = "b0101".U
+    def seti    = "b0110".U
+    def clri    = "b0111".U
+
+    def usei(csrop: UInt) = csrop(2)
+    def iswrt(csrop: UInt) = ~csrop(1) & csrop(0)
+    def isset(csrop: UInt) = csrop(1) & ~csrop(0)
+    def isclr(csrop: UInt) = csrop(1) & csrop(1)
+}
+
+trait CSRtrait extends ErythrinaDefault{
+    val CSRopLEN = 4
+}
+
+class EXU2CSRzip extends Bundle with CSRtrait{
+    val src1    = Input(UInt(XLEN.W))
+    val src2    = Input(UInt(XLEN.W))
+    val csrop   = Input(UInt(CSRopLEN.W))
+    val pc      = Input(UInt(XLEN.W))
+    val rdata   = Output(UInt(XLEN.W))
+}
+
+class WBU2CSRzip extends Bundle with CSRtrait{
+    // TODO: TBD, in the future (pipeline?), CSR write action will be triggered in WB
+}
+
+class CSR2BPUzip extends  Bundle with CSRtrait{
+    val target_pc = Output(UInt(XLEN.W))
+}
+
+class CSRIO extends Bundle with CSRtrait{
+    val EXU2CSR = new EXU2CSRzip
+    val CSR2BPU = new CSR2BPUzip
+    val en = Input(Bool())
+}
+
+object TrapCause{
+    def UECALL  = 8.U
+    def SECALL  = 9.U
+    def MECALL  = 11.U
+}
+
+object CSRnum{
+    def mstatus     = 0x300.U
+    def mtvec       = 0x305.U
+    def mepc        = 0x341.U
+    def mcause      = 0x342.U
+}
+
+class CSR extends Module with ErythrinaDefault{
+    val io = IO(new CSRIO)
+
+    val src1    = io.EXU2CSR.src1
+    val src2    = io.EXU2CSR.src2
+    val csrop   = io.EXU2CSR.csrop
+    val pc      = io.EXU2CSR.pc
+
+    // priv
+    def privECALL   = 0x000.U
+    def privEBREAK  = 0x001.U
+    def privMRET    = 0x302.U
+
+    // Machine
+    val mstatus = RegInit(UInt(XLEN.W), "h1800".U)
+    val mcause  = RegInit(UInt(XLEN.W), 0.U)
+    val mepc    = RegInit(UInt(XLEN.W), 0.U)
+    val mtvec   = RegInit(UInt(XLEN.W), 0.U)
+
+    val csrnum      = src2(11, 0)
+    val isECALL     = csrop === CSRop.jmp && csrnum === privECALL
+    val isEBREAK    = csrop === CSRop.jmp && csrnum === privEBREAK
+    val isMRET      = csrop === CSRop.jmp && csrnum === privMRET
+
+    // to BPU
+    val tar_pc      = Mux1H(Seq(
+        isECALL     -> mtvec,
+        isEBREAK    -> 0.U,
+        isMRET      -> mepc
+    ))
+    io.CSR2BPU.target_pc := tar_pc
+
+    // choose the reg!
+    val csrval  = LookupTreeDefault(csrnum, 0.U, List(
+        CSRnum.mcause       -> mcause,
+        CSRnum.mepc         -> mepc,
+        CSRnum.mstatus      -> mstatus,
+        CSRnum.mtvec        -> mtvec
+    ))
+    io.EXU2CSR.rdata    := csrval
+    
+    // update
+    val csr_wen = (csrop =/= CSRop.nop) && (csrop =/= CSRop.jmp)
+    val isWRT   = CSRop.iswrt(csrop)
+    val isSET   = CSRop.isset(csrop)
+    val isCLR   = CSRop.isclr(csrop)
+    val csr_new = Mux1H(Seq(
+        isWRT   -> src1,
+        isSET   -> (csrval | src1),
+        isCLR   -> (csrval & ~src1)
+    ))
+    when (io.en){
+        switch (csrnum){
+            is (CSRnum.mcause){
+                mcause  := csr_new
+            }
+            is (CSRnum.mepc){
+                mepc    := csr_new
+            }
+            is (CSRnum.mstatus){
+                mstatus := csr_new
+            }
+            is (CSRnum.mtvec){
+                mtvec   := csr_new
+            }
+        }
+    }
+
+    // TODO halt if is EBREAK
+    val HaltCtrl = Module(new halter)
+    HaltCtrl.io.halt_trigger    := isEBREAK
+
+    // ecall
+    when (isECALL){
+        mepc    := pc
+        mcause  := TrapCause.MECALL
+    }
 }

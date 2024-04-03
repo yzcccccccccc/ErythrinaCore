@@ -5,29 +5,11 @@ import chisel3.util._
 
 import utils._
 
-class halter extends BlackBox with HasBlackBoxInline{
-    val io = IO(new Bundle {
-        val halt_trigger    = Input(Bool())
-    })
-    setInline("halter.sv",
-    s"""module halter(
-    |   input   wire halt_trigger
-    |);
-    |import "DPI-C" function void halt_sim();
-    |always @(*) begin
-    |   if (halt_trigger) begin
-    |       halt_sim();
-    |   end
-    |end
-    |endmodule
-    """.stripMargin)
-}
-
 // IDU!
 class IDUIO extends Bundle with IDUtrait{
     val IFU2IDU = Flipped(Decoupled(new IF2IDzip))
     val IDU2EXU = Decoupled(new ID2EXzip)
-    val ID2BPU = Flipped(new IDU2BPU)           // 2 BPU
+    val ID2BPU = Flipped(new IDU2BPUzip)           // 2 BPU
     val RFRead  = Flipped(new RegFileIN)        // 2 Regfile
     val BPU2IDU = Flipped(new RedirectInfo)
 }
@@ -87,11 +69,12 @@ class IDU extends Module with IDUtrait{
         SrcType.const   -> 4.U
     ))
 
-    val rf_wen = ~(instType === TypeB || instType === TypeS)
+    val rf_wen = ~(instType === TypeB || instType === TypeS || instType === TypeN)
 
-    // check ebreak
-    val HaltCtrl = Module(new halter)
-    HaltCtrl.io.halt_trigger    := csrop === CSRop.ebreak
+    // CSR srcs
+    val usei = CSRop.usei(csrop)
+    val csr_src1 = Mux(usei, ZeroExt(rs1, XLEN), rdata1)
+    val csr_src2 = Mux(instType === TypeI, imm, pc)     // TypeI and TypeN
 
     // to BPU
     io.ID2BPU.bpuop := bpuop
@@ -104,11 +87,12 @@ class IDU extends Module with IDUtrait{
 
     // to EXU!
     io.IDU2EXU.valid            := io.IFU2IDU.valid
-    io.IDU2EXU.bits.ALUin.src1  := src1
-    io.IDU2EXU.bits.ALUin.src2  := src2
-    io.IDU2EXU.bits.ALUin.aluop := aluop
+    io.IDU2EXU.bits.src1        := Mux(csrop === CSRop.nop, src1, csr_src1)
+    io.IDU2EXU.bits.src2        := Mux(csrop === CSRop.nop, src2, csr_src2)
+    io.IDU2EXU.bits.ALUop       := aluop
     io.IDU2EXU.bits.BPUop       := bpuop
     io.IDU2EXU.bits.LSUop       := lsuop
+    io.IDU2EXU.bits.CSRop       := csrop
     io.IDU2EXU.bits.data2store  := rdata2
     io.IDU2EXU.bits.rd          := rd
     io.IDU2EXU.bits.rf_wen      := rf_wen & io.IFU2IDU.valid
