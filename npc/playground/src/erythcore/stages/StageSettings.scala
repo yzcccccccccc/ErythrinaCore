@@ -1,4 +1,4 @@
-package ErythrinaCore
+package erythcore
 
 import chisel3._
 import chisel3.util._
@@ -78,4 +78,19 @@ class MEM2WBzip extends Bundle with MEMUtrait{
 // WBU
 trait WBUtrait extends ErythrinaDefault with FUtrait{
   
+}
+
+// Tool
+object StageConnect extends ErythrinaDefault{
+  def apply[T <: Data](left: DecoupledIO[T], right: DecoupledIO[T]) = {
+    if (arch == "single")
+        right.bits := left.bits
+    else
+      if (arch == "multi")
+          right <> left
+      else
+        if (arch == "pipeline")
+          // TODO: to be continued
+          right <> RegEnable(left, left.fire)
+  }
 }

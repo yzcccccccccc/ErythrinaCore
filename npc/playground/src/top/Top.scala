@@ -1,8 +1,8 @@
 package top
 
 import chisel3._
-import ErythrinaCore._
 import bus.mem._
+import erythcore.ErythrinaCommit
 
 class TOP extends Module {
     val io_commit = IO(new ErythrinaCommit)

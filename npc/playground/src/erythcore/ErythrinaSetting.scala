@@ -1,4 +1,4 @@
-package ErythrinaCore
+package erythcore
 
 import chisel3._
 import chisel3.util._
@@ -7,7 +7,9 @@ trait ErythrinaDefault {
     // General Global Settings
     val XLEN = 32           // RV32
     val RESETVEC    = 0x80000000L
-    val MaskLEN = 4         // 32/8=4
+    val MaskLEN = XLEN/8         // 32/8=4
+
+    val arch = "multi"
 }
 
 class ErythrinaCommit extends Bundle with ErythrinaDefault with RegTrait{

@@ -3,7 +3,7 @@ package bus.mem
 import chisel3._
 import chisel3.util._
 
-import ErythrinaCore._
+import erythcore.ErythrinaDefault
 
 // A Simple Memory Manager (handle Request & Response)
 
