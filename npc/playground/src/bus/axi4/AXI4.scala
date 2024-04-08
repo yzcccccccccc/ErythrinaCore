@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import erythcore.ErythrinaDefault
+import utils.LatencyPipeRis
 
 // TODO: Currently only support AXI4-Lite youth version
 object AXI4LiteParameters extends ErythrinaDefault{
@@ -42,3 +43,23 @@ class AXI4Lite extends Bundle{
     val w   = Decoupled(new AXI4LiteW)
     val b   = Flipped(Decoupled(new AXI4LiteB))
 }
+
+// TODO
+/*
+object AXI4LiteLatency extends ErythrinaDefault{
+    def apply(in: AXI4Lite, direct: String, latency:Int = LATENCY) = {
+        val port = IO(new AXI4Lite)
+        port <> in
+        if (direct == "req"){
+            
+            port.ar.valid   := LatencyPipeRis(in.ar.valid, latency)
+            port.aw.valid   := LatencyPipeRis(in.aw.valid, latency)
+            port.w.valid    := LatencyPipeRis(in.w.valid, latency)
+            port.r.ready    := LatencyPipeRis(in.r.ready, latency)
+            port.b.ready    := LatencyPipeRis(in.b.ready, latency)
+            port
+        }
+        port
+    }
+}
+*/

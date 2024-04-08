@@ -5,6 +5,9 @@ import  bus.ivybus._
 import chisel3._
 import chisel3.util._
 import bus.axi4.AXI4Lite
+import coursier.core.Latest
+import utils.LatencyPipeRis
+import erythcore.ErythrinaDefault
 
 // simulate the bhv of memory?
 class SimpleRamIO extends Bundle{
@@ -57,7 +60,8 @@ class SimpleRam extends BlackBox with HasBlackBoxInline {
     |         Resp_valid_r <= 1;
     |       end
     |       else
-    |         Resp_valid_r  <= 0;
+    |         if (port_resp_ready)
+    |           Resp_valid_r  <= 0;
     |   end
     | end
     |
@@ -71,7 +75,7 @@ class SimpleRamAXIIO extends Bundle{
   val port  = Flipped(new AXI4Lite)
 }
 
-class SimpleRamAXI extends Module{
+class SimpleRamAXI extends Module with ErythrinaDefault{
   val io = IO(new SimpleRamAXIIO)
 
   val convt = Module(new AXI4Lite2Ivy)
@@ -79,6 +83,11 @@ class SimpleRamAXI extends Module{
 
   convt.io.in   <> io.port
   convt.io.out  <> ram.io.port
+  //io.port.ar.ready  := LatencyPipeRis(convt.io.in.ar.ready, LATENCY)
+  //io.port.aw.ready  := LatencyPipeRis(convt.io.in.aw.ready, LATENCY)
+  //io.port.w.ready   := LatencyPipeRis(convt.io.in.w.ready, LATENCY)
+  //io.port.r.valid   := LatencyPipeRis(convt.io.in.r.valid, LATENCY)
+  //io.port.b.valid   := LatencyPipeRis(convt.io.in.b.valid, LATENCY)
 
   ram.io.clock  := io.clock
   ram.io.reset  := io.reset

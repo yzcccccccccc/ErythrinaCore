@@ -83,13 +83,13 @@ trait WBUtrait extends ErythrinaDefault with FUtrait{
 // Tool
 object StageConnect extends ErythrinaDefault{
   def apply[T <: Data](left: DecoupledIO[T], right: DecoupledIO[T]) = {
-    if (arch == "single")
+    if (ARCH == "single")
         right.bits := left.bits
     else
-      if (arch == "multi")
+      if (ARCH == "multi")
           right <> left
       else
-        if (arch == "pipeline")
+        if (ARCH == "pipeline")
           // TODO: to be continued
           right <> RegEnable(left, left.fire)
   }

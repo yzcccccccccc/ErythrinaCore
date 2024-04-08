@@ -62,7 +62,7 @@ class Ivy2AXI4Lite extends Module with ErythrinaDefault{
     io.out.b.ready          := io.in.resp.ready & state === sB
 
     // IvyBus
-    io.in.req.ready         := state === sARW
+    io.in.req.ready         := state === sARW & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
     io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sB && io.out.b.valid)
     io.in.resp.bits.data    := io.out.r.bits.data
     io.in.resp.bits.rsp     := Mux(state === sB, io.out.b.bits.resp, io.out.r.bits.resp)

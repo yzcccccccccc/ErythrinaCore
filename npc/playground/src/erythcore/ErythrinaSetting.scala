@@ -10,7 +10,8 @@ trait ErythrinaDefault {
     val MASKLEN = XLEN/8         // 32/8=4
     val RESPLEN = 2
 
-    val arch = "multi"
+    val ARCH = "multi"
+    val LATENCY = 4
 }
 
 class ErythrinaCommit extends Bundle with ErythrinaDefault with RegTrait{

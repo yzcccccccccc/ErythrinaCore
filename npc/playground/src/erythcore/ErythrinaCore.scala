@@ -96,6 +96,7 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     MM_inst.io.mem2     <> io.mem_port2
     MM_inst.io.ifu_in   <> IFU_inst.io.ifu_mem
     MM_inst.io.memu_in  <> MEMU_inst.io.memu_mem
+    
     // commit
     io.InstCommit <> WBU_inst.io.inst_commit
 }

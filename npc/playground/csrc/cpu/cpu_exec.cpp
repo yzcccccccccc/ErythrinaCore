@@ -118,6 +118,8 @@ void execute(uint32_t n){
     for (;n > 0 && npc_state == CPU_RUN; n--){
         while (!dut->io_commit_valid && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
 
+        if (npc_state != CPU_RUN) break;
+
         //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
         if (ITRACE){
             disassemble(inst_disasm, 100, dut->io_commit_pc, (uint8_t *)&(dut->io_commit_inst), 4);
@@ -148,7 +150,7 @@ void init_CPU(){
     CPU_reset();
 
     if (ITRACE){
-        logfile = fopen("example.log", "w");
+        logfile = fopen("trace.log", "w");
     }
 }
 
