@@ -7,7 +7,8 @@ trait ErythrinaDefault {
     // General Global Settings
     val XLEN = 32           // RV32
     val RESETVEC    = 0x80000000L
-    val MaskLEN = XLEN/8         // 32/8=4
+    val MASKLEN = XLEN/8         // 32/8=4
+    val RESPLEN = 2
 
     val arch = "multi"
 }

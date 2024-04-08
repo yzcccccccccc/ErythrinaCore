@@ -9,8 +9,8 @@ import erythcore.ErythrinaDefault
 object AXI4LiteParameters extends ErythrinaDefault{
     val datalen     = XLEN
     val addrlen     = XLEN
-    val strblen     = datalen / 8
-    val resplen     = 2
+    val strblen     = MASKLEN
+    val resplen     = RESPLEN
 
     def RESP_OKEY   = 0.U(resplen.W)
     def RESP_FAIL   = 1.U(resplen.W)

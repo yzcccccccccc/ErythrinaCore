@@ -4,13 +4,12 @@ import chisel3._
 import chisel3.util._
 
 import bus.mem._
+import bus.ivybus.IvyBus
 
 class ErythrinaCoreIO extends Bundle with ErythrinaDefault{
-    val MemReq1      = Decoupled(new MemReqIO)
-    val MemResp1     = Flipped(Decoupled(new MemRespIO))
-    val MemReq2      = Decoupled(new MemReqIO)
-    val MemResp2     = Flipped(Decoupled(new MemRespIO))
-    val InstCommit  = new ErythrinaCommit
+    val mem_port1    = new IvyBus
+    val mem_port2    = new IvyBus
+    val InstCommit   = new ErythrinaCommit
 }
 
 // to be continued. this file is for aggregating the core parts
@@ -31,12 +30,12 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     val state   = RegInit(sIF)
     switch (state){
         is (sIF){
-            when (IFU_inst.io.IFU_memReq.fire){
+            when (IFU_inst.io.ifu_mem.req.fire){
                 state := sIF_Recv
             }
         }
         is (sIF_Recv){
-            when (IFU_inst.io.IFU_memResp.fire){
+            when (IFU_inst.io.ifu_mem.resp.fire){
                 state := sID
             }
         }
@@ -47,16 +46,16 @@ class ErythrinaCore extends Module with ErythrinaDefault{
             state := sMEM
         }
         is (sMEM){
-            when (MEMU_inst.io.MEMU_memReq.fire){
+            when (MEMU_inst.io.memu_mem.req.fire){
                 state := sMEM_Recv
-            }.elsewhen(MEMU_inst.io.MEMU_memReq.valid){
+            }.elsewhen(MEMU_inst.io.memu_mem.req.valid){
                 state := sMEM
             }.otherwise{
                 state := sWB
             }
         }
         is (sMEM_Recv){
-            when (MEMU_inst.io.MEMU_memResp.fire){
+            when (MEMU_inst.io.memu_mem.resp.fire){
                 state := sWB
             }
         }
@@ -92,15 +91,10 @@ class ErythrinaCore extends Module with ErythrinaDefault{
 
     // TODO: mem (change to LSU)
     val MM_inst     = Module(new MemManager2x2)
-    MM_inst.io.MemReq1 <> io.MemReq1
-    MM_inst.io.MemResp1 <> io.MemResp1
-    MM_inst.io.MemReq2  <> io.MemReq2
-    MM_inst.io.MemResp2 <> io.MemResp2
-    MM_inst.io.IFU_Req <> IFU_inst.io.IFU_memReq
-    MM_inst.io.IFU_Resp <> IFU_inst.io.IFU_memResp
-    MM_inst.io.MEMU_Req <> MEMU_inst.io.MEMU_memReq
-    MM_inst.io.MEMU_Resp <> MEMU_inst.io.MEMU_memResp
-
+    MM_inst.io.mem1     <> io.mem_port1
+    MM_inst.io.mem2     <> io.mem_port2
+    MM_inst.io.ifu_in   <> IFU_inst.io.ifu_mem
+    MM_inst.io.memu_in  <> MEMU_inst.io.memu_mem
     // commit
     io.InstCommit <> WBU_inst.io.inst_commit
 }

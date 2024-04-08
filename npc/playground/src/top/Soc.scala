@@ -16,10 +16,10 @@ class Soc extends Module {
     
     InstMem.io.clock := clock
     InstMem.io.reset := reset
-    erythrinacore.io.MemReq1 <> InstMem.io.RamReq
-    erythrinacore.io.MemResp1 <> InstMem.io.RamResp
+    erythrinacore.io.mem_port1  <> InstMem.io.port
+
     DataMem.io.clock := clock
     DataMem.io.reset := reset
-    erythrinacore.io.MemReq2  <> DataMem.io.RamReq
-    erythrinacore.io.MemResp2 <> DataMem.io.RamResp
+    erythrinacore.io.mem_port2  <> DataMem.io.port
+
 }

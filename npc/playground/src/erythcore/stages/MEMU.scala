@@ -5,6 +5,7 @@ import chisel3.util._
 
 import bus.mem._
 import utils._
+import bus.ivybus._
 
 class MEMUIO extends Bundle with MEMUtrait{
     val en          = Input(Bool())
@@ -12,8 +13,7 @@ class MEMUIO extends Bundle with MEMUtrait{
     val MEMU2WBU    = Decoupled(new MEM2WBzip)
 
     // memory
-    val MEMU_memReq     = Decoupled(new MemReqIO)
-    val MEMU_memResp    = Flipped(Decoupled(new MemRespIO))
+    val memu_mem    = new IvyBus
 }
 
 class MEMU extends Module with MEMUtrait{
@@ -25,12 +25,12 @@ class MEMU extends Module with MEMUtrait{
 
     // MemReq
     val addr = io.EXU2MEMU.bits.addr
-    io.MEMU_memReq.valid        := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid & io.en
-    io.MEMU_memReq.bits.addr    := Cat(addr(XLEN - 1, 2), 0.asUInt(2.W))        // 4 Bits align?
+    io.memu_mem.req.valid       := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid & io.en
+    io.memu_mem.req.bits.addr   := Cat(addr(XLEN - 1, 2), 0.asUInt(2.W))        // 4 Bits align?
 
     // MemResp
-    io.MEMU_memResp.ready       := 1.B
-    val ld_data = io.MEMU_memResp.bits.data
+    io.memu_mem.resp.ready      := 1.B
+    val ld_data = io.memu_mem.resp.bits.data
 
     // Byte Res
     val ByteRes     = LookupTree(addr(1,0), List(
@@ -48,8 +48,8 @@ class MEMU extends Module with MEMUtrait{
         "b11".U     -> ld_data(31,16)
     ))
 
-    // Load
     val lsuop = io.EXU2MEMU.bits.LSUop
+    // Load
     val LoadRes = LookupTree(lsuop, List(
         LSUop.lb    -> SignExt(ByteRes, XLEN),
         LSUop.lbu   -> ZeroExt(ByteRes, XLEN),
@@ -59,7 +59,7 @@ class MEMU extends Module with MEMUtrait{
     ))
     
     // Store
-    val mask = LookupTree(lsuop, List(
+    val mask = LookupTreeDefault(lsuop, 0.U, List(
         LSUop.sb    -> ("b0001".U << addr(1, 0)),
         LSUop.sh    -> ("b0011".U << (addr(1, 0) & "b10".U)),
         LSUop.sw    -> "b1111".U
@@ -69,8 +69,9 @@ class MEMU extends Module with MEMUtrait{
         LSUop.sh    -> (io.EXU2MEMU.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
         LSUop.sw    -> (io.EXU2MEMU.bits.data2store)
     ))
-    io.MEMU_memReq.bits.mask    := mask
-    io.MEMU_memReq.bits.data    := st_data
+    io.memu_mem.req.bits.wen    := mask =/= 0.U
+    io.memu_mem.req.bits.mask   := mask
+    io.memu_mem.req.bits.data   := st_data
 
     // to EXU
     //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready
@@ -83,7 +84,7 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lhu   -> true.B,
         LSUop.lw    -> true.B
     ))
-    io.MEMU2WBU.valid       := (io.MEMU_memResp.fire | ~io.MEMU_memReq.valid)
+    io.MEMU2WBU.valid       := (io.memu_mem.resp.fire | ~io.memu_mem.req.valid)
     io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
     io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst
     io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd
