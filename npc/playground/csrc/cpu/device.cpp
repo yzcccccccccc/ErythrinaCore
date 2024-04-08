@@ -63,6 +63,7 @@ static uint8_t *serial_base = NULL;
 void serial_handler(uint32_t offset, bool iswrite){
     assert(iswrite);
     printf("%c", serial_base[0]);
+    fflush(stdout);
     //putchar(serial_base[0]);
 }
 
