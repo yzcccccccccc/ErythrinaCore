@@ -72,7 +72,7 @@ class SimpleRamAXIIO extends Bundle{
 }
 
 class SimpleRamAXI extends Module{
-  val io = new SimpleRamAXIIO
+  val io = IO(new SimpleRamAXIIO)
 
   val convt = Module(new AXI4Lite2Ivy)
   val ram   = Module(new SimpleRam)

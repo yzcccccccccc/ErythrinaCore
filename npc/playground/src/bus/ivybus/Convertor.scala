@@ -55,7 +55,7 @@ class Ivy2AXI4Lite extends Module with ErythrinaDefault{
 
     val w_data_r    = RegEnable(io.in.req.bits.data, io.out.aw.fire)
     val w_strb_r    = RegEnable(io.in.req.bits.mask, io.out.aw.fire)
-    io.out.w.ready          := state === sW
+    io.out.w.valid           := state === sW
     io.out.w.bits.data      := w_data_r
     io.out.w.bits.strb      := w_strb_r
 
