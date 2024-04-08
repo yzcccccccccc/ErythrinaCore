@@ -5,10 +5,11 @@ import chisel3.util._
 
 import bus.mem._
 import bus.ivybus.IvyBus
+import bus.axi4.AXI4Lite
 
 class ErythrinaCoreIO extends Bundle with ErythrinaDefault{
-    val mem_port1    = new IvyBus
-    val mem_port2    = new IvyBus
+    val mem_port1    = new AXI4Lite
+    val mem_port2    = new AXI4Lite
     val InstCommit   = new ErythrinaCommit
 }
 

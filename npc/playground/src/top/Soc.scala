@@ -9,8 +9,8 @@ class Soc extends Module {
 
     val erythrinacore = Module(new ErythrinaCore)
 
-    val InstMem = Module(new SimpleRam)
-    val DataMem = Module(new SimpleRam) 
+    val InstMem = Module(new SimpleRamAXI)
+    val DataMem = Module(new SimpleRamAXI)
 
     erythrinacore.io.InstCommit <> io_commit
     

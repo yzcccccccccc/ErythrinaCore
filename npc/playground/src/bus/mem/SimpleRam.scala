@@ -4,6 +4,7 @@ import  bus.ivybus._
 
 import chisel3._
 import chisel3.util._
+import bus.axi4.AXI4Lite
 
 // simulate the bhv of memory?
 class SimpleRamIO extends Bundle{
@@ -62,4 +63,23 @@ class SimpleRam extends BlackBox with HasBlackBoxInline {
     |
     |endmodule
     """.stripMargin);
+}
+
+class SimpleRamAXIIO extends Bundle{
+  val clock = Input(Clock())
+  val reset = Input(Bool())
+  val port  = Flipped(new AXI4Lite)
+}
+
+class SimpleRamAXI extends Module{
+  val io = new SimpleRamAXIIO
+
+  val convt = Module(new AXI4Lite2Ivy)
+  val ram   = Module(new SimpleRam)
+
+  convt.io.in   <> io.port
+  convt.io.out  <> ram.io.port
+
+  ram.io.clock  := io.clock
+  ram.io.reset  := io.reset
 }
