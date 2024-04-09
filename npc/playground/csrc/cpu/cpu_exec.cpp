@@ -13,6 +13,7 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include <cstdint>
+#include <cstdio>
 
 int cycle = 0;
 NPC_state npc_state;
@@ -137,6 +138,9 @@ void execute(uint32_t n){
         single_cycle(dut, tfp, contx);
     }
     if (npc_state != CPU_RUN){
+        if (ITRACE){
+            fclose(logfile);
+        }
         report();
         collect();
     }
@@ -150,7 +154,7 @@ void init_CPU(){
     CPU_reset();
 
     if (ITRACE){
-        logfile = fopen("trace.log", "w");
+        logfile = fopen("./trace.log", "w");
     }
 }
 

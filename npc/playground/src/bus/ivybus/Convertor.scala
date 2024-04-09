@@ -130,7 +130,7 @@ class AXI4Lite2Ivy extends Module with ErythrinaDefault{
     io.out.req.bits.mask    := io.in.w.bits.strb
 
     io.out.resp.ready       := LookupTreeDefault(state, 0.B, List(
-        sW  -> io.in.w.ready,
+        sB  -> io.in.b.ready,
         sR  -> io.in.r.ready
     ))
 }
