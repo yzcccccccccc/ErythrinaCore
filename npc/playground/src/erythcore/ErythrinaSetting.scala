@@ -12,6 +12,8 @@ trait ErythrinaDefault {
 
     val ARCH = "multi"
     val LATENCY = 4
+
+    val MARCH = "P"
 }
 
 class ErythrinaCommit extends Bundle with ErythrinaDefault with RegTrait{
