@@ -39,7 +39,8 @@ class Soc extends Module with ErythrinaDefault{
         arbiter.io.in1  <> erythrinacore.io.mem_port1
         arbiter.io.in2  <> erythrinacore.io.mem_port2
 
-        arbiter.io.out  <> memory.io.port
+        //arbiter.io.out  <> memory.io.port
+        DelayConnect(arbiter.io.out, memory.io.port)
     }
 
 }
