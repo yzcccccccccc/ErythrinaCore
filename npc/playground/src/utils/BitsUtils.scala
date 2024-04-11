@@ -17,3 +17,9 @@ object ZeroExt {
     if (aLen >= len) a(len-1,0) else Cat(0.U((len - aLen).W), a)
   }
 }
+
+object MaskExpand{
+  def apply(m: UInt) = {
+    Cat(m.asBools.map(Fill(8, _)).reverse)
+  }
+}

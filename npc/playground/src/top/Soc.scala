@@ -2,18 +2,18 @@ package top
 
 import chisel3._
 import bus.mem._
-import erythcore.{ErythrinaCore, ErythrinaCommit}
 import utils.LatencyPipeRis
-import erythcore.ErythrinaDefault
-import bus.axi4.AXI4LiteArbiter2x1
-import bus.axi4.DelayConnect
+import erythcore._
+import bus.axi4._
+import device._
 
 class Soc extends Module with ErythrinaDefault{
     val io_commit = IO(new ErythrinaCommit)
 
     val erythrinacore = Module(new ErythrinaCore)
 
-    
+    val axi4clint   = Module(new AXI4CLINTSim)
+    val axi4uart    = Module(new AXI4UartSim)
 
     erythrinacore.io.InstCommit <> io_commit
 
@@ -40,7 +40,17 @@ class Soc extends Module with ErythrinaDefault{
         arbiter.io.in2  <> erythrinacore.io.mem_port2
 
         //arbiter.io.out  <> memory.io.port
-        DelayConnect(arbiter.io.out, memory.io.port)
+        val addr_space  = List(
+            (0x80000000L.U, 0x8fffffffL.U),         // memory
+            (0xa0000048L.U, 0xa0000050L.U),         // clint-sim
+            (0xa00003f8L.U, 0xa00003ffL.U)          // uart-sim
+        )
+        val xbar        = Module(new AXI4XBar1toN(addr_space))
+        xbar.io.in      <> arbiter.io.out
+        xbar.io.out(0)  <> memory.io.port
+        xbar.io.out(1)  <> axi4clint.io
+        xbar.io.out(2)  <> axi4uart.io
+        //DelayConnect(arbiter.io.out, memory.io.port)
     }
 
 }
