@@ -6,6 +6,7 @@ import utils.LatencyPipeRis
 import erythcore._
 import bus.axi4._
 import device._
+import chisel3.ltl.Delay
 
 class Soc extends Module with ErythrinaDefault{
     val io_commit = IO(new ErythrinaCommit)
@@ -47,10 +48,12 @@ class Soc extends Module with ErythrinaDefault{
         )
         val xbar        = Module(new AXI4XBar1toN(addr_space))
         xbar.io.in      <> arbiter.io.out
-        xbar.io.out(0)  <> memory.io.port
-        xbar.io.out(1)  <> axi4clint.io
-        xbar.io.out(2)  <> axi4uart.io
-        //DelayConnect(arbiter.io.out, memory.io.port)
+        DelayConnect(xbar.io.out(0), memory.io.port)
+        DelayConnect(xbar.io.out(1), axi4clint.io)
+        DelayConnect(xbar.io.out(2), axi4uart.io)
+        //xbar.io.out(0)  <> memory.io.port
+        //xbar.io.out(1)  <> axi4clint.io
+        //xbar.io.out(2)  <> axi4uart.io
     }
 
 }
