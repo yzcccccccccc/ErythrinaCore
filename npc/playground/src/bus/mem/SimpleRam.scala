@@ -6,7 +6,6 @@ import chisel3._
 import chisel3.util._
 import bus.axi4.AXI4Lite
 import coursier.core.Latest
-import utils.LatencyPipeRis
 import erythcore.ErythrinaDefault
 
 // simulate the bhv of memory?

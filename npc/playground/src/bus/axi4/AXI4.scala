@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 
 import erythcore.ErythrinaDefault
-import utils.LatencyPipeRis
 
 // TODO: Currently only support AXI4-Lite youth version
 class AXI4LiteParameters extends ErythrinaDefault{

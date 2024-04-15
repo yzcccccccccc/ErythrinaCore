@@ -2,7 +2,6 @@ package top
 
 import chisel3._
 import bus.mem._
-import utils.LatencyPipeRis
 import erythcore._
 import bus.axi4._
 import device._

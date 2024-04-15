@@ -7,7 +7,6 @@ import erythcore.ErythrinaDefault
 import bus.ivybus.IvyBus
 import bus.axi4.AXI4Lite
 import bus.ivybus.Ivy2AXI4Lite
-import utils.LatencyPipeRis
 
 // A Simple Memory Manager (handle Request & Response)
 
