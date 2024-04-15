@@ -5,7 +5,7 @@ import chisel3.util._
 import erythcore.ErythrinaDefault
 import utils.LatencyPipeRis
 
-class DelayPipe extends Module with ErythrinaDefault{
+class DelayPipe[T <: AXI4Lite](_type: T = new AXI4Lite) extends Module with ErythrinaDefault{
     val io = IO(new Bundle {
         val master  = Flipped(new AXI4Lite)
         val slave   = new AXI4Lite
