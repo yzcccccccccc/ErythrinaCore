@@ -33,12 +33,12 @@ class Soc extends Module with ErythrinaDefault{
 
     if (MARCH == "P"){
         val memory  = Module(new SimpleRamAXI)
-        val arbiter = Module(new AXI4LiteArbiter2x1)
+        val arbiter = Module(new AXI4ArbiterNto1(2))
         
         memory.io.clock := clock
         memory.io.reset := reset
-        arbiter.io.in1  <> erythrinacore.io.mem_port1
-        arbiter.io.in2  <> erythrinacore.io.mem_port2
+        arbiter.io.in(0)  <> erythrinacore.io.mem_port1
+        arbiter.io.in(1)  <> erythrinacore.io.mem_port2
 
         //arbiter.io.out  <> memory.io.port
         val addr_space  = List(
