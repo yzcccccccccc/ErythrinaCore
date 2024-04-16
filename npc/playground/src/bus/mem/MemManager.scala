@@ -6,7 +6,7 @@ import chisel3.util._
 import erythcore.ErythrinaDefault
 import bus.ivybus.IvyBus
 import bus.axi4.AXI4Lite
-import bus.ivybus.Ivy2AXI4Lite
+import bus.ivybus.Ivy2AXI4
 
 // A Simple Memory Manager (handle Request & Response)
 
@@ -61,23 +61,15 @@ class MemManager2x2IO extends Bundle with ErythrinaDefault{
 class MemManager2x2 extends Module with ErythrinaDefault{
     val io = IO(new MemManager2x2IO)
 
-    val ifu_conv    = Module(new Ivy2AXI4Lite)
-    val memu_conv   = Module(new Ivy2AXI4Lite)
+    val ifu_conv    = Module(new Ivy2AXI4)
+    val memu_conv   = Module(new Ivy2AXI4)
 
     ifu_conv.io.in      <> io.ifu_in
     io.mem1             <> ifu_conv.io.out
-    //io.mem1.ar.valid    := LatencyPipeRis(ifu_conv.io.out.ar.valid, LATENCY)
-    //io.mem1.aw.valid    := LatencyPipeRis(ifu_conv.io.out.aw.valid, LATENCY)
-    //io.mem1.w.valid     := LatencyPipeRis(ifu_conv.io.out.w.valid, LATENCY)
-    //io.mem1.r.ready     := LatencyPipeRis(ifu_conv.io.out.r.ready, LATENCY)
-    //io.mem1.b.ready     := LatencyPipeRis(ifu_conv.io.out.b.ready, LATENCY)
+
 
     memu_conv.io.in     <> io.memu_in
     io.mem2             <> memu_conv.io.out
-    //io.mem2.ar.valid    := LatencyPipeRis(memu_conv.io.out.ar.valid, LATENCY)
-    //io.mem2.aw.valid    := LatencyPipeRis(memu_conv.io.out.aw.valid, LATENCY)
-    //io.mem2.w.valid     := LatencyPipeRis(memu_conv.io.out.w.valid, LATENCY)
-    //io.mem2.r.ready     := LatencyPipeRis(memu_conv.io.out.r.ready, LATENCY)
-    //io.mem2.b.ready     := LatencyPipeRis(memu_conv.io.out.b.ready, LATENCY)
+
 
 }

@@ -127,7 +127,7 @@ class CSR extends Module with ErythrinaDefault{
         }
     }
 
-    // TODO halt if is EBREAK
+    // halt if is EBREAK
     val HaltEbreak = Module(new haltEbreak)
     HaltEbreak.io.halt_trigger    := isEBREAK
 

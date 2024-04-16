@@ -5,15 +5,16 @@ import chisel3.util._
 
 import erythcore.ErythrinaDefault
 
-// TODO: Currently only support AXI4-Lite youth version
 class AXI4LiteParameters extends ErythrinaDefault{
     val datalen     = XLEN
     val addrlen     = XLEN
     val strblen     = MASKLEN
     val resplen     = RESPLEN
 
-    def RESP_OKEY   = 0.U(resplen.W)
-    def RESP_FAIL   = 1.U(resplen.W)
+    def RESP_OKAY   = 0.U(resplen.W)
+    def RESP_EXOKAY = 1.U(resplen.W)
+    def RESP_SLVERR = 2.U(resplen.W)
+    def RESP_DECERR = 3.U(resplen.W)
 }
 
 object AXI4LiteParameters extends AXI4LiteParameters
@@ -47,6 +48,7 @@ class AXI4Lite extends Bundle{
 
 
 // AXI4
+// TODO Add burst
 object AXI4Parameters extends AXI4LiteParameters{
     val idlen       = 4         // id
     val llen        = 8         // len
@@ -54,6 +56,10 @@ object AXI4Parameters extends AXI4LiteParameters{
     val sizelen     = 3         // size
     override val datalen    = 64
     override val strblen    = 8
+
+    def BURST_FIXED = 0.U(burstlen.W)
+    def BURST_INCR  = 1.U(burstlen.W)
+    def BURST_WRAP  = 2.U(burstlen.W)
 }
 
 class AXI4A extends AXI4LiteA{

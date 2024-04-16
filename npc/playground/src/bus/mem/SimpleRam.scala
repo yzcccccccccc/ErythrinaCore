@@ -59,7 +59,6 @@ class SimpleRamAsc extends BlackBox with HasBlackBoxInline{
 
 class SimpleRam extends BlackBox with HasBlackBoxInline {
   val io = IO(new SimpleRamIO)
-  // TODO: to be fixed (FSM maybe?)
   setInline("simpleram.sv",
     s"""module SimpleRam(
     |   input   clock,
@@ -131,7 +130,7 @@ class SimpleRamAXIIO extends Bundle{
 class SimpleRamAXI extends Module with ErythrinaDefault{
   val io = IO(new SimpleRamAXIIO)
 
-  val convt = Module(new AXI4Lite2Ivy)
+  val convt = Module(new AXI42Ivy)
   val ram   = Module(new SimpleRam)
 
   convt.io.in   <> io.port

@@ -3,7 +3,7 @@ package bus.ivybus
 // Convertor!
 import chisel3._
 import chisel3.util._
-import bus.axi4.AXI4Lite
+import bus.axi4._
 import erythcore.ErythrinaDefault
 import utils.LookupTreeDefault
 import utils.LatencyPipeBit
@@ -11,10 +11,10 @@ import utils.LatencyPipeBit
 // TODO change AXI4Lite to AXI4
 
 // convert a Ivy request to AXI4
-class Ivy2AXI4Lite extends Module with ErythrinaDefault{
+class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
     val io = IO(new Bundle {
         val in  = Flipped(new IvyBus)
-        val out = new AXI4Lite
+        val out = Flipped(Flipped(_type))
     })
 
     // FSM
@@ -57,23 +57,56 @@ class Ivy2AXI4Lite extends Module with ErythrinaDefault{
 
     val w_data_r    = RegEnable(io.in.req.bits.data, io.out.aw.fire)
     val w_strb_r    = RegEnable(io.in.req.bits.mask, io.out.aw.fire)
-    io.out.w.valid          := LatencyPipeBit(state === sW, LATENCY)
-    io.out.w.bits.data      := w_data_r
-    io.out.w.bits.strb      := w_strb_r
+    io.out.w.valid              := LatencyPipeBit(state === sW, LATENCY)
+    io.out.w.bits.data(31, 0)   := w_data_r
+    io.out.w.bits.strb(3, 0)    := w_strb_r
 
     io.out.b.ready          := LatencyPipeBit(io.in.resp.ready & state === sB, LATENCY)
+
+    // Specific
+    if (_type.getClass() == classOf[AXI4]){
+        val axi4 = io.out.asInstanceOf[AXI4]
+        
+        // TODO TBD
+        // AR
+        axi4.ar.bits.id     := "0x01".U
+        axi4.ar.bits.len    := "0x00".U
+        axi4.ar.bits.size   := "0b011".U        // 8 bytes
+        axi4.ar.bits.burst  := AXI4Parameters.BURST_FIXED
+
+        // AW
+        axi4.aw.bits.id     := "0x01".U
+        axi4.aw.bits.len    := "0x00".U
+        axi4.aw.bits.size   := "0b011".U
+        axi4.ar.bits.burst  := AXI4Parameters.BURST_FIXED
+
+        // W
+        axi4.w.bits.last            := 1.B
+        axi4.w.bits.data(63, 32)    := 0.U
+        axi4.w.bits.strb(7, 4)      := 0.U
+
+        // R, B, ...
+    }
 
     // IvyBus
     io.in.req.ready         := state === sARW & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
     io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sB && io.out.b.valid)
-    io.in.resp.bits.data    := io.out.r.bits.data
+    io.in.resp.bits.data    := io.out.r.bits.data(31, 0)
     io.in.resp.bits.rsp     := Mux(state === sB, io.out.b.bits.resp, io.out.r.bits.resp)
 }
 
+object Ivy2AXI4{
+    def apply[T <: AXI4Lite](in: IvyBus, _type: T) = {
+        val bridge = Module(new Ivy2AXI4(_type))
+        bridge.io.in    <> in
+        bridge.io.out
+    }
+}
+
 // convert a AXI request to Ivy request
-class AXI4Lite2Ivy extends Module with ErythrinaDefault{
+class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
     val io = IO(new Bundle {
-        val in  = Flipped(new AXI4Lite)
+        val in  = Flipped(_type)
         val out = new IvyBus
     })
 
@@ -107,11 +140,11 @@ class AXI4Lite2Ivy extends Module with ErythrinaDefault{
     }
 
     // AXI-Read
-    io.in.ar.ready      := LatencyPipeBit(state === sARW & io.out.req.ready, LATENCY)
+    io.in.ar.ready              := LatencyPipeBit(state === sARW & io.out.req.ready, LATENCY)
 
-    io.in.r.valid       := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
-    io.in.r.bits.data   := io.out.resp.bits.data
-    io.in.r.bits.resp   := io.out.resp.bits.rsp
+    io.in.r.valid               := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
+    io.in.r.bits.data(31, 0)    := io.out.resp.bits.data
+    io.in.r.bits.resp           := io.out.resp.bits.rsp
 
     // AXI-Write
     io.in.aw.ready      := LatencyPipeBit(state === sARW, LATENCY)
@@ -122,17 +155,37 @@ class AXI4Lite2Ivy extends Module with ErythrinaDefault{
     io.in.b.valid       := LatencyPipeBit(state === sB, LATENCY)
     io.in.b.bits.resp   := w_resp_r
 
+    if (_type.getClass() == classOf[AXI4]){
+        val axi4 = io.in.asInstanceOf[AXI4]
+        
+        // R
+        axi4.r.bits.data(63, 32)    := 0.U
+        axi4.r.bits.id              := "0x01".U
+        axi4.r.bits.last            := 0.B
+
+        // B
+        axi4.b.bits.id              := "0x01".U
+    }
+
     // IvyBus
     io.out.req.valid        := (state === sARW & io.in.ar.valid) | (state === sW & io.in.w.valid)
     io.out.req.bits.wen     := state === sW
     
     val w_addr_r    = RegEnable(io.in.aw.bits.addr, io.in.aw.fire)
     io.out.req.bits.addr    := Mux(state === sARW, io.in.ar.bits.addr, w_addr_r)
-    io.out.req.bits.data    := io.in.w.bits.data
-    io.out.req.bits.mask    := io.in.w.bits.strb
+    io.out.req.bits.data    := io.in.w.bits.data(31, 0)
+    io.out.req.bits.mask    := io.in.w.bits.strb(3, 0)
 
     io.out.resp.ready       := LookupTreeDefault(state, 0.B, List(
         sB  -> io.in.b.ready,
         sR  -> io.in.r.ready
     ))
+}
+
+object AXI42Ivy{
+    def apply[T <: AXI4Lite](in : T, _type: T) = {
+        val bridge = Module(new AXI42Ivy(_type))
+        bridge.io.in    <> in
+        bridge.io.out
+    }
 }

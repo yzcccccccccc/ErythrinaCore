@@ -2,7 +2,7 @@ package device
 
 import chisel3._
 import chisel3.util._
-import bus.axi4.AXI4Lite
+import bus.axi4._
 import os.stat
 import utils.LookupTreeDefault
 
@@ -12,7 +12,7 @@ object AXI4CLINTAddr{
 }
 
 class AXI4CLINTSim extends Module {
-    val io = IO(Flipped(new AXI4Lite))
+    val io = IO(Flipped(new AXI4))
 
     // FSM
     val sARW :: sR :: sW :: sB ::Nil = Enum(4)
@@ -50,12 +50,15 @@ class AXI4CLINTSim extends Module {
     // r
     val mtime = RegInit(0.U(64.W))
     mtime   := mtime + 1.U
-    io.r.valid      := state === sR
-    io.r.bits.data  := LookupTreeDefault(addr_r, 0.U, List(
+    io.r.valid              := state === sR
+    io.r.bits.data(31, 0)   := LookupTreeDefault(addr_r, 0.U, List(
         AXI4CLINTAddr.rtc_l -> mtime(31,0),
         AXI4CLINTAddr.rtc_h -> mtime(63, 32)
     ))
+    io.r.bits.data(63, 32)  := 0.U
     io.r.bits.resp  := 0.U
+    io.r.bits.last  := 1.B
+    io.r.bits.id    := "0x01".U
 
     // aw
     assert(~io.aw.valid)
@@ -68,4 +71,5 @@ class AXI4CLINTSim extends Module {
     // b
     io.b.valid      := 0.B
     io.b.bits.resp  := 0.U
+    io.b.bits.id    := "0x01".U
 }

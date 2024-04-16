@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 object AXI4MuxDummy {
-    def apply[T <: AXI4Lite](slave: T = new AXI4Lite, master: T = new AXI4Lite, cond: Bool)={
+    def apply[T <: AXI4Lite](slave: T = new AXI4, master: T = new AXI4Lite, cond: Bool)={
         // ar
         master.ar.ready := Mux(cond, slave.ar.ready, 0.B)
         
@@ -24,8 +24,7 @@ object AXI4MuxDummy {
     }
 }
 
-// TODO Simplify
-class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4Lite) extends Module{
+class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
     val io = IO(new Bundle {
         val in  = Vec(n, Flipped(_type))
         val out = new AXI4Lite

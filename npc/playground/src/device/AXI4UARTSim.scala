@@ -2,11 +2,11 @@ package device
 
 import chisel3._
 import chisel3.util._
-import bus.axi4.AXI4Lite
+import bus.axi4._
 import utils.MaskExpand
 
 class AXI4UartSim extends Module{
-    val io = IO(Flipped(new AXI4Lite))
+    val io = IO(Flipped(new AXI4))
 
     // FSM
     val sARW :: sR :: sW :: sB ::Nil = Enum(4)
@@ -37,7 +37,6 @@ class AXI4UartSim extends Module{
         }
     }
 
-
     // ar
     assert(~io.ar.valid)
     io.ar.ready := 0.B
@@ -50,11 +49,13 @@ class AXI4UartSim extends Module{
     io.r.valid      := 0.B
     io.r.bits.data  := 0.U
     io.r.bits.resp  := 0.U
+    io.r.bits.id    := "0x01".U
+    io.r.bits.last  := 1.B
 
     // w
     io.w.ready      := state === sW
-    val data        = io.w.bits.data
-    val strb        = MaskExpand(io.w.bits.strb)
+    val data        = io.w.bits.data(31, 0)
+    val strb        = MaskExpand(io.w.bits.strb(3, 0))
     val uart_reg    = Reg(UInt(32.W))
     when (io.w.fire){
         uart_reg    := data & strb | uart_reg & (~strb)
@@ -63,6 +64,7 @@ class AXI4UartSim extends Module{
     // b
     io.b.valid      := state === sB
     io.b.bits.resp  := 0.B
+    io.b.bits.id    := "0x01".U
 
     // putchar
     when (io.b.fire){
