@@ -5,7 +5,7 @@ import chisel3.util._
 
 import erythcore.ErythrinaDefault
 import bus.ivybus.IvyBus
-import bus.axi4.AXI4Lite
+import bus.axi4._
 import bus.ivybus.Ivy2AXI4
 
 // A Simple Memory Manager (handle Request & Response)
@@ -47,8 +47,8 @@ class MemManager2x1 extends Module with ErythrinaDefault{
 
 class MemManager2x2IO extends Bundle with ErythrinaDefault{
     // to memory
-    val mem1    = new AXI4Lite
-    val mem2    = new AXI4Lite
+    val mem1    = new AXI4
+    val mem2    = new AXI4
 
     // for IF
     val ifu_in  = Flipped(new IvyBus)

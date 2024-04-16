@@ -49,7 +49,7 @@ class AXI4UartSim extends Module{
     io.r.valid      := 0.B
     io.r.bits.data  := 0.U
     io.r.bits.resp  := 0.U
-    io.r.bits.id    := "0x01".U
+    io.r.bits.id    := "h01".U
     io.r.bits.last  := 1.B
 
     // w
@@ -64,7 +64,7 @@ class AXI4UartSim extends Module{
     // b
     io.b.valid      := state === sB
     io.b.bits.resp  := 0.B
-    io.b.bits.id    := "0x01".U
+    io.b.bits.id    := "h01".U
 
     // putchar
     when (io.b.fire){

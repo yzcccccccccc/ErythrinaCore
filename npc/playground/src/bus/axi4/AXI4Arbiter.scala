@@ -27,7 +27,7 @@ object AXI4MuxDummy {
 class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
     val io = IO(new Bundle {
         val in  = Vec(n, Flipped(_type))
-        val out = new AXI4Lite
+        val out = new AXI4
     })
 
     // FSM

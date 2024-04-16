@@ -4,7 +4,7 @@ import  bus.ivybus._
 
 import chisel3._
 import chisel3.util._
-import bus.axi4.AXI4Lite
+import bus.axi4._
 import coursier.core.Latest
 import erythcore.ErythrinaDefault
 
@@ -124,7 +124,7 @@ class SimpleRam extends BlackBox with HasBlackBoxInline {
 class SimpleRamAXIIO extends Bundle{
   val clock = Input(Clock())
   val reset = Input(Bool())
-  val port  = Flipped(new AXI4Lite)
+  val port  = Flipped(new AXI4)
 }
 
 class SimpleRamAXI extends Module with ErythrinaDefault{

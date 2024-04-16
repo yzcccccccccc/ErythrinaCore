@@ -23,7 +23,7 @@ VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS
 VERILATOR_VERFLAGS += -cc --trace
 
 # Mill
-MILL_ARGS_ALL += --split-verilog
+MILL_ARGS_ALL += --split-verilog --throw-on-first-error
 
 test:
 	mill -i __.test

@@ -58,8 +58,8 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     val w_data_r    = RegEnable(io.in.req.bits.data, io.out.aw.fire)
     val w_strb_r    = RegEnable(io.in.req.bits.mask, io.out.aw.fire)
     io.out.w.valid              := LatencyPipeBit(state === sW, LATENCY)
-    io.out.w.bits.data(31, 0)   := w_data_r
-    io.out.w.bits.strb(3, 0)    := w_strb_r
+    io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(XLEN, 0.B), w_data_r) else w_data_r)
+    io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(MASKLEN, 0.B), w_strb_r) else w_strb_r)
 
     io.out.b.ready          := LatencyPipeBit(io.in.resp.ready & state === sB, LATENCY)
 
@@ -69,21 +69,19 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
         
         // TODO TBD
         // AR
-        axi4.ar.bits.id     := "0x01".U
-        axi4.ar.bits.len    := "0x00".U
-        axi4.ar.bits.size   := "0b011".U        // 8 bytes
+        axi4.ar.bits.id     := "h01".U
+        axi4.ar.bits.len    := "h00".U
+        axi4.ar.bits.size   := "b011".U        // 8 bytes
         axi4.ar.bits.burst  := AXI4Parameters.BURST_FIXED
 
         // AW
-        axi4.aw.bits.id     := "0x01".U
-        axi4.aw.bits.len    := "0x00".U
-        axi4.aw.bits.size   := "0b011".U
-        axi4.ar.bits.burst  := AXI4Parameters.BURST_FIXED
+        axi4.aw.bits.id     := "h01".U
+        axi4.aw.bits.len    := "h00".U
+        axi4.aw.bits.size   := "b011".U
+        axi4.aw.bits.burst  := AXI4Parameters.BURST_FIXED
 
         // W
         axi4.w.bits.last            := 1.B
-        axi4.w.bits.data(63, 32)    := 0.U
-        axi4.w.bits.strb(7, 4)      := 0.U
 
         // R, B, ...
     }
@@ -140,11 +138,11 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     }
 
     // AXI-Read
-    io.in.ar.ready              := LatencyPipeBit(state === sARW & io.out.req.ready, LATENCY)
+    io.in.ar.ready      := LatencyPipeBit(state === sARW & io.out.req.ready, LATENCY)
 
-    io.in.r.valid               := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
-    io.in.r.bits.data(31, 0)    := io.out.resp.bits.data
-    io.in.r.bits.resp           := io.out.resp.bits.rsp
+    io.in.r.valid       := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
+    io.in.r.bits.data   := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(XLEN, 0.B), io.out.resp.bits.data) else io.out.resp.bits.data)
+    io.in.r.bits.resp   := io.out.resp.bits.rsp
 
     // AXI-Write
     io.in.aw.ready      := LatencyPipeBit(state === sARW, LATENCY)
@@ -159,12 +157,11 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
         val axi4 = io.in.asInstanceOf[AXI4]
         
         // R
-        axi4.r.bits.data(63, 32)    := 0.U
-        axi4.r.bits.id              := "0x01".U
+        axi4.r.bits.id              := "h01".U
         axi4.r.bits.last            := 0.B
 
         // B
-        axi4.b.bits.id              := "0x01".U
+        axi4.b.bits.id              := "h01".U
     }
 
     // IvyBus
