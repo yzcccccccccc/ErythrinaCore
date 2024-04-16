@@ -92,3 +92,11 @@ class AXI4 extends AXI4Lite{
     override val w  = Decoupled(new AXI4W)
     override val b  = Flipped(Decoupled(new AXI4B))
 }
+
+trait HasAXI4{
+    val ar = Decoupled(new AXI4A)
+    val r  = Flipped(Decoupled(new AXI4R))
+    val aw = Decoupled(new AXI4A)
+    val w  = Decoupled(new AXI4W)
+    val b  = Flipped(Decoupled(new AXI4B))
+}

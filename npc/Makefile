@@ -1,8 +1,10 @@
 TOPNAME ?= Soc
+CORENAME ?= ysyx_1919810
+
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
-$(shell mkdir -p $(BUILD_DIR))
 
+$(shell mkdir -p $(BUILD_DIR))
 export PATH := $(PATH):$(abspath ./utils)
 
 # Tools
@@ -32,6 +34,7 @@ verilog:
 	$(call git_commit, "generate verilog")
 #	mkdir -p $(BUILD_DIR)
 	mill -i __.test.runMain Elaborate --target-dir $(BUILD_DIR) $(MILL_ARGS_ALL)
+	-@ sed -i -e 's/_\(master\|slave\)_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1_\2_/g' $(BUILD_DIR)/$(CORENAME).sv
 
 help:
 	mill -i __.test.runMain Elaborate --help $(MILL_ARGS_ALL)
