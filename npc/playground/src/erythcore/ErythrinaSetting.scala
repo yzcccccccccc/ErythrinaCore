@@ -11,7 +11,7 @@ trait ErythrinaDefault {
     val RESPLEN = 2
 
     val ARCH = "multi"
-    val LATENCY = 4
+    val LATENCY = 16
 
     val MARCH = "P"
 }

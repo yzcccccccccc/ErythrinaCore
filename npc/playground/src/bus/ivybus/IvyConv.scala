@@ -6,6 +6,9 @@ import chisel3.util._
 import bus.axi4.AXI4Lite
 import erythcore.ErythrinaDefault
 import utils.LookupTreeDefault
+import utils.LatencyPipeBit
+
+// TODO change AXI4Lite to AXI4
 
 // convert a Ivy request to AXI4
 class Ivy2AXI4Lite extends Module with ErythrinaDefault{
@@ -40,26 +43,25 @@ class Ivy2AXI4Lite extends Module with ErythrinaDefault{
                 state   := sARW
             }
         }
-
     }
 
     // AXI-Read
-    io.out.ar.valid         := io.in.req.valid & ~io.in.req.bits.wen & state === sARW
+    io.out.ar.valid         := LatencyPipeBit(io.in.req.valid & ~io.in.req.bits.wen & state === sARW, LATENCY)
     io.out.ar.bits.addr     := io.in.req.bits.addr
 
-    io.out.r.ready          := io.in.resp.ready & state === sR
+    io.out.r.ready          := LatencyPipeBit(io.in.resp.ready & state === sR, LATENCY)
 
     // AXI-Write
-    io.out.aw.valid         := io.in.req.valid & io.in.req.bits.wen & state === sARW
+    io.out.aw.valid         := LatencyPipeBit(io.in.req.valid & io.in.req.bits.wen & state === sARW, LATENCY)
     io.out.aw.bits.addr     := io.in.req.bits.addr
 
     val w_data_r    = RegEnable(io.in.req.bits.data, io.out.aw.fire)
     val w_strb_r    = RegEnable(io.in.req.bits.mask, io.out.aw.fire)
-    io.out.w.valid           := state === sW
+    io.out.w.valid          := LatencyPipeBit(state === sW, LATENCY)
     io.out.w.bits.data      := w_data_r
     io.out.w.bits.strb      := w_strb_r
 
-    io.out.b.ready          := io.in.resp.ready & state === sB
+    io.out.b.ready          := LatencyPipeBit(io.in.resp.ready & state === sB, LATENCY)
 
     // IvyBus
     io.in.req.ready         := state === sARW & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
@@ -105,19 +107,19 @@ class AXI4Lite2Ivy extends Module with ErythrinaDefault{
     }
 
     // AXI-Read
-    io.in.ar.ready      := state === sARW & io.out.req.ready
+    io.in.ar.ready      := LatencyPipeBit(state === sARW & io.out.req.ready, LATENCY)
 
-    io.in.r.valid       := state === sR & io.out.resp.valid
+    io.in.r.valid       := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
     io.in.r.bits.data   := io.out.resp.bits.data
     io.in.r.bits.resp   := io.out.resp.bits.rsp
 
     // AXI-Write
-    io.in.aw.ready      := state === sARW
+    io.in.aw.ready      := LatencyPipeBit(state === sARW, LATENCY)
 
-    io.in.w.ready       := state === sW & io.out.req.ready
+    io.in.w.ready       := LatencyPipeBit(state === sW & io.out.req.ready, LATENCY)
 
     val w_resp_r    = RegEnable(io.out.resp.bits.rsp, io.in.w.fire)
-    io.in.b.valid       := state === sB
+    io.in.b.valid       := LatencyPipeBit(state === sB, LATENCY)
     io.in.b.bits.resp   := w_resp_r
 
     // IvyBus

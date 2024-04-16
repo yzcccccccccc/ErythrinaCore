@@ -11,11 +11,16 @@ class AXI4DelayPipe[T <: AXI4Lite](_type: T = new AXI4Lite) extends Module with 
         val slave   = _type
     })
 
-    LatencyPipe(io.master.ar, io.slave.ar, LATENCY)
-    LatencyPipe(io.master.aw, io.slave.aw, LATENCY)
-    LatencyPipe(io.slave.r, io.master.r, LATENCY)
-    LatencyPipe(io.slave.b, io.master.b, LATENCY)
-    LatencyPipe(io.master.w, io.slave.w, LATENCY)
+    if (LATENCY > 0){
+        LatencyPipe(io.master.ar, io.slave.ar, LATENCY)
+        LatencyPipe(io.master.aw, io.slave.aw, LATENCY)
+        LatencyPipe(io.slave.r, io.master.r, LATENCY)
+        LatencyPipe(io.slave.b, io.master.b, LATENCY)
+        LatencyPipe(io.master.w, io.slave.w, LATENCY)
+    }
+    else{
+        io.master   <> io.slave
+    }
 }
 
 object DelayConnect{
