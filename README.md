@@ -9,4 +9,4 @@ bash init.sh subproject-name
 [lecture note]: https://ysyx.oscc.cc/docs/
 
 ## Erythrina Core
-![alt text](img/2464ccf7f1cfe47eaf73dd63171882f.jpg)
+![alt text](img/a68c1ef69aacf198537e5ec9b8e5ed2.jpg)
