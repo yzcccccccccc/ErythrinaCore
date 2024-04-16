@@ -5,14 +5,13 @@ import bus.mem._
 import erythcore._
 import bus.axi4._
 import device._
-import chisel3.ltl.Delay
 
 class Soc extends Module with ErythrinaDefault{
     val io_commit = IO(new ErythrinaCommit)
 
     val erythrinacore = Module(new ErythrinaCore)
 
-    val axi4clint   = Module(new AXI4CLINTSim)
+    val axi4clint   = Module(new AXI4CLINT)
     val axi4uart    = Module(new AXI4UartSim)
 
     erythrinacore.io.InstCommit <> io_commit

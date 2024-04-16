@@ -12,7 +12,7 @@ object AXI4CLINTAddr{
     def rtc_h   = 0xa000004cL.U
 }
 
-class AXI4CLINTSim extends Module with ErythrinaDefault{
+class AXI4CLINT extends Module with ErythrinaDefault{
     val io = IO(Flipped(new AXI4))
 
     // FSM
