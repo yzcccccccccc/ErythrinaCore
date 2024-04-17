@@ -5,7 +5,6 @@ import bus.axi4._
 import bus.ivybus._
 import erythcore._
 import device._
-import chisel3.experimental.noPrefix
 
 class ysyx_1919810 extends Module{
     val io = IO(new Bundle {
@@ -46,6 +45,8 @@ class ysyx_1919810 extends Module{
 
 
     // commit
-    val commit_reg = Reg(new ErythrinaCommit)
-    commit_reg  := erythrinacore.io.InstCommit
+    val commit = Module(new CommitWrapper)
+    commit.io.clock := clock
+    commit.io.reset := reset
+    commit.io.port  <> erythrinacore.io.InstCommit
 }

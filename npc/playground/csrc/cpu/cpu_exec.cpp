@@ -9,7 +9,7 @@
 #include "util.h"
 #include "device.h"
 
-#include "VSoc.h"
+#include "VysyxSoCFull.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include <cstdint>
@@ -117,17 +117,19 @@ char inst_disasm[100];
 FILE *logfile;
 void execute(uint32_t n){
     for (;n > 0 && npc_state == CPU_RUN; n--){
-        while (!dut->io_commit_valid && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
+        while (!get_commit_valid(dut) && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
 
         if (npc_state != CPU_RUN) break;
 
         //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
         if (ITRACE){
-            disassemble(inst_disasm, 100, dut->io_commit_pc, (uint8_t *)&(dut->io_commit_inst), 4);
+            uint32_t inst   = get_commit_inst(dut);
+            uint32_t pc     = get_commit_pc(dut);
+            disassemble(inst_disasm, 100, pc, (uint8_t *)&(inst), 4);
             fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n\n",
-                    dut->io_commit_pc, dut->io_commit_inst, inst_disasm,
-                    dut->io_commit_rf_waddr, dut->io_commit_rf_wdata,
-                    dut->io_commit_rf_wen);
+                    pc, inst, inst_disasm,
+                    get_commit_rf_waddr(dut), get_commit_rf_wdata(dut),
+                    get_commit_rf_waddr(dut));
         }
 
         single_cycle(dut, tfp, contx);

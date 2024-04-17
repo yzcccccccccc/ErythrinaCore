@@ -1,7 +1,8 @@
-TOPNAME ?= Soc
-CORENAME ?= ysyx_1919810
+TOPNAME ?= ysyxSoCFull
+YSYXNAME ?= ysyx_1919810
 
 BUILD_DIR = ./build
+YSYXSOC_DIR = ../ysyxSoC
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 
 $(shell mkdir -p $(BUILD_DIR))
@@ -15,15 +16,6 @@ VERILATOR = verilator
 CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
 LIBS += $(shell llvm-config --libs)
 
-# Flags
-VERILATOR_NVFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
-VLDFLAGS += -lreadline ${LIBS}
-VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include ${CXXFLAGS}\
-
-VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
-VERILATOR_VERFLAGS += -cc --trace
-
 # Mill
 MILL_ARGS_ALL += --split-verilog --throw-on-first-error
 
@@ -32,9 +24,8 @@ test:
 
 verilog:
 	$(call git_commit, "generate verilog")
-#	mkdir -p $(BUILD_DIR)
 	mill -i __.test.runMain Elaborate --target-dir $(BUILD_DIR) $(MILL_ARGS_ALL)
-	-@ sed -i -e 's/_\(master\|slave\)_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1_\2_/g' $(BUILD_DIR)/$(CORENAME).sv
+	-@ sed -i -e 's/_\(master\|slave\)_\(aw\|ar\|w\|r\|b\)_\(\|bits_\)/_\1_\2/g' $(BUILD_DIR)/$(YSYXNAME).sv
 
 help:
 	mill -i __.test.runMain Elaborate --help $(MILL_ARGS_ALL)
@@ -52,21 +43,37 @@ checkformat:
 	mill -i __.checkFormat
 
 # Verilator
-VCSRCS = $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
-#VCSRCS ?= $(shell find $(abspath ./playground/csrc) -name "main.cpp")		# for verilator
-CSRCS ?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
-VSRCS ?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
+CSRCS 		?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
+VSRCS 		?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
+SOC_PERIP 	?= $(shell find $(abspath $(YSYXSOC_DIR)/perip) -name "*.v")
+SOC_TOP		?= $(YSYXSOC_DIR)/generated/ysyxSoCFull.v
+UART_RTLDIR ?= $(YSYXSOC_DIR)/perip/uart16550/rtl
+SPI_RTLDIR 	?= $(YSYXSOC_DIR)/perip/spi/rtl
 SIM_TARGET = V$(TOPNAME)
 
 IMG ?= 
 ARG ?= 
 DIFF_SO ?= $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
+# Flags
+VERILATOR_NVFLAGS += -MMD --build -cc  \
+				-O3 --x-assign fast --x-initial fast --noassert
+VLDFLAGS += -lreadline ${LIBS}
+VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include ${CXXFLAGS}\
+
+SOC_FLAGS += -I$(UART_RTLDIR) -I$(SPI_RTLDIR) --timescale "1ns/1ns" --no-timing
+VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
+VERILATOR_VERFLAGS += -cc --trace  
+
+VSRCS += $(SOC_PERIP)
+VSRCS += $(SOC_TOP)
+VERILATOR_SIMFLAGS	+= $(SOC_FLAGS)
+VERILATOR_VERFLAGS	+= $(SOC_FLAGS)
 verilate: verilog
 	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
 verilate_sim:
-	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(VCSRCS)
+	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
 
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!

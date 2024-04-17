@@ -71,13 +71,13 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
         // AR
         axi4.ar.bits.id     := "h01".U
         axi4.ar.bits.len    := "h00".U
-        axi4.ar.bits.size   := "b011".U        // 8 bytes
+        axi4.ar.bits.size   := io.in.req.bits.size
         axi4.ar.bits.burst  := AXI4Parameters.BURST_FIXED
 
         // AW
         axi4.aw.bits.id     := "h01".U
         axi4.aw.bits.len    := "h00".U
-        axi4.aw.bits.size   := "b011".U
+        axi4.aw.bits.size   := io.in.req.bits.size
         axi4.aw.bits.burst  := AXI4Parameters.BURST_FIXED
 
         // W
@@ -90,7 +90,7 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     io.in.req.ready         := state === sARW & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
     io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sB && io.out.b.valid)
     io.in.resp.bits.data    := io.out.r.bits.data(31, 0)
-    io.in.resp.bits.rsp     := Mux(state === sB, io.out.b.bits.resp, io.out.r.bits.resp)
+    io.in.resp.bits.resp    := Mux(state === sB, io.out.b.bits.resp, io.out.r.bits.resp)
 }
 
 object Ivy2AXI4{
@@ -142,14 +142,14 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
 
     io.in.r.valid       := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
     io.in.r.bits.data   := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(XLEN, 0.B), io.out.resp.bits.data) else io.out.resp.bits.data)
-    io.in.r.bits.resp   := io.out.resp.bits.rsp
+    io.in.r.bits.resp   := io.out.resp.bits.resp
 
     // AXI-Write
     io.in.aw.ready      := LatencyPipeBit(state === sARW, LATENCY)
 
     io.in.w.ready       := LatencyPipeBit(state === sW & io.out.req.ready, LATENCY)
 
-    val w_resp_r    = RegEnable(io.out.resp.bits.rsp, io.in.w.fire)
+    val w_resp_r    = RegEnable(io.out.resp.bits.resp, io.in.w.fire)
     io.in.b.valid       := LatencyPipeBit(state === sB, LATENCY)
     io.in.b.bits.resp   := w_resp_r
 
@@ -169,9 +169,12 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     io.out.req.bits.wen     := state === sW
     
     val w_addr_r    = RegEnable(io.in.aw.bits.addr, io.in.aw.fire)
+    val w_size_r    = RegEnable((if (_type.getClass() == classOf[AXI4]) io.in.asInstanceOf[AXI4].aw.bits.size else "b010".U), io.in.aw.fire)
+    val r_size      = (if (_type.getClass() == classOf[AXI4]) io.in.asInstanceOf[AXI4].ar.bits.size else "b010".U)
     io.out.req.bits.addr    := Mux(state === sARW, io.in.ar.bits.addr, w_addr_r)
     io.out.req.bits.data    := io.in.w.bits.data(31, 0)
     io.out.req.bits.mask    := io.in.w.bits.strb(3, 0)
+    io.out.req.bits.size    := Mux(state === sARW, r_size, w_size_r)
 
     io.out.resp.ready       := LookupTreeDefault(state, 0.B, List(
         sB  -> io.in.b.ready,

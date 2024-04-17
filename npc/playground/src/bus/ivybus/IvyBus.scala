@@ -10,11 +10,12 @@ class IvyBusReq extends Bundle with ErythrinaDefault{
     val addr    = Output(UInt(XLEN.W))
     val mask    = Output(UInt(MASKLEN.W))
     val data    = Output(UInt(XLEN.W))
+    val size    = Output(UInt(3.W))
 }
 
 class IvyBusResp extends Bundle with ErythrinaDefault{
     val data    = Input(UInt(XLEN.W))
-    val rsp     = Input(UInt(RESPLEN.W))
+    val resp    = Input(UInt(RESPLEN.W))
 }
 
 class IvyBus extends Bundle{

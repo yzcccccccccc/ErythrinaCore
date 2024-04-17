@@ -37,10 +37,10 @@ class IFU extends Module with IFUtrait{
   io.ifu_mem.req.bits.addr  := pc
   io.ifu_mem.req.bits.mask  := 0.U
   io.ifu_mem.req.bits.data  := 0.U
+  io.ifu_mem.req.bits.size  := "b010".U     // 4 bytes transfer
 
   // inst
   io.ifu_mem.resp.ready   := 1.B
-  //io.IFU_memResp.ready  := 1.B
   val inst    = io.ifu_mem.resp.bits.data
   val inst_r  = RegEnable(io.ifu_mem.resp.bits.data, io.ifu_mem.resp.fire)
 
@@ -52,6 +52,6 @@ class IFU extends Module with IFUtrait{
     inst_valid  := 0.B
   }
   io.IFU2IDU.valid       := inst_valid
-  io.IFU2IDU.bits.inst   := Mux(inst_valid, inst_r, inst)
+  io.IFU2IDU.bits.inst   := inst_r
   io.IFU2IDU.bits.pc     := pc
 }

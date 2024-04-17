@@ -26,7 +26,7 @@ class MEMU extends Module with MEMUtrait{
     // MemReq
     val addr = io.EXU2MEMU.bits.addr
     io.memu_mem.req.valid       := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid & io.en
-    io.memu_mem.req.bits.addr   := Cat(addr(XLEN - 1, 2), 0.asUInt(2.W))        // 4 Bits align?
+    io.memu_mem.req.bits.addr   := addr
 
     // MemResp
     io.memu_mem.resp.ready      := 1.B
@@ -72,6 +72,14 @@ class MEMU extends Module with MEMUtrait{
     io.memu_mem.req.bits.wen    := mask =/= 0.U
     io.memu_mem.req.bits.mask   := mask
     io.memu_mem.req.bits.data   := st_data
+
+    // Size
+    val size = LookupTree(lsuop, List(
+        LSUop.sb    -> "b000".U,
+        LSUop.sh    -> "b001".U,
+        LSUop.sw    -> "b010".U
+    ))
+    io.memu_mem.req.bits.size   := size
 
     // to EXU
     //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready
