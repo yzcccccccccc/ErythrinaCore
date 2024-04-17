@@ -8,7 +8,9 @@
 #include <cstdio>
 
 extern "C" void flash_read(int addr, int *data) { assert(0); }
-extern "C" void mrom_read(int addr, int *data) { assert(0); }
+extern "C" void mrom_read(int addr, int *data) {
+    *data = 0x00100073;
+}
 
 extern "C" void halt_Ebreak(){
     if (dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__regfile__DOT__RegArray_10)    // a0 == 1

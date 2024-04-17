@@ -12,10 +12,6 @@ export PATH := $(PATH):$(abspath ./utils)
 GTKWAVE = gtkwave
 VERILATOR = verilator
 
-# for llvm
-CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
-LIBS += $(shell llvm-config --libs)
-
 # Mill
 MILL_ARGS_ALL += --split-verilog --throw-on-first-error
 
@@ -42,6 +38,11 @@ reformat:
 checkformat:
 	mill -i __.checkFormat
 
+# for llvm
+CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
+LIBS += $(shell llvm-config --libs)
+
+
 # Verilator
 CSRCS 		?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
 VSRCS 		?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
@@ -62,18 +63,19 @@ VLDFLAGS += -lreadline ${LIBS}
 VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include ${CXXFLAGS}\
 
 SOC_FLAGS += -I$(UART_RTLDIR) -I$(SPI_RTLDIR) --timescale "1ns/1ns" --no-timing
-VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
-VERILATOR_VERFLAGS += -cc --trace  
+VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}" -MMD
+VERILATOR_VERFLAGS += -cc --trace --build -MMD
 
 VSRCS += $(SOC_PERIP)
 VSRCS += $(SOC_TOP)
 VERILATOR_SIMFLAGS	+= $(SOC_FLAGS)
 VERILATOR_VERFLAGS	+= $(SOC_FLAGS)
 verilate: verilog
-	$(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
+	-@ $(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
 verilate_sim:
-	$(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
+	echo $(CSRCS)
+	-@ $(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
 
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
@@ -92,11 +94,12 @@ NXDC_FILES = playground/constr/top.nxdc
 $(SRC_AUTO_BIND): $(NXDC_FILES)
 	python3 $(NVBOARD_HOME)/scripts/auto_pin_bind.py $^ $@
 
-CSRCS += $(SRC_AUTO_BIND)
+NVCSRCS ?= $(CSRCS)
+NVCSRCS += $(SRC_AUTO_BIND)
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" -DNVBOARD
 
-$(BIN): $(VSRCS) $(CSRCS) $(NVBOARD_ARCHIVE)
+$(BIN): $(VSRCS) $(NVCSRCS) $(NVBOARD_ARCHIVE)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_NVFLAGS) \
 		--top-module $(TOPNAME) $^ \
