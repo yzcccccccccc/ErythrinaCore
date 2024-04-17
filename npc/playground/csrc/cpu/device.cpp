@@ -112,6 +112,6 @@ void init_timer(){
 }
 
 void init_device(){
-    init_serial();
-    init_timer();
+    //init_serial();
+    //init_timer();
 }

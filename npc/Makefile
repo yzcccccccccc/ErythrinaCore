@@ -1,16 +1,16 @@
-TOPNAME ?= ysyxSoCFull
-YSYXNAME ?= ysyx_1919810
+TOPNAME		?= ysyxSoCFull
+YSYXNAME	?= ysyx_1919810
 
-BUILD_DIR = ./build
+BUILD_DIR	= ./build
 YSYXSOC_DIR = ../ysyxSoC
-OBJ_DIR = $(BUILD_DIR)/obj_dir
+OBJ_DIR		= $(BUILD_DIR)/obj_dir
 
 $(shell mkdir -p $(BUILD_DIR))
 export PATH := $(PATH):$(abspath ./utils)
 
 # Tools
-GTKWAVE = gtkwave
-VERILATOR = verilator
+GTKWAVE		= gtkwave
+VERILATOR	= verilator
 
 # Mill
 MILL_ARGS_ALL += --split-verilog --throw-on-first-error
@@ -50,7 +50,7 @@ SOC_PERIP 	?= $(shell find $(abspath $(YSYXSOC_DIR)/perip) -name "*.v")
 SOC_TOP		?= $(YSYXSOC_DIR)/generated/ysyxSoCFull.v
 UART_RTLDIR ?= $(YSYXSOC_DIR)/perip/uart16550/rtl
 SPI_RTLDIR 	?= $(YSYXSOC_DIR)/perip/spi/rtl
-SIM_TARGET = V$(TOPNAME)
+SIM_TARGET 	= V$(TOPNAME)
 
 IMG ?= 
 ARG ?= 
@@ -74,7 +74,6 @@ verilate: verilog
 	-@ $(VERILATOR) $(VERILATOR_VERFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
 verilate_sim:
-	echo $(CSRCS)
 	-@ $(VERILATOR) $(VERILATOR_SIMFLAGS) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
 
 sim: verilate_sim
@@ -83,6 +82,12 @@ sim: verilate_sim
 
 view_wave:
 	$(GTKWAVE) ./wave.vcd
+
+# Micro Test
+OBJNAME ?= char-test
+micro-test: verilate_sim
+	$(MAKE) -C microtest/ OBJNAME=$(OBJNAME) gen
+	$(OBJ_DIR)/$(SIM_TARGET) -d $(DIFF_SO) -b $(ARG) microtest/build/$(OBJNAME).bin
 
 # NVBoard
 include $(NVBOARD_HOME)/scripts/nvboard.mk

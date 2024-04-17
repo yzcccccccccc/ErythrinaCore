@@ -9,7 +9,7 @@
 
 extern "C" void flash_read(int addr, int *data) { assert(0); }
 extern "C" void mrom_read(int addr, int *data) {
-    *data = 0x00100073;
+    *data = pmem_read(addr & (~0x3u));
 }
 
 extern "C" void halt_Ebreak(){

@@ -2,8 +2,8 @@
 #define __COMMON_H__
 
 #include <cstdint>
-#define PC_RSTVEC   0x80000000
-#define MEMBASE     0x80000000               
+#define PC_RSTVEC   0x20000000
+#define MEMBASE     0x20000000               
 #define MEMSIZE     0x8000000     
 
 #define ARRLEN(arr) (int)(sizeof(arr) / sizeof(arr[0]))

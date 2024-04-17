@@ -33,9 +33,11 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
     void (*ref_difftest_init)(int) = (void (*)(int))dlsym(handle, "difftest_init");
     assert(ref_difftest_init);
 
-    ref_difftest_init(port);
-    ref_difftest_memcpy(PC_RSTVEC, guest2host(PC_RSTVEC), img_size, DIFFTEST_TO_REF);
-    ref_difftest_regcpy(&CPU_state, DIFFTEST_TO_REF);
+    if (DIFF_TEST){
+        ref_difftest_init(port);
+        ref_difftest_memcpy(PC_RSTVEC, guest2host(PC_RSTVEC), img_size, DIFFTEST_TO_REF);
+        ref_difftest_regcpy(&CPU_state, DIFFTEST_TO_REF);
+    }
 }
 
 bool checkregs(rv32_CPU_state *ref, uint32_t pc){
