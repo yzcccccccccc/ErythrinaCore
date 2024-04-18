@@ -84,7 +84,7 @@ class LatencyPipeBit(latency: Int) extends Module{
       cnt := cnt + 1.U
     }
 
-    io.out  := state === sDONE
+    io.out  := state === sDONE & io.in
   }
   else{
     io.out  := io.in

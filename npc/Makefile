@@ -63,8 +63,8 @@ VLDFLAGS += -lreadline ${LIBS}
 VCFLAGS += -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/playground/csrc/include ${CXXFLAGS}\
 
 SOC_FLAGS += -I$(UART_RTLDIR) -I$(SPI_RTLDIR) --timescale "1ns/1ns" --no-timing
-VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}" -MMD
-VERILATOR_VERFLAGS += -cc --trace --build -MMD
+VERILATOR_SIMFLAGS += -cc --exe --trace --build -j -CFLAGS "${VCFLAGS}" -LDFLAGS "${VLDFLAGS}"
+VERILATOR_VERFLAGS += -cc --trace --build
 
 VSRCS += $(SOC_PERIP)
 VSRCS += $(SOC_TOP)

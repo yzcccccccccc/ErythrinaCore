@@ -6,7 +6,7 @@ LINKER		?= linker.ld
 GCC		= riscv64-linux-gnu-gcc
 OBJDUMP	= riscv64-linux-gnu-objdump
 OBJCOPY	= riscv64-linux-gnu-objcopy
-CFLAGS 	+= -O2 -nostartfiles -o
+CFLAGS 	+= -march=rv64g -O2 -nostartfiles -o
 LDFLAGS += -T $(LINKER)
 
 ELF		= $(BUILD_DIR)/$(OBJNAME)

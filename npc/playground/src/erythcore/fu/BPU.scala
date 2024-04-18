@@ -53,11 +53,12 @@ class BPU extends Module with BPUtrait{
     val bpuop   = io.ID2BPU.bpuop
     val tar_pc  = Mux(bpuop === BPUop.csr, io.CSR2BPU.target_pc, io.ID2BPU.src1 + io.ID2BPU.src2)
     val dnpc    = Mux(bpuop === BPUop.jalr, Cat(tar_pc(XLEN - 1, 1), 0.B), tar_pc);
+    val snpc    = io.ID2BPU.pc + 4.U
 
     val redirect = LookupTree(bpuop, List(
         BPUop.nop   -> 0.B,
-        BPUop.jal   -> (dnpc =/= io.ID2BPU.pc),
-        BPUop.jalr  -> (dnpc =/= io.ID2BPU.pc),
+        BPUop.jal   -> (dnpc =/= snpc),
+        BPUop.jalr  -> (dnpc =/= snpc),
         BPUop.beq   -> io.EX2BPU.aluout.zero,
         BPUop.bne   -> ~io.EX2BPU.aluout.zero,
         BPUop.blt   -> ~io.EX2BPU.aluout.zero,

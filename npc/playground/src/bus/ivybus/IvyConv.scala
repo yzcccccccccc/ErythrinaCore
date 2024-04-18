@@ -8,8 +8,6 @@ import erythcore.ErythrinaDefault
 import utils.LookupTreeDefault
 import utils.LatencyPipeBit
 
-// TODO change AXI4Lite to AXI4
-
 // convert a Ivy request to AXI4
 class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
     val io = IO(new Bundle {
@@ -17,53 +15,64 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
         val out = Flipped(Flipped(_type))
     })
 
+    val aw_has_fire = Reg(Bool())
+    val w_has_fire  = Reg(Bool())
+
     // FSM
-    val sARW :: sR :: sW :: sB ::Nil = Enum(4)
-    val state   = RegInit(sARW)
+    val sIDLE :: sR :: sW :: Nil = Enum(3)
+    val state = RegInit(sIDLE)
+
     switch (state){
-        is (sARW){
-            when (io.in.req.bits.wen & io.out.aw.fire){
-                state   := sW
-            }.elsewhen(~io.in.req.bits.wen & io.out.ar.fire){
+        is (sIDLE){
+            when (io.out.ar.fire){
                 state   := sR
+            }.elsewhen((io.out.aw.fire | aw_has_fire) & (io.out.w.fire | w_has_fire)){
+                state   := sW
             }
         }
         is (sR){
-            when (io.out.r.fire & io.in.resp.fire){
-                state   := sARW
+            when (io.out.r.fire){
+                state   := sIDLE
             }
         }
         is (sW){
-            when (io.out.w.fire){
-                state   := sB
-            }
-        }
-        is (sB){
-            when (io.out.b.fire & io.in.resp.fire){
-                state   := sARW
+            when (io.out.b.fire){
+                state   := sIDLE
             }
         }
     }
+    
+    // Fire Reg
+    when (io.out.aw.fire){
+        aw_has_fire := 1.B
+    }
 
-    // AXI-Read
-    io.out.ar.valid         := LatencyPipeBit(io.in.req.valid & ~io.in.req.bits.wen & state === sARW, LATENCY)
-    io.out.ar.bits.addr     := io.in.req.bits.addr
+    when (io.out.w.fire){
+        w_has_fire  := 1.B
+    }
 
-    io.out.r.ready          := LatencyPipeBit(io.in.resp.ready & state === sR, LATENCY)
+    when (state === sW){
+        aw_has_fire := 0.B
+        w_has_fire  := 0.B
+    }
 
-    // AXI-Write
-    io.out.aw.valid         := LatencyPipeBit(io.in.req.valid & io.in.req.bits.wen & state === sARW, LATENCY)
-    io.out.aw.bits.addr     := io.in.req.bits.addr
+    // AXI Read
+    io.out.ar.valid     := LatencyPipeBit(state === sIDLE && io.in.req.valid && ~io.in.req.bits.wen, LATENCY)
+    io.out.ar.bits.addr := io.in.req.bits.addr
 
-    val w_data_r    = RegEnable(io.in.req.bits.data, io.out.aw.fire)
-    val w_strb_r    = RegEnable(io.in.req.bits.mask, io.out.aw.fire)
-    io.out.w.valid              := LatencyPipeBit(state === sW, LATENCY)
-    io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(XLEN, 0.B), w_data_r) else w_data_r)
-    io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(MASKLEN, 0.B), w_strb_r) else w_strb_r)
+    io.out.r.ready      := LatencyPipeBit(state === sR && io.in.resp.ready, LATENCY)
 
-    io.out.b.ready          := LatencyPipeBit(io.in.resp.ready & state === sB, LATENCY)
+    // AXI Write
+    io.out.aw.valid     := LatencyPipeBit(state === sIDLE && io.in.req.valid && io.in.req.bits.wen, LATENCY)
+    io.out.aw.bits.addr := io.in.req.bits.addr
 
-    // Specific
+    io.out.w.valid      := LatencyPipeBit(state === sIDLE && io.in.req.valid && io.in.req.bits.wen, LATENCY)
+    io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(XLEN, 0.B), io.in.req.bits.data) else io.in.req.bits.data)
+    io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(MASKLEN, 0.B), io.in.req.bits.mask) else io.in.req.bits.mask)
+
+    io.out.b.ready      := LatencyPipeBit(state === sW && io.in.resp.ready, LATENCY)
+
+    // AXI4 Specific
     if (_type.getClass() == classOf[AXI4]){
         val axi4 = io.out.asInstanceOf[AXI4]
         
@@ -87,10 +96,10 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     }
 
     // IvyBus
-    io.in.req.ready         := state === sARW & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
-    io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sB && io.out.b.valid)
+    io.in.req.ready         := state === sIDLE & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
+    io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sW && io.out.b.valid)
     io.in.resp.bits.data    := io.out.r.bits.data(31, 0)
-    io.in.resp.bits.resp    := Mux(state === sB, io.out.b.bits.resp, io.out.r.bits.resp)
+    io.in.resp.bits.resp    := Mux(state === sW, io.out.b.bits.resp, io.out.r.bits.resp)
 }
 
 object Ivy2AXI4{
@@ -101,6 +110,7 @@ object Ivy2AXI4{
     }
 }
 
+// TODO: improve efficiency
 // convert a AXI request to Ivy request
 class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
     val io = IO(new Bundle {
