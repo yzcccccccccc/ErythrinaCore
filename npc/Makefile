@@ -42,9 +42,8 @@ checkformat:
 CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
 LIBS += $(shell llvm-config --libs)
 
-
 # Verilator
-CSRCS 		?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")		# for NVBOARD
+CSRCS 		?= $(shell find $(abspath ./playground/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VSRCS 		?= $(shell find $(abspath $(BUILD_DIR)) -name "*.v" -or -name "*.sv")
 SOC_PERIP 	?= $(shell find $(abspath $(YSYXSOC_DIR)/perip) -name "*.v")
 SOC_TOP		?= $(YSYXSOC_DIR)/generated/ysyxSoCFull.v
