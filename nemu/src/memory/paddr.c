@@ -41,7 +41,10 @@ static word_t mrom_read(paddr_t addr, int len){
   return host_read(guest_to_mrom(addr), len);
 }
 
-// no mrom write...
+// only for init
+static void mrom_write(paddr_t addr, int len, word_t data) {
+  host_write(guest_to_mrom(addr), len, data);
+}
 
 static word_t sram_read(paddr_t addr, int len){
   return host_read(guest_to_sram(addr), len);
@@ -127,7 +130,9 @@ void paddr_write(paddr_t addr, int len, word_t data) {
 
 #if defined (CONFIG_YSYXSOC)
   if (in_mrom(addr)){
-    panic("Error: Shouldn't write at MROM! (pc:0x%08x, addr:0x%08x)", cpu.pc, addr);
+    IFDEF(CONFIG_MTRACE, mtrace(addr, data, "mrom write", len));
+    mrom_write(addr, len, data);
+    return;
   }
 
   if (in_sram(addr)){

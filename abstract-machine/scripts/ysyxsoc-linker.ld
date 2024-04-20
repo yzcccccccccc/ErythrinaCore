@@ -24,8 +24,10 @@ SECTIONS {
     *(.sbss*)
     *(.scommon)
   }
-  _heap_start = ALIGN(0x1000);
+  
   /* _stack top are defined in LDFLAGS */
+  . = _stack_top;
+  _heap_start = .;
   . = _stack_top + 0x2000;
   _stack_pointer = .;
   end = .;

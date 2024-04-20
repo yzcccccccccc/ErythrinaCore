@@ -66,7 +66,6 @@ uint32_t pmem_read(paddr_t addr){
     npc_alert(host_index + 3 < MEMSIZE);
     res = host_read(guest2host(addr));
     mtrace_read(addr, res);
-    //printf("[Trace]: MemRead at 0x%08x, res: 0x%08x\n", addr, res);
     return res;
 }
 
