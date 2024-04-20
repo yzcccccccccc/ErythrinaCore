@@ -1,5 +1,29 @@
 menu "Memory Configuration"
 
+config YSYXSOC
+  bool "Use ysyxSoC environment"
+  default n
+
+config MROM_BASE
+  depends on YSYXSOC
+  hex "MROM base addr"
+  default 0x20000000
+
+config MROM_SIZE
+  depends on YSYXSOC
+  hex "MROM size"
+  default 0xffff
+
+config SRAM_BASE
+  depends on YSYXSOC
+  hex "SRAM base addr"
+  default 0x0f000000
+
+config SRAM_SIZE
+  depends on YSYXSOC
+  hex "SRAM size"
+  default 0x1fff
+
 config MBASE
   hex "Memory base address"
   default 0x0        if ISA_x86

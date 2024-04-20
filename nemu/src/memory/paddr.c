@@ -27,6 +27,32 @@ static uint8_t *pmem = NULL;
 static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 #endif
 
+#if defined (CONFIG_YSYXSOC)
+static uint8_t mrom[CONFIG_MROM_SIZE] PG_ALIGN = {};
+static uint8_t sram[CONFIG_SRAM_SIZE] PG_ALIGN = {};
+
+uint8_t* guest_to_mrom(paddr_t paddr) { return mrom + paddr - CONFIG_MROM_BASE; }
+paddr_t mrom_to_guest(uint8_t *haddr) { return haddr - mrom + CONFIG_MROM_BASE; }
+
+uint8_t* guest_to_sram(paddr_t paddr) { return sram + paddr - CONFIG_SRAM_BASE; }
+paddr_t sram_to_guest(uint8_t *haddr) { return haddr - sram + CONFIG_SRAM_BASE; }
+
+static word_t mrom_read(paddr_t addr, int len){
+  return host_read(guest_to_mrom(addr), len);
+}
+
+// no mrom write...
+
+static word_t sram_read(paddr_t addr, int len){
+  return host_read(guest_to_sram(addr), len);
+}
+
+static void sram_write(paddr_t addr, int len, word_t data) {
+  host_write(guest_to_sram(addr), len, data);
+}
+
+#endif
+
 uint8_t* guest_to_host(paddr_t paddr) { return pmem + paddr - CONFIG_MBASE; }
 paddr_t host_to_guest(uint8_t *haddr) { return haddr - pmem + CONFIG_MBASE; }
 
@@ -66,11 +92,28 @@ word_t paddr_read(paddr_t addr, int len) {
     IFDEF(CONFIG_MTRACE, mtrace(addr, res, "memory read", len));
     return res;
   }
+
+#if defined (CONFIG_YSYXSOC)
+  if (in_mrom(addr)){
+    word_t res = mrom_read(addr, len);
+    IFDEF(CONFIG_MTRACE, mtrace(addr, res, "mrom read", len));
+    return res;
+  }
+
+  if (in_sram(addr)){
+    word_t res = sram_read(addr, len);
+    IFDEF(CONFIG_MTRACE, mtrace(addr, res, "sram read", len));
+    return res;
+  }
+
+#endif
+
 #ifdef CONFIG_DEVICE
   word_t res = mmio_read(addr, len);
   IFDEF(CONFIG_MTRACE, mtrace(addr, res, "mmio read", len));
   return res;
 #endif
+
   out_of_bound(addr);
   return 0;
 }
@@ -81,6 +124,20 @@ void paddr_write(paddr_t addr, int len, word_t data) {
     pmem_write(addr, len, data);
     return;
   }
+
+#if defined (CONFIG_YSYXSOC)
+  if (in_mrom(addr)){
+    panic("Error: Shouldn't write at MROM! (pc:0x%08x, addr:0x%08x)", cpu.pc, addr);
+  }
+
+  if (in_sram(addr)){
+    IFDEF(CONFIG_MTRACE, mtrace(addr, data, "sram write", len));
+    sram_write(addr, len, data);
+    return;
+  }
+
+#endif
+
 #ifdef CONFIG_DEVICE
   IFDEF(CONFIG_MTRACE, mtrace(addr, data, "mmio write", len));
   mmio_write(addr, len, data); 
