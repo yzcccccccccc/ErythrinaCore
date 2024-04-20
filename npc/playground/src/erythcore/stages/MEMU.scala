@@ -50,13 +50,15 @@ class MEMU extends Module with MEMUtrait{
 
     val lsuop = io.EXU2MEMU.bits.LSUop
     // Load
-    val LoadRes = LookupTree(lsuop, List(
-        LSUop.lb    -> SignExt(ByteRes, XLEN),
-        LSUop.lbu   -> ZeroExt(ByteRes, XLEN),
-        LSUop.lh    -> SignExt(HWordRes, XLEN),
-        LSUop.lhu   -> ZeroExt(HWordRes, XLEN),
-        LSUop.lw    -> ld_data
-    ))
+    val load_info_lst   = List(               // (res, size)
+        LSUop.lb    -> (SignExt(ByteRes, XLEN), "b000".U),
+        LSUop.lbu   -> (ZeroExt(ByteRes, XLEN), "b000".U),
+        LSUop.lh    -> (SignExt(HWordRes, XLEN), "b001".U),
+        LSUop.lhu   -> (ZeroExt(HWordRes, XLEN), "b001".U),
+        LSUop.lw    -> (ld_data, "b010".U)
+    )
+    val LoadRes = LookupTree(lsuop, load_info_lst.map(p => (p._1, p._2._1)))
+    val ld_size = LookupTree(lsuop, load_info_lst.map(p => (p._1, p._2._2)))
     
     // Store
     val mask = LookupTreeDefault(lsuop, 0.U, List(
@@ -69,17 +71,17 @@ class MEMU extends Module with MEMUtrait{
         LSUop.sh    -> (io.EXU2MEMU.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
         LSUop.sw    -> (io.EXU2MEMU.bits.data2store)
     ))
+    val st_size = LookupTree(lsuop, List(
+        LSUop.sb    -> "b000".U,
+        LSUop.sh    -> "b001".U,
+        LSUop.sw    -> "b010".U
+    ))
     io.memu_mem.req.bits.wen    := mask =/= 0.U
     io.memu_mem.req.bits.mask   := mask
     io.memu_mem.req.bits.data   := st_data
 
     // Size
-    val size = LookupTree(lsuop, List(
-        LSUop.sb    -> "b000".U,
-        LSUop.sh    -> "b001".U,
-        LSUop.sw    -> "b010".U
-    ))
-    io.memu_mem.req.bits.size   := size
+    io.memu_mem.req.bits.size   := Mux(mask =/= 0.U, st_size, ld_size)
 
     // to EXU
     //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready

@@ -67,8 +67,8 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     io.out.aw.valid     := LatencyPipeBit(state === sIDLE && io.in.req.valid && io.in.req.bits.wen, LATENCY)
     io.out.aw.bits.addr := io.in.req.bits.addr
 
-    val strb = Mux(io.in.req.bits.addr(2, 0) =/= 0.U, Cat(io.in.req.bits.mask, Fill(MASKLEN, 0.B)), Cat(Fill(MASKLEN, 0.B), io.in.req.bits.mask))
-    val data = Mux(io.in.req.bits.addr(2, 0) =/= 0.U, Cat(io.in.req.bits.data, Fill(XLEN, 0.B)), Cat(Fill(XLEN, 0.B), io.in.req.bits.data))
+    val strb = Mux(io.in.req.bits.addr(2), Cat(io.in.req.bits.mask, Fill(MASKLEN, 0.B)), Cat(Fill(MASKLEN, 0.B), io.in.req.bits.mask))
+    val data = Mux(io.in.req.bits.addr(2), Cat(io.in.req.bits.data, Fill(XLEN, 0.B)), Cat(Fill(XLEN, 0.B), io.in.req.bits.data))
     io.out.w.valid      := LatencyPipeBit(state === sIDLE && io.in.req.valid && io.in.req.bits.wen, LATENCY)
     io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) data else io.in.req.bits.data)
     io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) strb else io.in.req.bits.mask)
@@ -101,7 +101,7 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     // IvyBus
     io.in.req.ready         := state === sIDLE & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
     io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sW && io.out.b.valid)
-    io.in.resp.bits.data    := Mux(ar_addr_r(2, 0) === 0.U, io.out.r.bits.data(31, 0), io.out.r.bits.data(63, 32))
+    io.in.resp.bits.data    := Mux(ar_addr_r(2), io.out.r.bits.data(63, 32), io.out.r.bits.data(31, 0))
     io.in.resp.bits.resp    := Mux(state === sW, io.out.b.bits.resp, io.out.r.bits.resp)
 }
 
