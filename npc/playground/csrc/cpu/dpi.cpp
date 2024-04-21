@@ -7,7 +7,9 @@
 #include "memory.h"
 #include <cstdio>
 
-extern "C" void flash_read(int addr, int *data) { assert(0); }
+extern "C" void flash_read(int addr, int *data) {
+    *data = *(uint32_t *)(flash + addr);
+}
 extern "C" void mrom_read(int addr, int *data) {
     *data = pmem_read(addr & (~0x3u));
 }

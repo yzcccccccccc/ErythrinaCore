@@ -24,6 +24,16 @@ config SRAM_SIZE
   hex "SRAM size"
   default 0x1fff
 
+config FLASH_BASE
+  depends on YSYXSOC
+  hex "FLASH base addr"
+  default 0x30000000
+
+config FLASH_SIZE
+  depends on YSYXSOC
+  hex "FALSH size"
+  default 0x10000
+
 config MBASE
   hex "Memory base address"
   default 0x0        if ISA_x86

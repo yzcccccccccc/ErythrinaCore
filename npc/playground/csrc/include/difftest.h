@@ -14,4 +14,6 @@ extern void difftest_step(uint32_t pc);
 
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
 
+extern bool is_skip;
+
 #endif

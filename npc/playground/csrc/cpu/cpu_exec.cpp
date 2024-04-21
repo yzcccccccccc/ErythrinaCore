@@ -16,6 +16,7 @@
 #include <cstdio>
 
 int cycle = 0;
+FILE *logfile;
 // NPC state
 NPC_state npc_state;
 uint32_t npc_info;
@@ -61,7 +62,7 @@ void init_verilate(){
     }
 }
 
-void CPU_reset(){
+void cpu_reset(){
     // NPC_STATE
     npc_state = CPU_RUN;
 
@@ -114,14 +115,19 @@ void collect(){
     delete contx;
 }
 
+void cpu_end(){
+    if (ITRACE){
+        fclose(logfile);
+    }
+    report();
+    collect();
+}
+
 char inst_disasm[100];
-FILE *logfile;
 void execute(uint32_t n){
     for (;n > 0 && npc_state == CPU_RUN; n--){
         while (!get_commit_valid(dut) && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
-
         if (npc_state != CPU_RUN) break;
-
         //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
         if (ITRACE){
             uint32_t inst   = get_commit_inst(dut);
@@ -141,29 +147,27 @@ void execute(uint32_t n){
         single_cycle(dut, tfp, contx);
     }
     if (npc_state != CPU_RUN){
-        if (ITRACE){
-            fclose(logfile);
-        }
-        report();
-        collect();
+        cpu_end();
     }
 }
 
-void init_CPU(){
+void init_cpu(){
     init_verilate();
 
     init_device();
 
-    CPU_reset();
+    init_mem();
+
+    cpu_reset();
 
     if (ITRACE){
         logfile = fopen("./trace.log", "w");
     }
 }
 
-void CPU_sim(){
+void cpu_sim(){
     // init
-    init_CPU();
+    init_cpu();
 
     // Simulate
     execute(-1);

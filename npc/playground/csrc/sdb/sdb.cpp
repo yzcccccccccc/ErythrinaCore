@@ -102,7 +102,7 @@ static int cmd_si(char *args){
 }
 
 void sdb_main(){
-    init_CPU();
+    init_cpu();
     init_sdb();
 
     if (is_batch_mode){

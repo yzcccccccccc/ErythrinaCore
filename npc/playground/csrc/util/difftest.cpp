@@ -36,6 +36,7 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
     if (DIFF_TEST){
         ref_difftest_init(port);
         ref_difftest_memcpy(PC_RSTVEC, guest2host(PC_RSTVEC), img_size, DIFFTEST_TO_REF);
+        ref_difftest_memcpy(FLASH_BASE, guest2host(FLASH_BASE), FLASH_SIZE, DIFFTEST_TO_REF);
         ref_difftest_regcpy(&CPU_state, DIFFTEST_TO_REF);
     }
 }
@@ -54,6 +55,8 @@ bool checkregs(rv32_CPU_state *ref, uint32_t pc){
   return true;
 
 }
+
+bool is_skip = 0;
 
 void difftest_step(uint32_t pc){
     if (DIFF_TEST){

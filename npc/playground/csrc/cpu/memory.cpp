@@ -8,6 +8,20 @@
 #include <cstdio>
 #include <cstdint>
 
+uint8_t pmem[MEMSIZE];
+uint8_t mrom[MROM_SIZE];
+uint8_t sram[SRAM_SIZE];
+uint8_t flash[FLASH_SIZE];
+
+void flash_init(){
+    for (int i = 0; i < FLASH_SIZE; i++)
+        flash[i] = 0x24;
+}
+
+void init_mem(){
+    flash_init();
+}
+
 uint8_t* guest2host(paddr_t paddr){
     if (in_pmem(paddr))
         return pmem + paddr - MEMBASE;

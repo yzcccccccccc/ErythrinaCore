@@ -17,13 +17,16 @@ typedef enum{
 extern NPC_state npc_state;
 extern uint32_t npc_info;
 
-extern void CPU_sim();
-extern void init_CPU();
+extern void cpu_sim();
+extern void cpu_end();
+extern void init_cpu();
 extern void execute(uint32_t n);
 
 // dut soc
 typedef VysyxSoCFull VSoc;
 extern VSoc *dut;
+
+extern FILE *logfile;
 
 // commit tools
 extern uint32_t get_commit_valid(VSoc *dut);
