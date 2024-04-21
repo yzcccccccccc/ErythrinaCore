@@ -3,8 +3,17 @@
 
 #include <cstdint>
 #define PC_RSTVEC   0x20000000
-#define MEMBASE     0x20000000               
-#define MEMSIZE     0x8000000     
+#define MEMBASE     0x80000000               
+#define MEMSIZE     0x8000000
+
+#define FLASH_BASE  0x30000000
+#define FLASH_SIZE  0x10000
+
+#define MROM_BASE   0x20000000
+#define MROM_SIZE   0x1000
+
+#define SRAM_BASE   0x0f000000
+#define SRAM_SIZE   0x2000
 
 #define ARRLEN(arr) (int)(sizeof(arr) / sizeof(arr[0]))
 

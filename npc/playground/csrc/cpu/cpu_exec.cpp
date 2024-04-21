@@ -16,8 +16,9 @@
 #include <cstdio>
 
 int cycle = 0;
+// NPC state
 NPC_state npc_state;
-uint32_t npc_val;
+uint32_t npc_info;
 
 void wave_record(VerilatedVcdC *tfp, VerilatedContext *contx){
     if (DUMP_WAVE){
@@ -86,7 +87,7 @@ void report(){
             printf("[Hit Trap] %sAbort%s due to unknown instuctions.\n", FontRed, Restore);
             break;
         case CPU_ABORT_MEMLEAK:
-            printf("[Hit Trap] %sAbort%s from memory leak at 0x%08x.\n", FontRed, Restore, npc_val);
+            printf("[Hit Trap] %sAbort%s from memory leak at 0x%08x.\n", FontRed, Restore, npc_info);
             break;
         case CPU_ABORT_INSTR_BOUND:
             printf("[Hit Trap] %sAbort%s from hitting instructions bound.\n", FontRed, Restore);

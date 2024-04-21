@@ -9,7 +9,16 @@
 #include <cstdint>
 
 uint8_t* guest2host(paddr_t paddr){
-    return pmem + paddr - MEMBASE;
+    if (in_pmem(paddr))
+        return pmem + paddr - MEMBASE;
+    if (in_mrom(paddr))
+        return mrom + paddr - MROM_BASE;
+    if (in_sram(paddr))
+        return sram + paddr - SRAM_BASE;
+    if (in_flash(paddr))
+        return flash + paddr - FLASH_BASE;
+    npc_info = paddr;
+    npc_alert(0, CPU_ABORT_MEMLEAK);
 }
 
 uint32_t host_read(void *addr){
@@ -61,9 +70,7 @@ uint32_t pmem_read(paddr_t addr){
     }
 
     uint32_t host_index = addr - MEMBASE;
-    npc_val = addr;
-    npc_alert(addr >= MEMBASE);
-    npc_alert(host_index + 3 < MEMSIZE);
+
     res = host_read(guest2host(addr));
     mtrace_read(addr, res);
     return res;
@@ -79,9 +86,7 @@ uint32_t pmem_write(paddr_t addr, uint32_t data, uint32_t mask){
     }
 
     uint32_t host_index = addr - MEMBASE;
-    npc_val = addr;
-    npc_alert(addr >= MEMBASE);
-    npc_alert(host_index + 3 < MEMSIZE);
+
     res = host_write(guest2host(addr), data, mask);
     mtrace_write(addr, data, mask, res);
     return res;

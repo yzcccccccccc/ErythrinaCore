@@ -15,7 +15,7 @@ typedef enum{
     CPU_HALT_BAD
 }NPC_state;
 extern NPC_state npc_state;
-extern uint32_t npc_val;
+extern uint32_t npc_info;
 
 extern void CPU_sim();
 extern void init_CPU();

@@ -17,6 +17,8 @@
 #define UART_LSR                (UART_BASE + 5)
 #define UART_MSR                (UART_BASE + 6)
 
+// FLASH
+#define FLASH_BASE              0x30000000
 
 #define SET_BIT(addr, bit)      (*(volatile uint8_t  *)addr |= (1 << bit))
 #define CLR_BIT(addr, bit)      (*(volatile uint8_t  *)addr &= (~(1 << bit)))
