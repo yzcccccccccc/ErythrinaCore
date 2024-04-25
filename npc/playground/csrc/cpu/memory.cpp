@@ -14,8 +14,11 @@ uint8_t sram[SRAM_SIZE];
 uint8_t flash[FLASH_SIZE];
 
 void flash_init(){
-    for (int i = 0; i < FLASH_SIZE; i++)
-        flash[i] = 0x24;
+    uint32_t *ptr = (uint32_t *)flash;
+    ptr[0] = 0x100007b7;
+    ptr[1] = 0x04100713;
+    ptr[2] = 0x00e78023;
+    ptr[3] = 0x0000006f;
 }
 
 void init_mem(){

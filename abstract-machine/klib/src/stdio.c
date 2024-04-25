@@ -37,7 +37,8 @@ int printf(const char *fmt, ...) {
   return len;
 }
 
-char *int2str(long val, char *out, int pad_len, char pad_ch){
+char *int2str(long val, char *out, int pad_len, char pad_ch, int base){
+  assert(base == 10 || base == 16);
   if (val < 0){
     *out = '-';
     val = -val;
@@ -45,9 +46,15 @@ char *int2str(long val, char *out, int pad_len, char pad_ch){
   }
   char vsbuf[BUFLEN];
   int len = 0;
-  for (;val > 0; val /= 10, len++){
-    vsbuf[len] = val % 10 + '0';
-  }
+  if (val == 0)
+    vsbuf[len++] = '0';
+  else
+    for (;val > 0; val /= base, len++){
+      if (base == 10)
+        vsbuf[len] = val % 10 + '0';
+      if (base == 16)
+        vsbuf[len] = val % 16 < 10 ? val % 16 + '0' : val % 16 + 'a' - 10;
+    }
   for (int i = len; i < pad_len; i++){
     *out = pad_ch;
     out++;
@@ -83,14 +90,14 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           break;
         case 'd': case 'x':   // TODO: Add Hex!
           d = va_arg(ap, int);
-          out = int2str(d, out, pad_len, pad_ch);
+          out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
           pad_len = 0;
           break;
         case 'l':
           fmt++;
           assert(*fmt == 'd' || *fmt == 'x');
           d = va_arg(ap, long);
-          out = int2str(d, out, pad_len, pad_ch);
+          out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
           pad_len = 0;
           break;
         case 'c':
