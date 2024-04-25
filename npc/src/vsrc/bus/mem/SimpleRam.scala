@@ -5,7 +5,6 @@ import  bus.ivybus._
 import chisel3._
 import chisel3.util._
 import bus.axi4._
-import coursier.core.Latest
 import erythcore.ErythrinaDefault
 
 // simulate the bhv of memory?
