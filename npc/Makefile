@@ -12,7 +12,6 @@ export PATH := $(PATH):$(abspath ./utils)
 GTKWAVE		= gtkwave
 VERILATOR	= verilator
 
-
 IMG ?= 
 ARG ?= 
 DIFF_SO ?= $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
@@ -28,8 +27,6 @@ OBJNAME ?= char-test
 micro-test: verilate_sim
 	$(MAKE) -C microtest/ OBJNAME=$(OBJNAME) gen
 	$(OBJ_DIR)/$(SIM_TARGET) -d $(DIFF_SO) -b $(ARG) microtest/build/$(OBJNAME).bin
-
-
 
 clean:
 	-rm -rf $(BUILD_DIR)

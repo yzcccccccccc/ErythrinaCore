@@ -156,7 +156,7 @@ void init_cpu(){
 
     init_device();
 
-    init_mem();
+    //init_mem();
 
     cpu_reset();
 

@@ -42,3 +42,5 @@ verilate_sim: $(SIM_TAR)
 sim: verilate_sim
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(SIM_TAR) -d $(DIFF_SO) -b $(ARG) $(IMG)
+
+.PHONY: verilate verilate_sim

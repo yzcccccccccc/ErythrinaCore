@@ -6,7 +6,7 @@ import chisel3.util._
 trait ErythrinaDefault {
     // General Global Settings
     val XLEN = 32           // RV32
-    val RESETVEC    = 0x20000000L
+    val RESETVEC    = 0x30000000L
     val MASKLEN = XLEN/8         // 32/8=4
     val RESPLEN = 2
 
