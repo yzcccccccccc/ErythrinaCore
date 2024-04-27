@@ -20,6 +20,7 @@ Verilator_VFLG	+= -cc --trace --build	# Only pack up the .v files
 # SRC
 VSRCS 		?= $(shell find $(abspath $(BUILD_DIR)/rtl) -name "*.v" -or -name "*.sv")
 CSRCS 		?= $(shell find $(abspath ./src/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+HSRCS		?= $(shell find $(abspath ./src/csrc) -name "*.h")
 
 VSRCS += $(SOC_PERIP)
 VSRCS += $(SOC_TOP)
@@ -32,7 +33,7 @@ $(Verilator_TAR): $(VSRCS)
 	-@ $(VERILATOR) $(Verilator_VFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
 SIM_TAR			= $(OBJ_DIR)/V$(TOPNAME)
-$(SIM_TAR): $(VSRCS) $(CSRCS)
+$(SIM_TAR): $(VSRCS) $(CSRCS) $(HSRCS)
 	-@ $(VERILATOR) $(Verilator_SFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
 
 verilate: $(Verilator_TAR)

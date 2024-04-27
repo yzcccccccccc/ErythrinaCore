@@ -8,7 +8,8 @@
 #include <cstdio>
 
 extern "C" void flash_read(int addr, int *data) {
-    *data = *(uint32_t *)(flash + addr);
+    *data = *(uint32_t *)(flash + (addr & (~0x3u)));
+    //printf("read at 0x%x (data: %x)\n", addr, *data);
 }
 extern "C" void mrom_read(int addr, int *data) {
     *data = pmem_read(addr & (~0x3u));

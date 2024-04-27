@@ -94,10 +94,11 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lhu   -> true.B,
         LSUop.lw    -> true.B
     ))
+    val wdata   = RegNext(Mux(isload, LoadRes, io.EXU2MEMU.bits.addr))
     io.MEMU2WBU.valid       := (io.memu_mem.resp.fire | ~io.memu_mem.req.valid)
     io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
     io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst
     io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd
-    io.MEMU2WBU.bits.RegWriteIO.wdata   := Mux(isload, LoadRes, io.EXU2MEMU.bits.addr)
+    io.MEMU2WBU.bits.RegWriteIO.wdata   := wdata
     io.MEMU2WBU.bits.RegWriteIO.wen     := io.EXU2MEMU.bits.rf_wen
 }

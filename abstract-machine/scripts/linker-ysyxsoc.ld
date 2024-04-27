@@ -2,22 +2,23 @@ ENTRY(_start)
 PHDRS { text PT_LOAD; data PT_LOAD; }
 
 MEMORY {
-  mrom(rx) : ORIGIN = 0x20000000, LENGTH = 4K
-  sram(rw) : ORIGIN = 0x0f000000, LENGTH = 8K
+  mrom(rx)  : ORIGIN = 0x20000000, LENGTH = 4K
+  sram(rw)  : ORIGIN = 0x0f000000, LENGTH = 8K
+  flash(rx) : ORIGIN = 0x30000000, LENGTH = 10M
 }
 
 SECTIONS {
-  . = ORIGIN(mrom);
+  . = ORIGIN(flash);
   .text . : {
     *(entry)
     *(.text*)
-  }>mrom AT>mrom : text
+  }>flash AT>flash : text
   etext = .;
   _etext = .;
 
   .rodata : {
     *(.rodata*)
-  } >mrom AT>mrom
+  } >flash AT>flash
 
   _mrom_data_start = LOADADDR(.data);
   .data : {
@@ -25,7 +26,7 @@ SECTIONS {
     *(.data*)
     *(.sdata*);
     _data_end = .;
-  } >sram AT>mrom : data
+  } >sram AT>flash : data
   edata = .;
   _data = .;
 
@@ -35,7 +36,7 @@ SECTIONS {
     *(.sbss*)
     *(.scommon);
     _bss_end = .;
-  } >sram AT>mrom
+  } >sram AT>flash
   
   /* _stack top are defined in LDFLAGS */
   . = ORIGIN(sram);

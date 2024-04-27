@@ -60,7 +60,7 @@ void uart_init(){
 
 void _trm_init() {
   bootloader();
-  uart_init();
+  //uart_init();
   int ret = main(mainargs);
   halt(ret);
 }
