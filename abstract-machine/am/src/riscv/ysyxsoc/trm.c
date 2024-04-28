@@ -58,9 +58,44 @@ void uart_init(){
 
 }
 
+void put_num(int x){
+  if (x == 0){
+    putch('0');
+    return;
+  }
+  if (x < 0){
+    putch('-');
+    x = -x;
+  }
+  char buf[20];
+  int i = 0;
+  while (x){
+    buf[i++] = x % 10 + '0';
+    x /= 10;
+  }
+  while (i--){
+    putch(buf[i]);
+  }
+
+}
+
+void hello_info(){
+  // Read CSR (mvendorid & marchid) value
+  uint32_t mvendorid = 0, marchid = 0;
+  asm volatile("csrr %0, 0xF11" : "=r"(mvendorid));
+  asm volatile("csrr %0, 0xF12" : "=r"(marchid));
+  for (int i = 0; i < 4; i++){
+    putch((mvendorid >> (8 * (3 - i))) & 0xff);
+  }
+  putch('_');
+  put_num(marchid);
+  putch('\n');
+}
+
 void _trm_init() {
   bootloader();
-  //uart_init();
+  uart_init();
+  hello_info();
   int ret = main(mainargs);
   halt(ret);
 }

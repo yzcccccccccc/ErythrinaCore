@@ -58,6 +58,8 @@ object CSRnum{
     def mtvec       = 0x305.U
     def mepc        = 0x341.U
     def mcause      = 0x342.U
+    def mvendorid   = 0xf11.U
+    def marchid     = 0xf12.U
 }
 
 class CSR extends Module with ErythrinaDefault{
@@ -73,10 +75,12 @@ class CSR extends Module with ErythrinaDefault{
     def privMRET    = 0x302.U
 
     // Machine
-    val mstatus = RegInit(UInt(XLEN.W), "h1800".U)
-    val mcause  = RegInit(UInt(XLEN.W), 0.U)
-    val mepc    = RegInit(UInt(XLEN.W), 0.U)
-    val mtvec   = RegInit(UInt(XLEN.W), 0.U)
+    val mstatus     = RegInit(UInt(XLEN.W), 0x1800.U)
+    val mcause      = RegInit(UInt(XLEN.W), 0.U)
+    val mepc        = RegInit(UInt(XLEN.W), 0.U)
+    val mtvec       = RegInit(UInt(XLEN.W), 0.U)
+    val mvendorid   = RegInit(UInt(XLEN.W), 0x79737978.U)
+    val marchid     = RegInit(UInt(XLEN.W), 0x1d4b42.U)
 
     val csrnum      = src2(11, 0)
     val isECALL     = csrop === CSRop.jmp && csrnum === privECALL
@@ -96,7 +100,9 @@ class CSR extends Module with ErythrinaDefault{
         CSRnum.mcause       -> mcause,
         CSRnum.mepc         -> mepc,
         CSRnum.mstatus      -> mstatus,
-        CSRnum.mtvec        -> mtvec
+        CSRnum.mtvec        -> mtvec,
+        CSRnum.marchid      -> marchid,
+        CSRnum.mvendorid    -> mvendorid
     ))
     io.EXU2CSR.rdata    := csrval
     
