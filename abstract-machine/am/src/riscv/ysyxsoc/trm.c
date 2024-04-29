@@ -94,8 +94,8 @@ void hello_info(){
 
 void _trm_init() {
   bootloader();
-  uart_init();
-  hello_info();
+  //uart_init();
+  //hello_info();
   int ret = main(mainargs);
   halt(ret);
 }

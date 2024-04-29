@@ -60,10 +60,15 @@ bool is_skip = 0;
 
 void difftest_step(uint32_t pc){
     if (DIFF_TEST){
-        rv32_CPU_state ref_r;
-        ref_difftest_exec(1);
-        ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
-        if (!checkregs(&ref_r, pc))
-            npc_state = CPU_ABORT_DIFF_ERR;
+        if (!is_skip){
+            rv32_CPU_state ref_r;
+            ref_difftest_exec(1);
+            ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
+            if (!checkregs(&ref_r, pc))
+                npc_state = CPU_ABORT_DIFF_ERR;
+        }
+        else{
+            ref_difftest_regcpy(&CPU_state, DIFFTEST_TO_REF);
+        }
     }
 }

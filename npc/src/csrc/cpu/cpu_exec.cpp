@@ -125,7 +125,7 @@ void cpu_end(){
 
 char inst_disasm[100];
 void execute(uint32_t n){
-    for (;n > 0 && npc_state == CPU_RUN; n--){
+    for (;n > 0 && npc_state == CPU_RUN && !contx->gotFinish(); n--){
         while (!get_commit_valid(dut) && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
         if (npc_state != CPU_RUN) break;
         //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
@@ -141,10 +141,12 @@ void execute(uint32_t n){
 
         single_cycle(dut, tfp, contx);
         update_npcstate();
-        //if (dut->io_commit_rf_wen)
-        //    CPU_state.gpr[dut->io_commit_rf_waddr] = dut->io_commit_rf_wdata;
+
         difftest_step(CPU_state.pc);
         single_cycle(dut, tfp, contx);
+    }
+    if (contx->gotFinish()){
+        npc_state = CPU_HALT_BAD;
     }
     if (npc_state != CPU_RUN){
         cpu_end();
