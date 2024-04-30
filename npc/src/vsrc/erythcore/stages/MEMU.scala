@@ -101,4 +101,6 @@ class MEMU extends Module with MEMUtrait{
     io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd
     io.MEMU2WBU.bits.RegWriteIO.wdata   := wdata
     io.MEMU2WBU.bits.RegWriteIO.wen     := io.EXU2MEMU.bits.rf_wen
+    io.MEMU2WBU.bits.maddr  := addr
+    io.MEMU2WBU.bits.men    := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid
 }

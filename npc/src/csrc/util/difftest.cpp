@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstddef>
 #include <memory.h>
+#include <device.h>
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, int n, bool direction) = NULL;
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
@@ -37,7 +38,6 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
         ref_difftest_init(port);
         ref_difftest_memcpy(PC_RSTVEC, guest2host(PC_RSTVEC), img_size, DIFFTEST_TO_REF);
         ref_difftest_memcpy(FLASH_BASE, guest2host(FLASH_BASE), FLASH_SIZE, DIFFTEST_TO_REF);
-        ref_difftest_regcpy(&CPU_state, DIFFTEST_TO_REF);
     }
 }
 
@@ -57,6 +57,23 @@ bool checkregs(rv32_CPU_state *ref, uint32_t pc){
 }
 
 bool is_skip = 0;
+
+void check_skip(){
+    uint32_t addr   = get_commit_mem_addr(dut);
+    uint32_t en     = get_commit_mem_en(dut);
+    if (addr >= DEV_CLINT && addr < DEV_CLINT + DEV_CLINT_SZ){
+        is_skip = en;
+    }
+    else if (addr >= DEV_UART && addr < DEV_UART + DEV_UART_SZ){
+        is_skip = en;
+    }
+    else if (addr >= DEV_SPI && addr < DEV_SPI + DEV_SPI_SZ){
+        is_skip = en;
+    }
+    else{
+        is_skip = 0;
+    }
+}
 
 void difftest_step(uint32_t pc){
     if (DIFF_TEST){

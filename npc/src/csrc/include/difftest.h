@@ -11,6 +11,7 @@ extern void (*ref_difftest_exec)(uint32_t n);
 extern void (*ref_difftest_init)(int port);
 
 extern void difftest_step(uint32_t pc);
+extern void check_skip();
 
 enum { DIFFTEST_TO_DUT, DIFFTEST_TO_REF };
 

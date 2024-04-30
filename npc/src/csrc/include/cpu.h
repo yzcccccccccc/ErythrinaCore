@@ -35,5 +35,7 @@ extern uint32_t get_commit_inst(VSoc *dut);
 extern uint32_t get_commit_rf_waddr(VSoc *dut);
 extern uint32_t get_commit_rf_wdata(VSoc *dut);
 extern uint32_t get_commit_rf_wen(VSoc *dut);
+extern uint32_t get_commit_mem_addr(VSoc *dut);
+extern uint32_t get_commit_mem_en(VSoc *dut);
 
 #endif

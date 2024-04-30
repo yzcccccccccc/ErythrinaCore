@@ -37,6 +37,10 @@ word_t isa_csr_read(int num){
     return cpu.mcause;
   if (num == MSTVEC)
     return cpu.mstvec;
+  if (num == MARCHID)
+    return cpu.marchid;
+  if (num == MVENDORID)
+    return cpu.mvendorid;
   assert(0);
 }
 
@@ -55,6 +59,14 @@ void isa_csr_write(int num, word_t data){
   }
   if (num == MSTVEC){
     cpu.mstvec = data;
+    return;
+  }
+  if (num == MARCHID){
+    cpu.marchid = data;
+    return;
+  }
+  if (num == MVENDORID){
+    cpu.mvendorid = data;
     return;
   }
   assert(0);
@@ -216,8 +228,8 @@ static int decode_exec(Decode *s) {
   INSTPAT("0000001 ????? ????? 011 ????? 01100 11", mulhu  , R, {R(rd) = ((uint64_t)src1 * (uint64_t)src2) >> 32;});
 
   // CSR
-  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, {R(rd) = isa_csr_read(imm); isa_csr_write(imm, src1);});
-  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, {word_t t = isa_csr_read(imm); isa_csr_write(imm, t | src1); R(rd) = t;});
+  INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , I, {R(rd) = isa_csr_read(imm & 0xfff); isa_csr_write(imm & 0xfff, src1);});
+  INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , I, {word_t t = isa_csr_read(imm & 0xfff); isa_csr_write(imm & 0xfff, t | src1); R(rd) = t;});
 
   // TODO mstatus/status
   INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, {s->dnpc = cpu.mepc;});

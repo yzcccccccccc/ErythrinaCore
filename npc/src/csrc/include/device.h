@@ -19,4 +19,13 @@ extern void init_serial();
 // Timer
 extern void init_timer();
 
+#define DEV_CLINT       0x02000000
+#define DEV_CLINT_SZ    0x10000
+
+#define DEV_UART        0x10000000
+#define DEV_UART_SZ     0x1000
+
+#define DEV_SPI         0x10001000
+#define DEV_SPI_SZ      0x2000
+
 #endif

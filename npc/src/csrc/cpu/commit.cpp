@@ -20,3 +20,9 @@ uint32_t get_commit_rf_wdata(VSoc *dut){
 uint32_t get_commit_rf_wen(VSoc *dut){
     return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__rf_wen_r;
 }
+uint32_t get_commit_mem_addr(VSoc *dut){
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__mem_addr_r;
+}
+uint32_t get_commit_mem_en(VSoc *dut){
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__mem_en_r;
+}

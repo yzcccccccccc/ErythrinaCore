@@ -6,7 +6,7 @@ extern char _heap_start;
 int main(const char *args);
 
 // TODO Fix
-#define SZ  0x2000
+#define SZ  0x100000
 #define END ((uintptr_t)&_heap_start + SZ)
 
 Area heap = RANGE(&_heap_start, END);
@@ -27,6 +27,8 @@ void halt(int code) {
   ysyxsoc_trap(code);
   while(1);
 }
+
+void bootloader() __attribute__((section("my_section")));
 
 extern char _mrom_data_start, _data_start, _data_end;
 extern char _bss_start, _bss_end;
@@ -94,8 +96,8 @@ void hello_info(){
 
 void _trm_init() {
   bootloader();
-  //uart_init();
-  //hello_info();
+  uart_init();
+  hello_info();
   int ret = main(mainargs);
   halt(ret);
 }

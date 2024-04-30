@@ -21,6 +21,8 @@ void restart() {
   /* Set the initial program counter. */
   cpu.pc = RESET_VECTOR;
   cpu.mstatus = 0x1800;
+  cpu.mvendorid = 0x79737978;
+  cpu.marchid = 0x1d4b42;
 
   /* The zero register is always 0. */
   cpu.gpr[0] = 0;

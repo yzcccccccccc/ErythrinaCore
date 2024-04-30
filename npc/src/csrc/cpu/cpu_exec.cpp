@@ -139,6 +139,8 @@ void execute(uint32_t n){
                     get_commit_rf_waddr(dut));
         }
 
+        check_skip();
+
         single_cycle(dut, tfp, contx);
         update_npcstate();
 
