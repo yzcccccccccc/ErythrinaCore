@@ -21,6 +21,12 @@ void putch(char ch) {
   outb(UART_THR, ch);
 }
 
+void puts(char *str){
+  while (*str){
+    putch(*str++);
+  }
+}
+
 #define ysyxsoc_trap(code) asm volatile("mv a0, %0; ebreak" : :"r"(code))
 
 void halt(int code) {
@@ -28,23 +34,6 @@ void halt(int code) {
   while(1);
 }
 
-
-void uart_init(){
-  // Enable DLAB
-  SET_BIT(UART_LCR, 7);
-
-  // Set DLB  (Baud Rate: 600)
-  outb(UART_DLB1, 0x00);
-  outb(UART_DLB0, 0xc0);
-
-  // Disable DLAB
-  CLR_BIT(UART_LCR, 7);
-
-  // Reset FIFO
-  SET_BIT(UART_FCR, 1);
-  SET_BIT(UART_FCR, 2);
-
-}
 
 void put_num(int x){
   if (x == 0){
@@ -68,6 +57,7 @@ void put_num(int x){
 }
 
 void hello_info(){
+  puts("Hello, welcome to ");
   // Read CSR (mvendorid & marchid) value
   uint32_t mvendorid = 0, marchid = 0;
   asm volatile("csrr %0, 0xF11" : "=r"(mvendorid));
@@ -77,11 +67,10 @@ void hello_info(){
   }
   putch('_');
   put_num(marchid);
-  putch('\n');
+  puts(" (ErythrinaCore) :D\n\n");
 }
 
 void _trm_init() {
-  uart_init();
   hello_info();
   int ret = main(mainargs);
   halt(ret);

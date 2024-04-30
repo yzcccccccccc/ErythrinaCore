@@ -61,14 +61,17 @@ bool is_skip = 0;
 void check_skip(){
     uint32_t addr   = get_commit_mem_addr(dut);
     uint32_t en     = get_commit_mem_en(dut);
-    if (addr >= DEV_CLINT && addr < DEV_CLINT + DEV_CLINT_SZ){
-        is_skip = en;
+    if (addr >= DEV_CLINT && addr < DEV_CLINT + DEV_CLINT_SZ && en){
+        fprintf(diff_log, "[difftest] Skip clint (addr=0x%08x)\n", addr);
+        is_skip = 1;
     }
-    else if (addr >= DEV_UART && addr < DEV_UART + DEV_UART_SZ){
-        is_skip = en;
+    else if (addr >= DEV_UART && addr < DEV_UART + DEV_UART_SZ && en){
+        fprintf(diff_log, "[difftest] Skip uart (addr=0x%08x)\n", addr);
+        is_skip = 1;
     }
-    else if (addr >= DEV_SPI && addr < DEV_SPI + DEV_SPI_SZ){
-        is_skip = en;
+    else if (addr >= DEV_SPI && addr < DEV_SPI + DEV_SPI_SZ && en){
+        fprintf(diff_log, "[difftest] Skip spi (addr=0x%08x)\n", addr);
+        is_skip = 1;
     }
     else{
         is_skip = 0;
@@ -78,6 +81,7 @@ void check_skip(){
 void difftest_step(uint32_t pc){
     if (DIFF_TEST){
         if (!is_skip){
+            fprintf(diff_log, "[difftest] Run this cycle (pc=0x%08x)\n", pc);
             rv32_CPU_state ref_r;
             ref_difftest_exec(1);
             ref_difftest_regcpy(&ref_r, DIFFTEST_TO_DUT);
@@ -85,6 +89,7 @@ void difftest_step(uint32_t pc){
                 npc_state = CPU_ABORT_DIFF_ERR;
         }
         else{
+            fprintf(diff_log, "[difftest] Skip this cycle (pc=0x%08x)\n", pc);
             ref_difftest_regcpy(&CPU_state, DIFFTEST_TO_REF);
         }
     }

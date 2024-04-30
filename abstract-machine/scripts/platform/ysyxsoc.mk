@@ -9,9 +9,9 @@ AM_SRCS	:=	riscv/ysyxsoc/start.S \
 			platform/dummy/vme.c \
 			platform/dummy/mpe.c
 
-CFLAGS	+= -fdata-sections -ffunction-sections
+CFLAGS	+= -fdata-sections -ffunction-sections -Os
 LDFLAGS	+= -T $(AM_HOME)/scripts/linker-ysyxsoc.ld
-LDFLAGS += --gc-sections -e _start
+LDFLAGS += --gc-sections -e _start -Map
 CFLAGS	+= -DMAINARGS=\"$(mainargs)\"
 .PHONY: $(AM_HOME)/am/src/riscv/ysyx/trm.c
 

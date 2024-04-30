@@ -16,7 +16,7 @@
 #include <cstdio>
 
 int cycle = 0;
-FILE *logfile, *flash_log;
+FILE *logfile, *flash_log, *diff_log;
 // NPC state
 NPC_state npc_state;
 uint32_t npc_info;
@@ -176,6 +176,9 @@ void init_cpu(){
     }
     if (MTRACE){
         flash_log = fopen("./flash.log", "w");
+    }
+    if (DIFF_TEST){
+        diff_log = fopen("./diff.log", "w");
     }
 
 }

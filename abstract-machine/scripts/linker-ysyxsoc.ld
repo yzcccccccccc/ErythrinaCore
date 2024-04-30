@@ -1,11 +1,6 @@
-ENTRY(_start)
+INCLUDE "/home/yzcc/ysyx-workbench/abstract-machine/scripts/linker-mem.ld"
 
-MEMORY {
-  mrom(rx)    : ORIGIN = 0x20000000, LENGTH = 4K
-  sram(rwx)   : ORIGIN = 0x0f000000, LENGTH = 8K
-  flash(rx)   : ORIGIN = 0x30000000, LENGTH = 10M
-  psram(rwx)  : ORIGIN = 0x80000000, LENGTH = 4M
-}
+ENTRY(_start)
 
 SECTIONS {
   . = ORIGIN(flash);
@@ -49,7 +44,7 @@ SECTIONS {
   _data_ld_end    = LOADADDR(.data) + SIZEOF(.data);
 
   _bss_ld_start  = LOADADDR(.bss);
-  .bss : {
+  .bss (NOLOAD) : {
 	  _bss_start = .;
     *(.bss*)
     *(.sbss*)
@@ -58,7 +53,7 @@ SECTIONS {
   } >psram AT>flash
   _bss_ld_end    = LOADADDR(.bss) + SIZEOF(.bss);
 
-  _heap_start = ORIGIN(psram) + 0x100000;
+  _heap_start = ORIGIN(psram) + 0x300000;
   
   _stack_pointer = ORIGIN(sram) + LENGTH(sram);
 }

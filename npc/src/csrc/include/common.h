@@ -7,7 +7,7 @@
 #define MEMSIZE     0x8000000
 
 #define FLASH_BASE  0x30000000
-#define FLASH_SIZE  0x10000
+#define FLASH_SIZE  0x100000
 
 #define MROM_BASE   0x20000000
 #define MROM_SIZE   0x1000

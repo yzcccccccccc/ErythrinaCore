@@ -26,7 +26,7 @@ extern void execute(uint32_t n);
 typedef VysyxSoCFull VSoc;
 extern VSoc *dut;
 
-extern FILE *logfile, *flash_log;
+extern FILE *logfile, *flash_log, *diff_log;
 
 // commit tools
 extern uint32_t get_commit_valid(VSoc *dut);
