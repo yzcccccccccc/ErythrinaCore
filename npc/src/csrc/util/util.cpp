@@ -58,8 +58,8 @@ long load_img(){
     fseek(fp, 0, SEEK_END);
     uint32_t size = ftell(fp);
 
-    assert(size < MEMSIZE);
     printf("The image is %s, size = %d\n", img_file, size);
+    assert(size < MEMSIZE);
 
     fseek(fp, 0, SEEK_SET);
     int ret = fread(guest2host(PC_RSTVEC), size, 1, fp);

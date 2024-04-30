@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "setting.h"
 #include "svdpi.h"
 #include "VysyxSoCFull__Dpi.h"
 #include "VysyxSoCFull___024root.h"
@@ -9,7 +10,8 @@
 
 extern "C" void flash_read(int addr, int *data) {
     *data = *(uint32_t *)(flash + (addr & (~0x3u)));
-    //printf("read at 0x%x (data: %x)\n", addr, *data);
+    if (MTRACE)
+        fprintf(flash_log, "[flash ]read at 0x%x (data: 0x%08x)\n", addr & (~0x3u), *data);
 }
 extern "C" void mrom_read(int addr, int *data) {
     *data = pmem_read(addr & (~0x3u));

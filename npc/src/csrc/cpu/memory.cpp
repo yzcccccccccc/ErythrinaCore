@@ -57,13 +57,13 @@ uint32_t host_write(void *addr, uint32_t data, uint32_t mask){
 
 void mtrace_read(uint32_t addr, uint32_t res){
     if (MTRACE){
-        printf("[mtrace]: read at 0x%08x, data 0x%08x\n", addr, res);
+        fprintf(flash_log, "[mtrace]: read at 0x%08x, data 0x%08x\n", addr, res);
     }
 }
 
 void mtrace_write(uint32_t addr, uint32_t data, uint32_t mask, uint32_t res){
     if (MTRACE)
-        printf("[mtrace]: write at 0x%08x, data 0x%08x, mask 0x%x, real_write: 0x%08x\n", addr, data, mask, res);
+        fprintf(flash_log, "[mtrace]: write at 0x%08x, data 0x%08x, mask 0x%x, real_write: 0x%08x\n", addr, data, mask, res);
 }
 
 void dtrace_read(uint32_t addr, uint32_t res){

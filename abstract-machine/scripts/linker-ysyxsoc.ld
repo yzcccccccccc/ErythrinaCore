@@ -1,36 +1,54 @@
 ENTRY(_start)
-PHDRS { text PT_LOAD; data PT_LOAD; }
 
 MEMORY {
   mrom(rx)    : ORIGIN = 0x20000000, LENGTH = 4K
-  sram(rw)    : ORIGIN = 0x0f000000, LENGTH = 8K
+  sram(rwx)   : ORIGIN = 0x0f000000, LENGTH = 8K
   flash(rx)   : ORIGIN = 0x30000000, LENGTH = 10M
   psram(rwx)  : ORIGIN = 0x80000000, LENGTH = 4M
 }
 
 SECTIONS {
   . = ORIGIN(flash);
-  .text . : {
+  .fsbl :{
     *(entry)
-    *(.text*)
-  }>flash AT>flash : text
-  etext = .;
-  _etext = .;
+    *(.fsbl*)
+  }>flash AT>flash
 
+  _ssbl_ld_start  = LOADADDR(.ssbl);
+  .ssbl :{
+    _ssbl_start = .;
+    *(.ssbl*);
+    _ssbl_end = .;
+  }>sram AT>flash
+  _ssbl_ld_end    = LOADADDR(.ssbl) + SIZEOF(.ssbl);
+
+  _text_ld_start  = LOADADDR(.text);
+  .text : {
+    _text_start = .;
+    *(.text*);
+    _text_end = .;
+  }>psram AT>flash
+  _text_ld_end    = LOADADDR(.text) + SIZEOF(.text);
+
+  _rodata_ld_start  = LOADADDR(.rodata);
   .rodata : {
+    _rodata_start = .;
     *(.rodata*)
-  } >flash AT>flash
+    *(.srodata*);
+    _rodata_end = .;
+  } >psram AT>flash
+  _rodata_ld_end    = LOADADDR(.rodata) + SIZEOF(.rodata);
 
-  _mrom_data_start = LOADADDR(.data);
+  _data_ld_start  = LOADADDR(.data);
   .data : {
     _data_start = .;
     *(.data*)
     *(.sdata*);
     _data_end = .;
-  } >psram AT>flash : data
-  edata = .;
-  _data = .;
+  } >psram AT>flash
+  _data_ld_end    = LOADADDR(.data) + SIZEOF(.data);
 
+  _bss_ld_start  = LOADADDR(.bss);
   .bss : {
 	  _bss_start = .;
     *(.bss*)
@@ -38,11 +56,9 @@ SECTIONS {
     *(.scommon);
     _bss_end = .;
   } >psram AT>flash
+  _bss_ld_end    = LOADADDR(.bss) + SIZEOF(.bss);
+
+  _heap_start = ORIGIN(psram) + 0x100000;
   
-  /* _stack top are defined in LDFLAGS */
-  . = ORIGIN(psram);
-  _heap_start = .;
-  . = ORIGIN(psram) + 0x2000;
-  _stack_pointer = .;
-  _end = .;
+  _stack_pointer = ORIGIN(sram) + LENGTH(sram);
 }

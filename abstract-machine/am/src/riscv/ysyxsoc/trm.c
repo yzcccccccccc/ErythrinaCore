@@ -28,20 +28,6 @@ void halt(int code) {
   while(1);
 }
 
-void bootloader() __attribute__((section("my_section")));
-
-extern char _mrom_data_start, _data_start, _data_end;
-extern char _bss_start, _bss_end;
-void bootloader(){
-  char *src = &_mrom_data_start;
-  char *dst = &_data_start;
-  while (dst < &_data_end)
-    *dst++ = *src++;
-
-  for (dst = &_bss_start; dst < &_bss_end; dst++){
-    *dst = 0;
-  }
-}
 
 void uart_init(){
   // Enable DLAB
@@ -95,7 +81,6 @@ void hello_info(){
 }
 
 void _trm_init() {
-  bootloader();
   uart_init();
   hello_info();
   int ret = main(mainargs);

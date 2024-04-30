@@ -1,6 +1,7 @@
 #include "sdb.h"
 #include "common.h"
 #include "cpu.h"
+#include "setting.h"
 #include <cstdlib>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -29,6 +30,34 @@ void set_batch_mode(){
 }
 
 void init_sdb(){
+    if (DUMP_WAVE){
+      printf("[Tool] %sWaveform dumping is enabled! :)%s\n", FontGreen, Restore);
+    }
+    else{
+      printf("[Tool] %sWaveform dumping is disabled! :(%s\n", FontRed, Restore);
+    }
+
+    if (ITRACE){
+      printf("[Tool] %sInstruction tracing is enabled! :)%s\n", FontGreen, Restore);
+    }
+    else{
+      printf("[Tool] %sInstruction tracing is disabled! :(%s\n", FontRed, Restore);
+    }
+
+    if (MTRACE){
+      printf("[Tool] %sMemory tracing is enabled! :)%s\n", FontGreen, Restore);
+    }
+    else{
+      printf("[Tool] %sMemory tracing is disabled! :(%s\n", FontRed, Restore);
+    }
+
+    if (DIFF_TEST){
+      printf("[Tool] %sDifferential testing is enabled! :)%s\n", FontGreen, Restore);
+    }
+    else{
+      printf("[Tool] %sDifferential testing is disabled! :(%s\n", FontRed, Restore);
+    }
+
     printf("\n%sWelcome to NPC Simulator! :)%s\n", FontBlue, Restore);
 }
 
