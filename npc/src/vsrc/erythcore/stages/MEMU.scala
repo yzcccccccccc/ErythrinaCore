@@ -83,6 +83,42 @@ class MEMU extends Module with MEMUtrait{
     // Size
     io.memu_mem.req.bits.size   := Mux(mask =/= 0.U, st_size, ld_size)
 
+    // Alignment Check
+    val is_byte = LookupTree(lsuop, List(
+        LSUop.sb    -> true.B,
+        LSUop.lb    -> true.B,
+        LSUop.lbu   -> true.B,
+        LSUop.sb    -> true.B,
+        LSUop.sh    -> false.B,
+        LSUop.lh    -> false.B,
+        LSUop.lhu   -> false.B,
+        LSUop.sw    -> false.B,
+        LSUop.lw    -> false.B
+    ))
+    val is_half = LookupTree(lsuop, List(
+        LSUop.sb    -> false.B,
+        LSUop.lb    -> false.B,
+        LSUop.lbu   -> false.B,
+        LSUop.sb    -> false.B,
+        LSUop.sh    -> true.B,
+        LSUop.lh    -> true.B,
+        LSUop.lhu   -> true.B,
+        LSUop.sw    -> false.B,
+        LSUop.lw    -> false.B
+    ))
+    val is_word = LookupTree(lsuop, List(
+        LSUop.sb    -> false.B,
+        LSUop.lb    -> false.B,
+        LSUop.lbu   -> false.B,
+        LSUop.sb    -> false.B,
+        LSUop.sh    -> false.B,
+        LSUop.lh    -> false.B,
+        LSUop.lhu   -> false.B,
+        LSUop.sw    -> true.B,
+        LSUop.lw    -> true.B
+    ))
+    assert(~io.memu_mem.req.valid | (io.memu_mem.req.valid & ((addr(1, 0) === 0.U & is_word) | (addr(0) === 0.U & is_half) | is_byte)), "Unaligned Memory Access!")
+
     // to EXU
     //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready
 
