@@ -6,7 +6,7 @@
 #define INSTR_BOUND -1
 #define DIFF_TEST 1
 
-#define ITRACE 0
+#define ITRACE 1
 #define MTRACE 0
 #define DTRACE 0
 

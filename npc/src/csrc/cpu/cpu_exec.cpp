@@ -133,10 +133,11 @@ void execute(uint32_t n){
             uint32_t inst   = get_commit_inst(dut);
             uint32_t pc     = get_commit_pc(dut);
             disassemble(inst_disasm, 100, pc, (uint8_t *)&(inst), 4);
-            fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d\n",
+            fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d, addr=0x%08x, en=%x\n",
                     pc, inst, inst_disasm,
                     get_commit_rf_waddr(dut), get_commit_rf_wdata(dut),
-                    get_commit_rf_wen(dut));
+                    get_commit_rf_wen(dut),
+                    get_commit_mem_addr(dut), get_commit_mem_en(dut));
         }
         if (MTRACE){
             uint32_t en = get_commit_mem_en(dut);

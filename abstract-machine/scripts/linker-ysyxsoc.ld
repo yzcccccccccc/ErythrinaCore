@@ -3,6 +3,8 @@ INCLUDE "/home/yzcc/ysyx-workbench/abstract-machine/scripts/linker-mem.ld"
 ENTRY(_start)
 
 SECTIONS {
+  _has_data_extra = 0;
+  _has_bss_extra = 0;
   . = ORIGIN(flash);
   .fsbl :{
     *(entry)

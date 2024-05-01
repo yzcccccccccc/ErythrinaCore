@@ -63,11 +63,8 @@ extern char _data_ld_start, _data_ld_end, _data_start, _data_end;
 extern char _rodata_ld_start, _rodata_ld_end, _rodata_start, _rodata_end;
 extern char _bss_start, _bss_end;
 
-#ifdef __RTTHREAD__
-extern char _data_extra_start, _data_extra_end;
-extern char _data_extra_ld_start, _data_extra_ld_end;
-extern char _bss_extra_start, _bss_extra_end;
-#endif
+extern char _has_data_extra;
+extern char _has_bss_extra;
 
 void ssbl(){
     // .rodata
@@ -94,21 +91,26 @@ void ssbl(){
     }
     bios_uart_puts("[SSBL] load .bss done");
 
-#ifdef __RTTHREAD__
 
-    // .data_extra
-    for (char *src = &_data_extra_ld_start, *dst = &_data_extra_start; dst < &_data_extra_end;){
-        *dst++ = *src++;
+    if (&_has_bss_extra == (char *)1){
+        extern char _bss_extra_start, _bss_extra_end;
+
+        // .bss_extra
+        for (char *dst = &_bss_extra_start; dst < &_bss_extra_end;){
+            *dst++ = 0;
+        }
+        bios_uart_puts("[SSBL] load .bss_extra done");
     }
-    bios_uart_puts("[SSBL] load .data_extra done");
 
-    // .bss_extra
-    for (char *dst = &_bss_extra_start; dst < &_bss_extra_end;){
-        *dst++ = 0;
+    if (&_has_data_extra == (char *)1){
+        extern char _data_extra_start, _data_extra_end, _data_extra_ld_start;
+
+        // .data_extra
+        for (char *src = &_data_extra_ld_start, *dst = &_data_extra_start; dst < &_data_extra_end;){
+            *dst++ = *src++;
+        }
+        bios_uart_puts("[SSBL] load .data_extra done");
     }
-    bios_uart_puts("[SSBL] load .bss_extra done");
-
-#endif
 
     bios_uart_puts("[SSBL] jump to _trm_init...");
 

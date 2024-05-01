@@ -62,15 +62,18 @@ void check_skip(){
     uint32_t addr   = get_commit_mem_addr(dut);
     uint32_t en     = get_commit_mem_en(dut);
     if (addr >= DEV_CLINT && addr < DEV_CLINT + DEV_CLINT_SZ && en){
-        fprintf(diff_log, "[difftest] Skip clint (addr=0x%08x)\n", addr);
+        if (DIFF_TEST)
+            fprintf(diff_log, "[difftest] Skip clint (addr=0x%08x)\n", addr);
         is_skip = 1;
     }
     else if (addr >= DEV_UART && addr < DEV_UART + DEV_UART_SZ && en){
-        fprintf(diff_log, "[difftest] Skip uart (addr=0x%08x)\n", addr);
+        if (DIFF_TEST)
+            fprintf(diff_log, "[difftest] Skip uart (addr=0x%08x)\n", addr);
         is_skip = 1;
     }
     else if (addr >= DEV_SPI && addr < DEV_SPI + DEV_SPI_SZ && en){
-        fprintf(diff_log, "[difftest] Skip spi (addr=0x%08x)\n", addr);
+        if (DIFF_TEST)
+            fprintf(diff_log, "[difftest] Skip spi (addr=0x%08x)\n", addr);
         is_skip = 1;
     }
     else{
