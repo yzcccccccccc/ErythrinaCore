@@ -35,7 +35,6 @@ void bios_uart_puts(char *str) {
     while (*str) {
         bios_uart_putch(*str++);
     }
-    bios_uart_putch('\n');
 }
 
 // XIP in flash. load ssble to SRAM
@@ -58,61 +57,22 @@ void fsbl(){
 }
 
 // SRAM. load .text, .data, and .bss to PSRAM
-extern char _text_ld_start, _text_ld_end, _text_start, _text_end;
-extern char _data_ld_start, _data_ld_end, _data_start, _data_end;
-extern char _rodata_ld_start, _rodata_ld_end, _rodata_start, _rodata_end;
-extern char _bss_start, _bss_end;
-
-extern char _has_data_extra;
-extern char _has_bss_extra;
+extern char _ssbl_cp_start, _ssbl_cp_end;
+extern char _ssbl_cp_dst_start, _ssbl_cp_dst_end;
+extern char _ssbl_bss_clr_start, _ssbl_bss_clr_end;
 
 void ssbl(){
-    // .rodata
-    for (char *src = &_rodata_ld_start, *dst = &_rodata_start; dst < &_rodata_end;){
+    for (char *src = &_ssbl_cp_start, *dst = &_ssbl_cp_dst_start; dst < &_ssbl_cp_dst_end;){
         *dst++ = *src++;
     }
-    bios_uart_puts("[SSBL] load .rodata done");
+    bios_uart_puts("[SSBL] copy .text, .data, .bss to PSRAM\n");
 
-    // .text
-    for (char *src = &_text_ld_start, *dst = &_text_start; dst < &_text_end;){
-        *dst++ = *src++;
-    }
-    bios_uart_puts("[SSBL] load .text done");
-
-    // .data
-    for (char *src = &_data_ld_start, *dst = &_data_start; dst < &_data_end;){
-        *dst++ = *src++;
-    }
-    bios_uart_puts("[SSBL] load .data done");
-
-    // .bss
-    for (char *dst = &_bss_start; dst < &_bss_end;){
+    for (char *dst = &_ssbl_bss_clr_start; dst < &_ssbl_bss_clr_end;){
         *dst++ = 0;
     }
-    bios_uart_puts("[SSBL] load .bss done");
+    bios_uart_puts("[SSBL] clear .bss\n");
 
-
-    if (&_has_bss_extra == (char *)1){
-        extern char _bss_extra_start, _bss_extra_end;
-
-        // .bss_extra
-        for (char *dst = &_bss_extra_start; dst < &_bss_extra_end;){
-            *dst++ = 0;
-        }
-        bios_uart_puts("[SSBL] load .bss_extra done");
-    }
-
-    if (&_has_data_extra == (char *)1){
-        extern char _data_extra_start, _data_extra_end, _data_extra_ld_start;
-
-        // .data_extra
-        for (char *src = &_data_extra_ld_start, *dst = &_data_extra_start; dst < &_data_extra_end;){
-            *dst++ = *src++;
-        }
-        bios_uart_puts("[SSBL] load .data_extra done");
-    }
-
-    bios_uart_puts("[SSBL] jump to _trm_init...");
+    bios_uart_puts("[SSBL] jump to _trm_init...\n");
 
     // jump to _trm_init
     asm volatile(
