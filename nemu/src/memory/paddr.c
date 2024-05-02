@@ -31,6 +31,7 @@ static uint8_t pmem[CONFIG_MSIZE] PG_ALIGN = {};
 static uint8_t mrom[CONFIG_MROM_SIZE] PG_ALIGN = {};
 static uint8_t sram[CONFIG_SRAM_SIZE] PG_ALIGN = {};
 static uint8_t flash[CONFIG_FLASH_SIZE] PG_ALIGN = {};
+static uint8_t dram[CONFIG_DRAM_SIZE] PG_ALIGN = {};
 
 uint8_t* guest_to_mrom(paddr_t paddr) { return mrom + paddr - CONFIG_MROM_BASE; }
 paddr_t mrom_to_guest(uint8_t *haddr) { return haddr - mrom + CONFIG_MROM_BASE; }
@@ -40,6 +41,9 @@ paddr_t sram_to_guest(uint8_t *haddr) { return haddr - sram + CONFIG_SRAM_BASE; 
 
 uint8_t* guest_to_flash(paddr_t paddr) {return flash + paddr - CONFIG_FLASH_BASE;}
 paddr_t flash_to_guest(uint8_t *haddr) {return haddr - flash + CONFIG_FLASH_BASE;}
+
+uint8_t* guest_to_dram(paddr_t paddr) {return dram + paddr - CONFIG_DRAM_BASE;}
+paddr_t dram_to_guest(uint8_t *haddr) {return haddr - dram + CONFIG_DRAM_BASE;}
 
 static word_t mrom_read(paddr_t addr, int len){
   return host_read(guest_to_mrom(addr), len);
@@ -65,6 +69,14 @@ static word_t flash_read(paddr_t addr, int len){
 // only for init
 static void flash_write(paddr_t addr, int len, word_t data) {
   host_write(guest_to_flash(addr), len, data);
+}
+
+static word_t dram_read(paddr_t addr, int len){
+  return host_read(guest_to_dram(addr), len);
+}
+
+static void dram_write(paddr_t addr, int len, word_t data) {
+  host_write(guest_to_dram(addr), len, data);
 }
 
 #endif
@@ -127,6 +139,12 @@ word_t paddr_read(paddr_t addr, int len) {
     IFDEF(CONFIG_MTRACE, mtrace(addr, res, "sram read", len));
     return res;
   }
+
+  if (in_dram(addr)){
+    word_t res = dram_read(addr, len);
+    IFDEF(CONFIG_MTRACE, mtrace(addr, res, "dram read", len));
+    return res;
+  }
 #endif
 
 #ifdef CONFIG_DEVICE
@@ -162,6 +180,12 @@ void paddr_write(paddr_t addr, int len, word_t data) {
   if (in_flash(addr)){
     IFDEF(CONFIG_MTRACE, mtrace(addr, data, "sram write", len));
     flash_write(addr, len, data);
+    return;
+  }
+
+  if (in_dram(addr)){
+    IFDEF(CONFIG_MTRACE, mtrace(addr, data, "dram write", len));
+    dram_write(addr, len, data);
     return;
   }
 #endif

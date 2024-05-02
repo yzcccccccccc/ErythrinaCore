@@ -34,6 +34,16 @@ config FLASH_SIZE
   hex "FALSH size"
   default 0x10000
 
+config DRAM_BASE
+  depends on YSYXSOC
+  hex "DRAM base addr"
+  default 0xa0000000
+
+config DRAM_SIZE
+  depends on YSYXSOC
+  hex "DRAM size"
+  default 0x2000000
+
 config MBASE
   hex "Memory base address"
   default 0x0        if ISA_x86

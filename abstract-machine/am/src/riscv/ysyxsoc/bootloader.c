@@ -65,7 +65,7 @@ void ssbl(){
     for (char *src = &_ssbl_cp_start, *dst = &_ssbl_cp_dst_start; dst < &_ssbl_cp_dst_end;){
         *dst++ = *src++;
     }
-    bios_uart_puts("[SSBL] copy .text, .data, .bss to PSRAM\n");
+    bios_uart_puts("[SSBL] copy .text, .data\n");
 
     for (char *dst = &_ssbl_bss_clr_start; dst < &_ssbl_bss_clr_end;){
         *dst++ = 0;

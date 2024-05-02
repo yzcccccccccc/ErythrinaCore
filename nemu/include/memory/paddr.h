@@ -48,6 +48,10 @@ static inline bool in_sram(paddr_t addr){
 static inline bool in_flash(paddr_t addr){
   return addr - CONFIG_FLASH_BASE < CONFIG_FLASH_SIZE;
 }
+
+static inline bool in_dram(paddr_t addr){
+  return addr - CONFIG_DRAM_BASE < CONFIG_DRAM_SIZE;
+}
 #endif
 
 word_t paddr_read(paddr_t addr, int len);

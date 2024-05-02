@@ -36,14 +36,14 @@ SECTIONS {
 
     *(.text*);
     . = ALIGN(8);
-  }>psram AT>flash
+  }>pdram AT>flash
 
   .rodata : ALIGN(8){
     . = ALIGN(8);
     *(.rodata*)
     *(.srodata*);
     . = ALIGN(8);
-  } >psram AT>flash
+  } >pdram AT>flash
 
   .data : ALIGN(8){
     . = ALIGN(8);
@@ -52,7 +52,7 @@ SECTIONS {
     . = ALIGN(8);
 
     _ssbl_cp_dst_end = .;
-  } >psram AT>flash
+  } >pdram AT>flash
   _ssbl_cp_end = LOADADDR(.data) + SIZEOF(.data);
 
   /* ssbl will clear this*/
@@ -64,9 +64,9 @@ SECTIONS {
     *(.scommon);
     . = ALIGN(8);
     _ssbl_bss_clr_end = .;
-  } >psram AT>flash
+  } >pdram AT>flash
 
-  _heap_start = ORIGIN(psram) + 0x300000;
+  _heap_start = ORIGIN(pdram) + 0x300000;
   
   _stack_pointer = ORIGIN(sram) + LENGTH(sram);
 }
