@@ -18,6 +18,7 @@ DIFF_SO ?= $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 
 -include ./script/compile.mk
 -include ./script/verilator.mk
+-include ./script/nvboard.mk
 
 view_wave:
 	$(GTKWAVE) ./wave.vcd

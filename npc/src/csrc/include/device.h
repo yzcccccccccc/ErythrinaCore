@@ -28,4 +28,7 @@ extern void init_timer();
 #define DEV_SPI         0x10001000
 #define DEV_SPI_SZ      0x2000
 
+#define DEV_GPIO        0x10002000
+#define DEV_GPIO_SZ     0x1000
+
 #endif

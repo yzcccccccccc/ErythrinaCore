@@ -28,6 +28,7 @@ Verilator_SFLG	+= $(SOC_FLAGS)
 Verilator_VFLG	+= $(SOC_FLAGS)
 
 Verilator_TAR	= $(OBJ_DIR)/V$(TOPNAME).h
+$(CSRCS): $(VSRCS)
 $(VSRCS): verilog
 $(Verilator_TAR): $(VSRCS)
 	-@ $(VERILATOR) $(Verilator_VFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)

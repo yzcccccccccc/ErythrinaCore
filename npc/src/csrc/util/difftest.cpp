@@ -76,6 +76,11 @@ void check_skip(){
             fprintf(diff_log, "[difftest] Skip spi (addr=0x%08x)\n", addr);
         is_skip = 1;
     }
+    else if (addr >= DEV_GPIO && addr < DEV_GPIO + DEV_GPIO_SZ && en){
+        if (DIFF_TEST)
+            fprintf(diff_log, "[difftest] Skip gpio (addr=0x%08x)\n", addr);
+        is_skip = 1;
+    }
     else{
         is_skip = 0;
     }
