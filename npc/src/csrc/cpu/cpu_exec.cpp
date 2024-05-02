@@ -15,6 +15,12 @@
 #include <cstdint>
 #include <cstdio>
 
+#ifdef NVBOARD
+#include <nvboard.h>
+void nvboard_bind_all_pins(VSoc* dut);
+
+#endif
+
 int cycle = 0;
 FILE *logfile, *flash_log, *diff_log;
 // NPC state
@@ -35,6 +41,10 @@ void half_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
 }
 
 void single_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
+#ifdef NVBOARD
+    nvboard_update();
+#endif
+
     half_cycle(dut, tfp, contextp);
     
     half_cycle(dut, tfp, contextp);
@@ -163,12 +173,22 @@ void execute(uint32_t n){
     }
 }
 
+void init_nvboard(){
+#ifdef NVBOARD
+    nvboard_bind_all_pins(dut);
+    nvboard_init();
+    printf("%s[INFO]%s NVBoard initialized.\n", FontGreen, Restore);
+#endif
+}
+
 void init_cpu(){
     init_verilate();
 
     init_device();
 
     //init_mem();
+
+    init_nvboard();
 
     cpu_reset();
 
