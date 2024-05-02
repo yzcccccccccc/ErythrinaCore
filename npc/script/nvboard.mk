@@ -22,10 +22,10 @@ NVCSRCS += $(SRC_AUTO_BIND)
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 NVCXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\"" -DNVBOARD
 
-$(BIN): $(VSRCS) $(NVCSRCS) $(NVBOARD_ARCHIVE)
+$(BIN): $(VSRCS) $(NVCSRCS) $(NVBOARD_ARCHIVE) $(HSRCS)
 	-@rm -rf $(OBJ_DIR)
 	-@$(VERILATOR) $(VERILATOR_NVFLAGS) \
-		--top-module $(TOPNAME) $^ \
+		--top-module $(TOPNAME) $(VSRCS) $(NVCSRCS) $(NVBOARD_ARCHIVE) \
 		$(addprefix -CFLAGS , $(NVCXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 

@@ -25,5 +25,8 @@ image: $(IMAGE).elf
 run: image
 	$(MAKE) -C $(NPC_HOME) sim ARG=$(NPC_ARGS) IMG=$(IMAGE).bin
 
+run_nvb: image
+	$(MAKE) -C $(NPC_HOME) run_nvb ARG=$(NPC_ARGS) IMG=$(IMAGE).bin
+
 view_wave:
 	$(MAKE) -C $(NPC_HOME) view_wave
