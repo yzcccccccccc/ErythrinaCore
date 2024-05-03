@@ -8,8 +8,8 @@ import utils.LookupTreeDefault
 import erythcore.ErythrinaDefault
 
 object AXI4CLINTAddr{
-    def rtc_l   = 0xa0000048L.U
-    def rtc_h   = 0xa000004cL.U
+    def rtc_l   = 0x02000000L.U
+    def rtc_h   = 0x02000004L.U
 }
 
 class AXI4CLINT extends Module with ErythrinaDefault{
