@@ -34,4 +34,7 @@ extern void init_timer();
 #define DEV_PS2         0x10011000
 #define DEV_PS2_SZ      0x8
 
+#define DEV_VGA         0x21000000
+#define DEV_VGA_SZ      0x200000
+
 #endif

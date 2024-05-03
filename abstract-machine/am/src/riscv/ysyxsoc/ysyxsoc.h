@@ -53,4 +53,7 @@
 // PS/2 (Keyboard)
 #define KBD_ADDR    0x10011000
 
+// VGA
+#define VGA_ADDR    0x21000000
+
 #endif
