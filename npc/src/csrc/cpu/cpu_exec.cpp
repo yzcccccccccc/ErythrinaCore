@@ -177,6 +177,7 @@ void init_nvboard(){
 #ifdef NVBOARD
     nvboard_bind_all_pins(dut);
     nvboard_init();
+    
     printf("%s[INFO]%s NVBoard initialized.\n", FontGreen, Restore);
 #endif
 }
