@@ -49,6 +49,8 @@
 #define CLR_MSK(addr, mask)     (*(volatile uint8_t  *)addr &= mask)           // clr the masked bit
 
 #define RTC_ADDR    0x02000000      // TODO clint
+
+// PS/2 (Keyboard)
 #define KBD_ADDR    0x10011000
 
 #endif

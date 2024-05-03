@@ -31,4 +31,7 @@ extern void init_timer();
 #define DEV_GPIO        0x10002000
 #define DEV_GPIO_SZ     0x1000
 
+#define DEV_PS2         0x10011000
+#define DEV_PS2_SZ      0x8
+
 #endif
