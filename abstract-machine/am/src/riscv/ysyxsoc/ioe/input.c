@@ -119,9 +119,6 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
   uint8_t kbd_res_16_8 = (kbd_addr_res & 0x0000FF00) >> 8;
   uint8_t kbd_res_8_0 = kbd_addr_res & 0x000000FF;
 
-  kbd->keydown = kbd_res_16_8 == 0xF0;
+  kbd->keydown = !(kbd_res_16_8 == 0xF0);
   kbd->keycode = __ps2_to_amdev(kbd_res_8_0, (kbd_res_24_16 == 0xE0) | (kbd_res_16_8 == 0xE0));
-  if (kbd->keycode != AM_KEY_NONE){
-    printf("%x\n",kbd_addr_res);
-  }
 }

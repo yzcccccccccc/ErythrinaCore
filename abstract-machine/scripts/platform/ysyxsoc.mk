@@ -15,7 +15,7 @@ CFLAGS	+= -fdata-sections -ffunction-sections -Os
 LDFLAGS	+= -T $(AM_HOME)/scripts/linker-ysyxsoc.ld
 LDFLAGS += --gc-sections -e _start -Map
 CFLAGS	+= -DMAINARGS=\"$(mainargs)\"
-.PHONY: $(AM_HOME)/am/src/riscv/ysyx/trm.c
+.PHONY: $(AM_HOME)/am/src/riscv/ysyxsoc/trm.c
 
 NPC_ARGS ?= 
 
