@@ -61,15 +61,65 @@ extern char _ssbl_cp_start, _ssbl_cp_end;
 extern char _ssbl_cp_dst_start, _ssbl_cp_dst_end;
 extern char _ssbl_bss_clr_start, _ssbl_bss_clr_end;
 
-void ssbl(){
-    for (char *src = &_ssbl_cp_start, *dst = &_ssbl_cp_dst_start; dst < &_ssbl_cp_dst_end;){
-        *dst++ = *src++;
+void ssbl_memcpy(char *src, char *dst, char *dst_end) __attribute__((section(".ssbl")));
+void ssbl_memclr(char *dst, char *dst_end) __attribute__((section(".ssbl")));
+
+void ssbl_memcpy(char *src, char *dst, char *dst_end){
+    uint32_t *src32 = (uint32_t *)src;
+    uint32_t *dst32 = (uint32_t *)dst;
+    uint32_t *dst_end32 = (uint32_t *)dst_end;
+    while (dst32 < dst_end32){
+        *dst32++ = *src32++;
     }
+    if (dst32 == dst_end32)
+        return;
+
+    uint16_t *src16 = (uint16_t *)(src32 - 1);
+    uint16_t *dst16 = (uint16_t *)(dst32 - 1);
+    uint16_t *dst_end16 = (uint16_t *)dst_end;
+    while (dst16 < dst_end16){
+        *dst16++ = *src16++;
+    }
+    if (dst16 == dst_end16)
+        return;
+
+    uint8_t *src8 = (uint8_t *)(src16 - 1);
+    uint8_t *dst8 = (uint8_t *)(dst16 - 1);
+    uint8_t *dst_end8 = (uint8_t *)dst_end;
+    while (dst8 < dst_end8){
+        *dst8++ = *src8++;
+    }
+}
+
+void ssbl_memclr(char *dst, char *dst_end){
+    uint32_t *dst32 = (uint32_t *)dst;
+    uint32_t *dst_end32 = (uint32_t *)dst_end;
+    while (dst32 < dst_end32){
+        *dst32++ = 0;
+    }
+    if (dst32 == dst_end32)
+        return;
+
+    uint16_t *dst16 = (uint16_t *)(dst32 - 1);
+    uint16_t *dst_end16 = (uint16_t *)dst_end;
+    while (dst16 < dst_end16){
+        *dst16++ = 0;
+    }
+    if (dst16 == dst_end16)
+        return;
+
+    uint8_t *dst8 = (uint8_t *)(dst16 - 1);
+    uint8_t *dst_end8 = (uint8_t *)dst_end;
+    while (dst8 < dst_end8){
+        *dst8++ = 0;
+    }
+}
+
+void ssbl(){
+    ssbl_memcpy(&_ssbl_cp_start, &_ssbl_cp_dst_start, &_ssbl_cp_dst_end);
     bios_uart_puts("[SSBL] copy .text, .data\n");
 
-    for (char *dst = &_ssbl_bss_clr_start; dst < &_ssbl_bss_clr_end;){
-        *dst++ = 0;
-    }
+    ssbl_memclr(&_ssbl_bss_clr_start, &_ssbl_bss_clr_end);
     bios_uart_puts("[SSBL] clear .bss\n");
 
     bios_uart_puts("[SSBL] jump to _trm_init...\n");
