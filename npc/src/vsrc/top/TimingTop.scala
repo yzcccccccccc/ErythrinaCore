@@ -8,29 +8,19 @@ import device._
 
 // this module is mainly for analyzing the timing performance of the core
 class TimingTop extends Module with ErythrinaDefault{
+    val io = IO(new AXI4)
+
     val erythrinacore = Module(new ErythrinaCore(isSTA = true))
 
     val axi4clint   = Module(new AXI4CLINT)
 
     if (MARCH == "H"){
-        val InstMem = Module(new SimpleRamAXI)
-        val DataMem = Module(new SimpleRamAXI)
-
-        InstMem.io.clock := clock
-        InstMem.io.reset := reset
-        DelayConnect(erythrinacore.io.mem_port1, InstMem.io.port)
-
-        DataMem.io.clock := clock
-        DataMem.io.reset := reset
-        DelayConnect(erythrinacore.io.mem_port2, DataMem.io.port)
+        assert(0.B, "Not implemented yet")
     }
 
     if (MARCH == "P"){
-        val memory  = Module(new TimingRamAXI)
         val arbiter = Module(new AXI4ArbiterNto1(2))
         
-        memory.io.clock := clock
-        memory.io.reset := reset
         arbiter.io.in(0)  <> erythrinacore.io.mem_port1
         arbiter.io.in(1)  <> erythrinacore.io.mem_port2
 
@@ -41,10 +31,7 @@ class TimingTop extends Module with ErythrinaDefault{
         )
         val xbar        = Module(new AXI4XBar1toN(addr_space))
         xbar.io.in      <> arbiter.io.out
-        //DelayConnect(xbar.io.out(0), memory.io.port)
-        //DelayConnect(xbar.io.out(1), axi4clint.io)
-        //DelayConnect(xbar.io.out(2), axi4uart.io)
-        xbar.io.out(1)  <> memory.io.port
+        xbar.io.out(1)  <> io
         xbar.io.out(0)  <> axi4clint.io
     }
 

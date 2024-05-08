@@ -25,10 +25,11 @@ class TimingRam extends BlackBox with HasBlackBoxInline {
     |   input   [31:0]  port_req_bits_addr,
     |   input   [3:0]   port_req_bits_mask,
     |   input   [31:0]  port_req_bits_data,
+    |   input   [2:0]  port_req_bits_size,
     |   output  port_resp_valid,
     |   input   port_resp_ready,
     |   output  [31:0]  port_resp_bits_data,
-    |   output  [1:0]   port_resp_bits_rsp
+    |   output  [1:0]   port_resp_bits_resp
     |);
     | 
     | // FSM
@@ -57,10 +58,17 @@ class TimingRam extends BlackBox with HasBlackBoxInline {
     |   endcase
     | end
     | 
+    | // memory
+    | reg [31:0] mem [0:1023];
+    | always @(posedge clock) begin
+    |   if (port_req_valid && port_req_bits_wen)
+    |     mem[port_req_bits_addr[9:0]] <= port_req_bits_data;
+    | end
+    |
     | // read
     | assign port_req_ready = cur_state == IDLE;
-    | assign port_resp_bits_data = 32'h0;
-    | assign port_resp_bits_rsp = 2'b00;
+    | assign port_resp_bits_data = mem[port_req_bits_addr[9:0]];
+    | assign port_resp_bits_resp = 2'b00;
     |
     | // write
     | assign port_resp_valid = cur_state == WAIT;
