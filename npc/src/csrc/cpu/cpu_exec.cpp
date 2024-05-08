@@ -79,7 +79,7 @@ void cpu_reset(){
     // Reset
     dut->clock = 0;
     dut->reset = 1;
-    for (int i = 0; i < 10; i++)    single_cycle(dut, tfp, contx);
+    for (int i = 0; i < 20; i++)    single_cycle(dut, tfp, contx);
     half_cycle(dut, tfp, contx);
     dut->reset = 0;
     half_cycle(dut, tfp, contx);

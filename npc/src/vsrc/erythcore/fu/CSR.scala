@@ -62,7 +62,7 @@ object CSRnum{
     def marchid     = 0xf12.U
 }
 
-class CSR extends Module with ErythrinaDefault{
+class CSR(isSTA : Boolean = false) extends Module with ErythrinaDefault{
     val io = IO(new CSRIO)
 
     val src1    = io.EXU2CSR.src1
@@ -134,8 +134,10 @@ class CSR extends Module with ErythrinaDefault{
     }
 
     // halt if is EBREAK
-    val HaltEbreak = Module(new haltEbreak)
-    HaltEbreak.io.halt_trigger    := isEBREAK
+    if (!isSTA){
+        val HaltEbreak = Module(new haltEbreak)
+        HaltEbreak.io.halt_trigger    := isEBREAK
+    }
 
     // ecall
     when (isECALL & io.en){ // update in WB?

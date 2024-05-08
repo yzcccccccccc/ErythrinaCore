@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import utils.LookupTree
 import utils.LookupTreeDefault
-import utils.ZeroExt
+import utils._
 
 // ALU: for Arithmetic Operations
 
@@ -67,7 +67,7 @@ class ALU extends Module with ALUtrait{
     ALUop.xor   -> (src1 ^ src2),
     ALUop.or    -> (src1 | src2),
     ALUop.srl   -> (src1 >> shamt),
-    ALUop.sra   -> (src1.asSInt >> shamt).asUInt,
+    ALUop.sra   -> (SignExt(src1, 2 * XLEN) >> shamt)(XLEN - 1, 0),
     ALUop.sll   -> (src1 << shamt)(XLEN-1, 0)
   ))
 

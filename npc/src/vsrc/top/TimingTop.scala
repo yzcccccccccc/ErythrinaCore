@@ -6,15 +6,11 @@ import erythcore._
 import bus.axi4._
 import device._
 
-class Soc extends Module with ErythrinaDefault{
-    val io_commit = IO(new ErythrinaCommit)
-
-    val erythrinacore = Module(new ErythrinaCore)
+// this module is mainly for analyzing the timing performance of the core
+class TimingTop extends Module with ErythrinaDefault{
+    val erythrinacore = Module(new ErythrinaCore(isSTA = true))
 
     val axi4clint   = Module(new AXI4CLINT)
-    val axi4uart    = Module(new AXI4UartSim)
-
-    erythrinacore.io.InstCommit <> io_commit
 
     if (MARCH == "H"){
         val InstMem = Module(new SimpleRamAXI)
@@ -30,7 +26,7 @@ class Soc extends Module with ErythrinaDefault{
     }
 
     if (MARCH == "P"){
-        val memory  = Module(new SimpleRamAXI)
+        val memory  = Module(new TimingRamAXI)
         val arbiter = Module(new AXI4ArbiterNto1(2))
         
         memory.io.clock := clock
@@ -40,18 +36,22 @@ class Soc extends Module with ErythrinaDefault{
 
         //arbiter.io.out  <> memory.io.port
         val addr_space  = List(
-            (0x80000000L.U, 0x8fffffffL.U),         // memory
-            (0xa0000048L.U, 0xa0000050L.U),         // clint-sim
-            (0xa00003f8L.U, 0xa00003ffL.U)          // uart-sim
+            (0x02000000L.U, 0x0200ffffL.U),     // clint
+            (0x0f000000L.U, 0xffffffffL.U)      // other
         )
         val xbar        = Module(new AXI4XBar1toN(addr_space))
         xbar.io.in      <> arbiter.io.out
         //DelayConnect(xbar.io.out(0), memory.io.port)
         //DelayConnect(xbar.io.out(1), axi4clint.io)
         //DelayConnect(xbar.io.out(2), axi4uart.io)
-        xbar.io.out(0)  <> memory.io.port
-        xbar.io.out(1)  <> axi4clint.io
-        xbar.io.out(2)  <> axi4uart.io
+        xbar.io.out(1)  <> memory.io.port
+        xbar.io.out(0)  <> axi4clint.io
     }
+
+    // commit
+    val commit = Module(new CommitWrapper)
+    commit.io.clock := clock
+    commit.io.reset := reset
+    commit.io.port  <> erythrinacore.io.InstCommit
 
 }

@@ -4,9 +4,8 @@ RTL_DIR		= $(BUILD_DIR)/rtl
 SCALA_FILES = $(shell find src/vsrc/ -name "*.scala")
 V_FILE_TAR	= $(RTL_DIR)/$(YSYXNAME).sv
 
-
 # Mill
-MILL_ARGS_ALL += --split-verilog --throw-on-first-error
+MILL_ARGS_ALL += --throw-on-first-error --split-verilog
 
 test:
 	mill -i __.test

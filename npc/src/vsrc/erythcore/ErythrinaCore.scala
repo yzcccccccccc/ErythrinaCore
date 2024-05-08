@@ -14,16 +14,16 @@ class ErythrinaCoreIO extends Bundle with ErythrinaDefault{
 }
 
 // to be continued. this file is for aggregating the core parts
-class ErythrinaCore extends Module with ErythrinaDefault{
+class ErythrinaCore(isSTA : Boolean = false) extends Module with ErythrinaDefault{
     val io = IO(new ErythrinaCoreIO)
     val IFU_inst    = Module(new IFU)
-    val IDU_inst    = Module(new IDU)
+    val IDU_inst    = Module(new IDU(isSTA))
     val EXU_inst    = Module(new EXU)
     val MEMU_inst   = Module(new MEMU)
     val WBU_inst    = Module(new WBU)
 
     val BPU_inst    = Module(new BPU)
-    val CSR_inst    = Module(new CSR)
+    val CSR_inst    = Module(new CSR(isSTA))
     val regfile     = Module(new RegFile)
 
     // FSM
