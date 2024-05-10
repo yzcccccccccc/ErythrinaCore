@@ -2,7 +2,15 @@
 #define __COMMON_H__
 
 #include <cstdint>
+#include "setting.h"
+#ifdef __SOC__
 #define PC_RSTVEC   0x30000000
+#endif
+
+#ifdef __SIM__
+#define PC_RSTVEC  0x80000000
+#endif
+
 #define MEMBASE     0x80000000               
 #define MEMSIZE     0x8000000
 

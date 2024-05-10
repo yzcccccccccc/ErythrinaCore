@@ -152,9 +152,11 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
 
     // AXI-Read
     io.in.ar.ready      := LatencyPipeBit(state === sARW & io.out.req.ready, LATENCY)
+    val raddr_r     = RegEnable(io.in.ar.bits.addr, io.in.ar.fire)
 
     io.in.r.valid       := LatencyPipeBit(state === sR & io.out.resp.valid, LATENCY)
-    io.in.r.bits.data   := (if (_type.getClass() == classOf[AXI4]) Cat(Fill(XLEN, 0.B), io.out.resp.bits.data) else io.out.resp.bits.data)
+    val rdata       = Mux(raddr_r(2), Cat(io.out.resp.bits.data, Fill(XLEN, 0.B)), Cat(Fill(XLEN, 0.B), io.out.resp.bits.data))
+    io.in.r.bits.data   := (if (_type.getClass() == classOf[AXI4]) rdata else io.out.resp.bits.data)
     io.in.r.bits.resp   := io.out.resp.bits.resp
 
     // AXI-Write
@@ -185,8 +187,8 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     val w_size_r    = RegEnable((if (_type.getClass() == classOf[AXI4]) io.in.asInstanceOf[AXI4].aw.bits.size else "b010".U), io.in.aw.fire)
     val r_size      = (if (_type.getClass() == classOf[AXI4]) io.in.asInstanceOf[AXI4].ar.bits.size else "b010".U)
     io.out.req.bits.addr    := Mux(state === sARW, io.in.ar.bits.addr, w_addr_r)
-    io.out.req.bits.data    := io.in.w.bits.data(31, 0)
-    io.out.req.bits.mask    := io.in.w.bits.strb(3, 0)
+    io.out.req.bits.data    := Mux(w_addr_r(2), io.in.w.bits.data(63, 32), io.in.w.bits.data(31, 0))
+    io.out.req.bits.mask    := Mux(w_addr_r(2), io.in.w.bits.strb(7, 4), io.in.w.bits.strb(3, 0))
     io.out.req.bits.size    := Mux(state === sARW, r_size, w_size_r)
 
     io.out.resp.ready       := LookupTreeDefault(state, 0.B, List(

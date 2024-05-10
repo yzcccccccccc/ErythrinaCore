@@ -14,7 +14,7 @@ class IDUIO extends Bundle with IDUtrait{
     val BPU2IDU = Flipped(new RedirectInfo)
 }
 
-class IDU(isSTA : Boolean = false) extends Module with IDUtrait{
+class IDU extends Module with IDUtrait{
     val io = IO(new IDUIO)
 
     io.IFU2IDU.ready    := 1.B
@@ -85,7 +85,7 @@ class IDU(isSTA : Boolean = false) extends Module with IDUtrait{
     io.ID2BPU.pc    := pc
 
     // unknown inst
-    if (!isSTA){
+    if (!ErythrinaSetting.isSTA){
         val HaltUnkonwInst = Module(new haltUnknownInst)
         HaltUnkonwInst.io.halt_trigger := instType === TypeER & io.IFU2IDU.valid
     }

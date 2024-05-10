@@ -1,7 +1,8 @@
 TOPNAME		?= ysyxSoCFull
 
 # For Verilator Compilation
-OBJ_DIR		= $(BUILD_DIR)/obj_dir
+$(shell mkdir -p $(BUILD_DIR)/obj_dir)
+OBJ_DIR		= $(BUILD_DIR)/obj_dir/$(TOPNAME)
 
 SOC_PERIP 	?= $(shell find $(abspath $(YSYXSOC_DIR)/perip) -name "*.v")
 SOC_TOP		?= $(YSYXSOC_DIR)/build/ysyxSoCFull.v
@@ -50,11 +51,11 @@ Verilator_TAR	= $(OBJ_DIR)/V$(TOPNAME).h
 $(CSRCS): $(VSRCS)
 $(VSRCS): verilog
 $(Verilator_TAR): $(VSRCS)
-	-@ $(VERILATOR) $(Verilator_VFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
+	@ $(VERILATOR) $(Verilator_VFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
 SIM_TAR			= $(OBJ_DIR)/V$(TOPNAME)
 $(SIM_TAR): $(VSRCS) $(CSRCS) $(HSRCS)
-	-@ $(VERILATOR) $(Verilator_SFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
+	@ $(VERILATOR) $(Verilator_SFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
 
 verilate: $(Verilator_TAR)
 

@@ -61,6 +61,7 @@ extern "C" void halt_UnknownINST(){
     return;
 }
 
+#ifdef __SIM__
 extern "C" int mem_read(int paddr){
     return pmem_read(paddr & (~0x3u));
 }
@@ -68,3 +69,5 @@ extern "C" int mem_read(int paddr){
 extern "C" void mem_write(int paddr, const svBitVecVal *mask, int data){
     pmem_write(paddr & (~0x3u), data, *mask);
 }
+
+#endif

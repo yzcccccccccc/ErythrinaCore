@@ -8,6 +8,8 @@ import bus.mem._
 
 // thie module is mainly for analyzing the corectness of the core
 class SimTop extends Module with ErythrinaDefault{
+    ErythrinaSetting.RESETVEC   = 0x80000000L
+    
     val erythcore = Module(new ErythrinaCore)
 
     val arbiter = Module(new AXI4ArbiterNto1(2))

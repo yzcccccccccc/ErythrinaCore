@@ -20,7 +20,7 @@ class IFU extends Module with IFUtrait{
   val io = IO(new IFUIO)
 
   // pc
-  val pc    = RegInit(RESETVEC.U)
+  val pc    = RegInit(ErythrinaSetting.RESETVEC.U(XLEN.W))
   val snpc  = pc + 4.U
   when (io.step){
     when (io.BPU2IFU.redirect){

@@ -23,7 +23,7 @@ image: $(IMAGE).elf
 	@$(OBJCOPY) -S --set-section-flags .bss=alloc,contents -O binary $(IMAGE).elf $(IMAGE).bin
 
 run: image
-	$(MAKE) -C $(NPC_HOME) sim ARG=$(NPC_ARGS) IMG=$(IMAGE).bin
+	$(MAKE) -C $(NPC_HOME) sim ARG=$(NPC_ARGS) IMG=$(IMAGE).bin TOPNAME=SimTop
 
 view_wave:
 	$(MAKE) -C $(NPC_HOME) view_wave

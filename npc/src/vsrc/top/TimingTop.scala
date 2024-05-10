@@ -10,7 +10,8 @@ import device._
 class TimingTop extends Module with ErythrinaDefault{
     val io = IO(new AXI4)
 
-    val erythrinacore = Module(new ErythrinaCore(isSTA = true))
+    ErythrinaSetting.isSTA = true
+    val erythrinacore = Module(new ErythrinaCore)
 
     val axi4clint   = Module(new AXI4CLINT)
 
