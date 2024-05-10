@@ -22,7 +22,9 @@ void flash_init(){
 }
 
 void init_mem(){
+#ifdef __SOC__
     flash_init();
+#endif
 }
 
 uint8_t* guest2host(paddr_t paddr){

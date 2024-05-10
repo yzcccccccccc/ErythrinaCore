@@ -1,7 +1,16 @@
 #ifndef _CPU_H__
 #define _CPU_H__
 
+#include "setting.h"
+
+#ifdef __SOC__
 #include "VysyxSoCFull.h"
+#endif
+
+#ifdef __SIM__
+#include "VSimTop.h"
+#endif
+
 #include <cstdint>
 
 typedef enum{
@@ -23,7 +32,12 @@ extern void init_cpu();
 extern void execute(uint32_t n);
 
 // dut soc
+#ifdef __SOC__
 typedef VysyxSoCFull VSoc;
+#endif
+#ifdef __SIM__
+typedef VSimTop VSoc;
+#endif
 extern VSoc *dut;
 
 extern FILE *logfile, *flash_log, *diff_log;

@@ -13,15 +13,30 @@ CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
 LIBS += $(shell llvm-config --libs)
 
 Verilator_LDFLG	+= -lreadline ${LIBS}
-Verilator_CFLG	+= -DVERILATOR_SIM -I/home/yzcc/ysyx-workbench/npc/src/csrc/include ${CXXFLAGS}\
+Verilator_CFLG	+= -DVERILATOR_SIM -I/home/yzcc/ysyx-workbench/npc/src/csrc/include ${CXXFLAGS}
+
+ifeq ($(TOPNAME), ysyxSoCFull)
+Verilator_CFLG	+= -D__SOC__
+endif
+
+ifeq ($(TOPNAME), SimTop)
+Verilator_CFLG  += -D__SIM__
+endif
 
 SOC_FLAGS 		+= -I$(UART_RTLDIR) -I$(SPI_RTLDIR) --timescale "1ns/1ns" --no-timing
 Verilator_SFLG	+= -cc --exe --trace --build -j -CFLAGS "${Verilator_CFLG}" -LDFLAGS "${Verilator_LDFLG}" --autoflush
 Verilator_VFLG	+= -cc --trace --build	# Only pack up the .v files
 
+ifeq ($(TOPNAME), ysyxSoCFull)
+Verilator_SFLG	+= $(SOC_FLAGS)
+Verilator_VFLG	+= $(SOC_FLAGS)
+endif
+
 # SRC
 ifeq ($(TOPNAME), ysyxSoCFull)
 VSRCS 		?= $(shell find $(abspath $(RTL_SOC_DIR)) -name "*.v" -or -name "*.sv")
+VSRCS += $(SOC_PERIP)
+VSRCS += $(SOC_TOP)
 else
 ifeq ($(TOPNAME), SimTop)
 VSRCS 		?= $(shell find $(abspath $(RTL_SIM_DIR)) -name "*.v" -or -name "*.sv")
@@ -30,13 +45,6 @@ endif
 
 CSRCS 		?= $(shell find $(abspath ./src/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 HSRCS		?= $(shell find $(abspath ./src/csrc) -name "*.h")
-
-ifeq ($(TOPNAME), ysyxSoCFull)
-VSRCS += $(SOC_PERIP)
-VSRCS += $(SOC_TOP)
-Verilator_SFLG	+= $(SOC_FLAGS)
-Verilator_VFLG	+= $(SOC_FLAGS)
-endif
 
 Verilator_TAR	= $(OBJ_DIR)/V$(TOPNAME).h
 $(CSRCS): $(VSRCS)

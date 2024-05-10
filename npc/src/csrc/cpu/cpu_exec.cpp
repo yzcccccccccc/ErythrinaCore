@@ -9,11 +9,18 @@
 #include "util.h"
 #include "device.h"
 
-#include "VysyxSoCFull.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include <cstdint>
 #include <cstdio>
+
+#ifdef __SOC__
+#include "VysyxSoCFull.h"
+#endif
+
+#ifdef __SIM__
+#include "VSimTop.h"
+#endif
 
 #ifdef NVBOARD
 #include <nvboard.h>

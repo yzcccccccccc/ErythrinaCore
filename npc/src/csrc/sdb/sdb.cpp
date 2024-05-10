@@ -58,6 +58,14 @@ void init_sdb(){
       printf("[Tool] %sDifferential testing is disabled! :(%s\n", FontRed, Restore);
     }
 
+#ifdef __SOC__
+    printf("[Env] %sRunning on SoC sim! :)%s\n", FontGreen, Restore);
+#endif
+
+#ifdef __SIM__
+    printf("[Env] %sRunning on Core sim! :)%s\n", FontGreen, Restore);
+#endif
+
     printf("\n%sWelcome to NPC Simulator! :)%s\n", FontBlue, Restore);
 }
 

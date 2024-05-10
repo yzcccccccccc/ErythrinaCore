@@ -26,10 +26,11 @@ class SimpleRam extends BlackBox with HasBlackBoxInline {
     |   input   [31:0]  port_req_bits_addr,
     |   input   [3:0]   port_req_bits_mask,
     |   input   [31:0]  port_req_bits_data,
+    |   input   [2:0]   port_req_bits_size,
     |   output  port_resp_valid,
     |   input   port_resp_ready,
     |   output  [31:0]  port_resp_bits_data,
-    |   output  [1:0]   port_resp_bits_rsp
+    |   output  [1:0]   port_resp_bits_resp
     |);
     | import "DPI-C" function int mem_read(input int paddr);
     | import "DPI-C" function void mem_write(input int paddr, input bit[3:0] mask, input int data);
@@ -72,7 +73,7 @@ class SimpleRam extends BlackBox with HasBlackBoxInline {
     |     mem_write(port_req_bits_addr, port_req_bits_mask, port_req_bits_data);
     | end
     | assign port_resp_bits_data  = rdata;
-    | assign port_resp_bits_rsp   = 0;
+    | assign port_resp_bits_resp   = 0;
     |
     |endmodule
     """.stripMargin);
