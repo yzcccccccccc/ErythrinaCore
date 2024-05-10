@@ -62,7 +62,7 @@ verilate: $(Verilator_TAR)
 verilate_sim: $(SIM_TAR)
 
 sim: verilate_sim
-	@echo "Topname :$(TOPNAME)"
+	@echo "Topname: $(TOPNAME)"
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(SIM_TAR) -d $(DIFF_SO) -b $(ARG) $(IMG)
 
