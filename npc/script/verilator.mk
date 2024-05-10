@@ -1,3 +1,5 @@
+TOPNAME		?= ysyxSoCFull
+
 # For Verilator Compilation
 OBJ_DIR		= $(BUILD_DIR)/obj_dir
 
@@ -11,21 +13,30 @@ CXXFLAGS += $(shell llvm-config --cxxflags) -fPIE
 LIBS += $(shell llvm-config --libs)
 
 Verilator_LDFLG	+= -lreadline ${LIBS}
-Verilator_CFLG	+= -DVERILATOR_SIM -I /home/yzcc/ysyx-workbench/npc/src/csrc/include ${CXXFLAGS}\
+Verilator_CFLG	+= -DVERILATOR_SIM -I/home/yzcc/ysyx-workbench/npc/src/csrc/include ${CXXFLAGS}\
 
 SOC_FLAGS 		+= -I$(UART_RTLDIR) -I$(SPI_RTLDIR) --timescale "1ns/1ns" --no-timing
 Verilator_SFLG	+= -cc --exe --trace --build -j -CFLAGS "${Verilator_CFLG}" -LDFLAGS "${Verilator_LDFLG}" --autoflush
 Verilator_VFLG	+= -cc --trace --build	# Only pack up the .v files
 
 # SRC
-VSRCS 		?= $(shell find $(abspath $(BUILD_DIR)/rtl) -name "*.v" -or -name "*.sv")
+ifeq ($(TOPNAME), ysyxSoCFull)
+VSRCS 		?= $(shell find $(abspath $(RTL_SOC_DIR)) -name "*.v" -or -name "*.sv")
+else
+ifeq ($(TOPNAME), SimTop)
+VSRCS 		?= $(shell find $(abspath $(RTL_SIM_DIR)) -name "*.v" -or -name "*.sv")
+endif
+endif
+
 CSRCS 		?= $(shell find $(abspath ./src/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 HSRCS		?= $(shell find $(abspath ./src/csrc) -name "*.h")
 
+ifeq ($(TOPNAME), ysyxSoCFull)
 VSRCS += $(SOC_PERIP)
 VSRCS += $(SOC_TOP)
 Verilator_SFLG	+= $(SOC_FLAGS)
 Verilator_VFLG	+= $(SOC_FLAGS)
+endif
 
 Verilator_TAR	= $(OBJ_DIR)/V$(TOPNAME).h
 $(CSRCS): $(VSRCS)
@@ -42,6 +53,7 @@ verilate: $(Verilator_TAR)
 verilate_sim: $(SIM_TAR)
 
 sim: verilate_sim
+	@echo "Topname :$(TOPNAME)"
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(SIM_TAR) -d $(DIFF_SO) -b $(ARG) $(IMG)
 

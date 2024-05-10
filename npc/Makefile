@@ -1,6 +1,3 @@
-TOPNAME		?= ysyxSoCFull
-YSYXNAME	?= ysyx_1919810
-
 BUILD_DIR	= ./build
 YSYXSOC_DIR = ../ysyxSoC
 OBJ_DIR		= $(BUILD_DIR)/obj_dir
