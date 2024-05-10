@@ -34,28 +34,28 @@ void init_sdb(){
       printf("[Tool] %sWaveform dumping is enabled! :)%s\n", FontGreen, Restore);
     }
     else{
-      printf("[Tool] %sWaveform dumping is disabled! :(%s\n", FontRed, Restore);
+      printf("[Tool] %sWaveform dumping is disabled! :(%s\n", FontYellow, Restore);
     }
 
     if (ITRACE){
       printf("[Tool] %sInstruction tracing is enabled! :)%s\n", FontGreen, Restore);
     }
     else{
-      printf("[Tool] %sInstruction tracing is disabled! :(%s\n", FontRed, Restore);
+      printf("[Tool] %sInstruction tracing is disabled! :(%s\n", FontYellow, Restore);
     }
 
     if (MTRACE){
       printf("[Tool] %sMemory tracing is enabled! :)%s\n", FontGreen, Restore);
     }
     else{
-      printf("[Tool] %sMemory tracing is disabled! :(%s\n", FontRed, Restore);
+      printf("[Tool] %sMemory tracing is disabled! :(%s\n", FontYellow, Restore);
     }
 
     if (DIFF_TEST){
       printf("[Tool] %sDifferential testing is enabled! :)%s\n", FontGreen, Restore);
     }
     else{
-      printf("[Tool] %sDifferential testing is disabled! :(%s\n", FontRed, Restore);
+      printf("[Tool] %sDifferential testing is disabled! :(%s\n", FontYellow, Restore);
     }
 
 #ifdef __SOC__

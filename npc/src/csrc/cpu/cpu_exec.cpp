@@ -192,8 +192,6 @@ void init_nvboard(){
 void init_cpu(){
     init_verilate();
 
-    init_device();
-
     //init_mem();
 
     init_nvboard();

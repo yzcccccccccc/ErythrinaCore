@@ -10,7 +10,7 @@
 #define MTRACE 0
 #define DTRACE 0
 
-//#define __SIM__
+#define __SIM__
 //#define __SOC__
 
 #endif

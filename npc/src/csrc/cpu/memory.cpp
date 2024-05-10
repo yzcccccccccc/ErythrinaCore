@@ -70,7 +70,6 @@ void mtrace_write(uint32_t addr, uint32_t data, uint32_t mask, uint32_t res){
 
 uint32_t pmem_read(paddr_t addr){
     uint32_t res = 0;
-    uint32_t host_index = addr - MEMBASE;
 
     res = host_read(guest2host(addr));
     mtrace_read(addr, res);
@@ -79,9 +78,8 @@ uint32_t pmem_read(paddr_t addr){
 
 uint32_t pmem_write(paddr_t addr, uint32_t data, uint32_t mask){
     uint32_t res = 0;
-
-    uint32_t host_index = addr - MEMBASE;
-
+    if (try_device_write(addr, &data, mask))
+        return 1;
     res = host_write(guest2host(addr), data, mask);
     mtrace_write(addr, data, mask, res);
     return res;

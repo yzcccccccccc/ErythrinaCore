@@ -33,7 +33,9 @@ static const uint32_t default_inst[] = {
 
 // inst size
 extern long img_size;
+
 // Font
+static const char FontYellow[]  = "\033[1;33m";
 static const char FontRed[]     = "\033[1;31m";
 static const char FontGreen[]   = "\033[1;32m";
 static const char FontBlue[]    = "\033[34m";
