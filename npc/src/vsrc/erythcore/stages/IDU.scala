@@ -12,6 +12,9 @@ class IDUIO extends Bundle with IDUtrait{
     val ID2BPU = Flipped(new IDU2BPUzip)           // 2 BPU
     val RFRead  = Flipped(new RegFileIN)        // 2 Regfile
     val BPU2IDU = Flipped(new RedirectInfo)
+
+    // perf
+    val idu_perf_probe = Flipped(new PerfIDU)
 }
 
 class IDU extends Module with IDUtrait{
@@ -106,4 +109,12 @@ class IDU extends Module with IDUtrait{
     io.IDU2EXU.bits.rf_wen      := rf_wen & io.IFU2IDU.valid
     io.IDU2EXU.bits.pc          := pc
     io.IDU2EXU.bits.inst        := instr
+
+    // Perf
+    io.idu_perf_probe.cal_inst_event := io.IFU2IDU.valid & aluop =/= ALUop.nop
+    io.idu_perf_probe.csr_inst_event := io.IFU2IDU.valid & csrop =/= CSRop.nop
+    io.idu_perf_probe.ld_inst_event := io.IFU2IDU.valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu)
+    io.idu_perf_probe.st_inst_event := io.IFU2IDU.valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb)
+    io.idu_perf_probe.j_inst_event := io.IFU2IDU.valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr)
+    io.idu_perf_probe.b_inst_event := io.IFU2IDU.valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu)
 }

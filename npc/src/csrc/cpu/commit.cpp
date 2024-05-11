@@ -11,73 +11,73 @@
 
 uint32_t get_commit_valid(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__valid_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_valid;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__valid_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_valid;
 #endif
     assert(0);
 }
 uint32_t get_commit_pc(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__pc_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_pc;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__pc_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_pc;
 #endif
     assert(0);
 }
 uint32_t get_commit_inst(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__inst_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_inst;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__inst_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_inst;
 #endif
     assert(0);
 }
 uint32_t get_commit_rf_waddr(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__rf_waddr_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_rf_waddr;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__rf_waddr_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_rf_waddr;
 #endif
     assert(0);
 }
 uint32_t get_commit_rf_wdata(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__rf_wdata_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_rf_wdata;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__rf_wdata_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_rf_wdata;
 #endif
     assert(0);
 }
 uint32_t get_commit_rf_wen(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__rf_wen_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_rf_wen;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__rf_wen_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_rf_wen;
 #endif
     assert(0);
 }
 uint32_t get_commit_mem_addr(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__mem_addr_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_mem_addr;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__mem_addr_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_mem_addr;
 #endif
     assert(0);
 }
 uint32_t get_commit_mem_en(VSoc *dut){
 #ifdef __SOC__
-    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__mem_en_r;
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_mem_en;
 #endif
 #ifdef __SIM__
-    return dut->rootp->SimTop__DOT__commit__DOT__mem_en_r;
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_mem_en;
 #endif
     assert(0);
 }

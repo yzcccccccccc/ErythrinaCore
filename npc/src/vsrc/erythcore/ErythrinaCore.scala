@@ -7,6 +7,8 @@ import bus.mem._
 import bus.ivybus.IvyBus
 import bus.axi4._
 
+import utils._
+
 class ErythrinaCoreIO extends Bundle with ErythrinaDefault{
     val mem_port1    = new AXI4
     val mem_port2    = new AXI4
@@ -25,6 +27,12 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     val BPU_inst    = Module(new BPU)
     val CSR_inst    = Module(new CSR)
     val regfile     = Module(new RegFile)
+
+    // Performance Counter
+    val perfbox    = Module(new PerfBox)
+    perfbox.io.ifu_perf_probe <> IFU_inst.io.ifu_perf_probe
+    perfbox.io.idu_perf_probe <> IDU_inst.io.idu_perf_probe
+    perfbox.io.memu_perf_probe <> MEMU_inst.io.memu_perf_probe
 
     // FSM
     val sIF :: sIF_Recv :: sID :: sEX :: sMEM :: sMEM_Recv :: sWB :: Nil = Enum(7)

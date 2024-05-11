@@ -6,6 +6,8 @@ import chisel3.util._
 import bus.mem._
 import bus.ivybus._
 
+import utils._
+
 // Instruction Fetch Stage (pipeline, to be continued)
 
 class IFUIO extends Bundle with IFUtrait{
@@ -14,6 +16,9 @@ class IFUIO extends Bundle with IFUtrait{
   val IFU2IDU = Decoupled(new IF2IDzip)         // pipeline ctrl, to IDU
   val BPU2IFU = Flipped(new RedirectInfo)
   val ifu_mem = new IvyBus
+
+  // perf
+  val ifu_perf_probe = Flipped(new PerfIFU)
 }
 
 class IFU extends Module with IFUtrait{
@@ -54,4 +59,7 @@ class IFU extends Module with IFUtrait{
   io.IFU2IDU.valid       := inst_valid
   io.IFU2IDU.bits.inst   := inst_r
   io.IFU2IDU.bits.pc     := pc
+
+  // perf
+  io.ifu_perf_probe.get_inst_event := io.ifu_mem.resp.fire
 }

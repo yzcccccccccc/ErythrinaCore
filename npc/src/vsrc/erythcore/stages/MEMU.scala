@@ -14,6 +14,9 @@ class MEMUIO extends Bundle with MEMUtrait{
 
     // memory
     val memu_mem    = new IvyBus
+
+    // perf
+    val memu_perf_probe = Flipped(new PerfMEMU)
 }
 
 class MEMU extends Module with MEMUtrait{
@@ -139,4 +142,8 @@ class MEMU extends Module with MEMUtrait{
     io.MEMU2WBU.bits.RegWriteIO.wen     := io.EXU2MEMU.bits.rf_wen
     io.MEMU2WBU.bits.maddr  := addr
     io.MEMU2WBU.bits.men    := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid
+
+    // Perf
+    io.memu_perf_probe.ld_data_event := io.memu_mem.resp.fire & isload
+    io.memu_perf_probe.st_data_event := io.memu_mem.resp.fire & (~isload & io.EXU2MEMU.bits.LSUop =/= LSUop.nop)
 }
