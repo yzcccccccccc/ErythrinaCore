@@ -28,12 +28,6 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     val CSR_inst    = Module(new CSR)
     val regfile     = Module(new RegFile)
 
-    // Performance Counter
-    val perfbox    = Module(new PerfBox)
-    perfbox.io.ifu_perf_probe <> IFU_inst.io.ifu_perf_probe
-    perfbox.io.idu_perf_probe <> IDU_inst.io.idu_perf_probe
-    perfbox.io.memu_perf_probe <> MEMU_inst.io.memu_perf_probe
-
     // FSM
     val sIF :: sIF_Recv :: sID :: sEX :: sMEM :: sMEM_Recv :: sWB :: Nil = Enum(7)
     val state   = RegInit(sIF)
@@ -107,4 +101,11 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     
     // commit
     io.InstCommit <> WBU_inst.io.inst_commit
+
+    // Performance Counter
+    val perfbox    = Module(new PerfBox)
+    perfbox.io.inst_trigger := io.InstCommit.valid
+    perfbox.io.ifu_perf_probe <> IFU_inst.io.ifu_perf_probe
+    perfbox.io.idu_perf_probe <> IDU_inst.io.idu_perf_probe
+    perfbox.io.memu_perf_probe <> MEMU_inst.io.memu_perf_probe
 }

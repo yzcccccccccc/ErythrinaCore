@@ -8,6 +8,7 @@
 #include "dpi.h"
 #include "util.h"
 #include "device.h"
+#include "perf.h"
 
 #include "verilated.h"
 #include "verilated_vcd_c.h"
@@ -97,6 +98,7 @@ void report(){
     switch (npc_state) {
         case CPU_HALT_GOOD:
             printf("[Hit Trap] Halt from ebreak. Hit %sGood%s Trap\n", FontGreen, Restore);
+            perf_res_show();
             break;
         case CPU_HALT_BAD:
             printf("[Hit Trap] Halt from ebreak. Hit %sBad%s Trap\n", FontRed, Restore);

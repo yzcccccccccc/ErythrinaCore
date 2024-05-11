@@ -34,6 +34,7 @@ class PerfMEMU extends Bundle{
 }
 
 class PerfBoxIO extends Bundle{
+    val inst_trigger = Input(Bool())
     val ifu_perf_probe = new PerfIFU
     val idu_perf_probe = new PerfIDU
     //val exu_probe = new PerfEXU
@@ -50,8 +51,14 @@ class PerfBox extends Module{
 
         // total instructions
         val total_insts = RegInit(0.U(64.W))
-        when(io.ifu_perf_probe.get_inst_event){
+        when(io.inst_trigger){
             total_insts := total_insts + 1.U
+        }
+
+        // total get instructions
+        val total_get_insts = RegInit(0.U(64.W))
+        when(io.ifu_perf_probe.get_inst_event){
+            total_get_insts := total_get_insts + 1.U
         }
 
         // total cal instructions
@@ -105,6 +112,7 @@ class PerfBox extends Module{
         // don't touch!!
         dontTouch(total_cycles)
         dontTouch(total_insts)
+        dontTouch(total_get_insts)
         dontTouch(total_cal_insts)
         dontTouch(total_csr_insts)
         dontTouch(total_ld_insts)
