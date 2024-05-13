@@ -61,7 +61,15 @@ class IFU extends Module with IFUtrait{
   io.IFU2IDU.bits.pc     := pc
 
   // perf
+  val has_mem_req_fire = RegInit(false.B)
+  when (io.ifu_mem.req.fire){
+    has_mem_req_fire := 1.B
+  }
+  when (io.ifu_mem.resp.fire){
+    has_mem_req_fire := 0.B
+  }
+
   io.ifu_perf_probe.get_inst_event := io.ifu_mem.resp.fire
   io.ifu_perf_probe.wait_req_event := io.ifu_mem.req.valid & ~io.ifu_mem.req.ready
-  io.ifu_perf_probe.wait_resp_event := ~io.ifu_mem.resp.valid & io.ifu_mem.resp.ready & ~io.ifu_mem.req.valid
+  io.ifu_perf_probe.wait_resp_event := ~io.ifu_mem.resp.valid & io.ifu_mem.resp.ready & ~io.ifu_mem.req.valid & has_mem_req_fire
 }
