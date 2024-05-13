@@ -7,6 +7,7 @@ import utils._
 
 // IDU!
 class IDUIO extends Bundle with IDUtrait{
+    val step    = Input(Bool())
     val IFU2IDU = Flipped(Decoupled(new IF2IDzip))
     val IDU2EXU = Decoupled(new ID2EXzip)
     val ID2BPU = Flipped(new IDU2BPUzip)           // 2 BPU
@@ -111,10 +112,10 @@ class IDU extends Module with IDUtrait{
     io.IDU2EXU.bits.inst        := instr
 
     // Perf
-    io.idu_perf_probe.cal_inst_event := io.IFU2IDU.valid & aluop =/= ALUop.nop
-    io.idu_perf_probe.csr_inst_event := io.IFU2IDU.valid & csrop =/= CSRop.nop
-    io.idu_perf_probe.ld_inst_event := io.IFU2IDU.valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu)
-    io.idu_perf_probe.st_inst_event := io.IFU2IDU.valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb)
-    io.idu_perf_probe.j_inst_event := io.IFU2IDU.valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr)
-    io.idu_perf_probe.b_inst_event := io.IFU2IDU.valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu)
+    io.idu_perf_probe.cal_inst_event := io.IFU2IDU.valid & aluop =/= ALUop.nop & io.step
+    io.idu_perf_probe.csr_inst_event := io.IFU2IDU.valid & csrop =/= CSRop.nop & io.step
+    io.idu_perf_probe.ld_inst_event := io.IFU2IDU.valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu) & io.step
+    io.idu_perf_probe.st_inst_event := io.IFU2IDU.valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb) & io.step
+    io.idu_perf_probe.j_inst_event := io.IFU2IDU.valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr) & io.step
+    io.idu_perf_probe.b_inst_event := io.IFU2IDU.valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu) & io.step
 }

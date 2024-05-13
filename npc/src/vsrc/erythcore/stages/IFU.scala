@@ -62,4 +62,6 @@ class IFU extends Module with IFUtrait{
 
   // perf
   io.ifu_perf_probe.get_inst_event := io.ifu_mem.resp.fire
+  io.ifu_perf_probe.wait_req_event := io.ifu_mem.req.valid & ~io.ifu_mem.req.ready
+  io.ifu_perf_probe.wait_resp_event := ~io.ifu_mem.resp.valid & io.ifu_mem.resp.ready & ~io.ifu_mem.req.valid
 }

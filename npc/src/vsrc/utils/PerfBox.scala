@@ -7,6 +7,8 @@ import erythcore.ErythrinaSetting
 
 class PerfIFU extends Bundle{
     val get_inst_event = Input(Bool())
+    val wait_req_event = Input(Bool())      // Wait for request ready
+    val wait_resp_event = Input(Bool())     // Wait for response valid
 }
 
 class PerfIDU extends Bundle{
@@ -31,6 +33,8 @@ class PerfEXU extends Bundle{
 class PerfMEMU extends Bundle{
     val ld_data_event = Input(Bool())
     val st_data_event = Input(Bool())
+    val wait_req_event = Input(Bool())      // Wait for request ready
+    val wait_resp_event = Input(Bool())     // Wait for response valid
 }
 
 class PerfBoxIO extends Bundle{
@@ -55,12 +59,26 @@ class PerfBox extends Module{
             total_insts := total_insts + 1.U
         }
 
+        /* Instruction Path Events */
         // total get instructions
         val total_get_insts = RegInit(0.U(64.W))
         when(io.ifu_perf_probe.get_inst_event){
             total_get_insts := total_get_insts + 1.U
         }
 
+        // total IFU wait request ready
+        val total_ifu_wait_req = RegInit(0.U(64.W))
+        when(io.ifu_perf_probe.wait_req_event){
+            total_ifu_wait_req := total_ifu_wait_req + 1.U
+        }
+
+        // total IFU wait response valid
+        val total_ifu_wait_resp = RegInit(0.U(64.W))
+        when(io.ifu_perf_probe.wait_resp_event){
+            total_ifu_wait_resp := total_ifu_wait_resp + 1.U
+        }
+
+        /* Calculate Events */
         // total cal instructions
         val total_cal_insts = RegInit(0.U(64.W))
         when(io.idu_perf_probe.cal_inst_event){
@@ -97,6 +115,7 @@ class PerfBox extends Module{
             total_b_insts := total_b_insts + 1.U
         }
 
+        /* Data Path Events */
         // total load data events
         val total_ld_data_events = RegInit(0.U(64.W))
         when(io.memu_perf_probe.ld_data_event){
@@ -109,17 +128,36 @@ class PerfBox extends Module{
             total_st_data_events := total_st_data_events + 1.U
         }
 
+        // total MEMU wait request ready
+        val total_memu_wait_req = RegInit(0.U(64.W))
+        when(io.memu_perf_probe.wait_req_event){
+            total_memu_wait_req := total_memu_wait_req + 1.U
+        }
+
+        // total MEMU wait response valid
+        val total_memu_wait_resp = RegInit(0.U(64.W))
+        when(io.memu_perf_probe.wait_resp_event){
+            total_memu_wait_resp := total_memu_wait_resp + 1.U
+        }
+
         // don't touch!!
         dontTouch(total_cycles)
         dontTouch(total_insts)
+
         dontTouch(total_get_insts)
+        dontTouch(total_ifu_wait_req)
+        dontTouch(total_ifu_wait_resp)
+
         dontTouch(total_cal_insts)
         dontTouch(total_csr_insts)
         dontTouch(total_ld_insts)
         dontTouch(total_st_insts)
         dontTouch(total_j_insts)
         dontTouch(total_b_insts)
+
         dontTouch(total_ld_data_events)
         dontTouch(total_st_data_events)
+        dontTouch(total_memu_wait_req)
+        dontTouch(total_memu_wait_resp)
     }
 }

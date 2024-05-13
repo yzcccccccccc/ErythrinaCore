@@ -68,6 +68,7 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     }
     IFU_inst.io.req_en  := state === sIF
     IFU_inst.io.step    := state === sWB
+    IDU_inst.io.step    := state === sWB
     WBU_inst.io.step    := state === sWB
     MEMU_inst.io.en     := state === sMEM
     CSR_inst.io.en      := state === sWB

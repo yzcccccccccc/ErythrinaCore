@@ -146,4 +146,6 @@ class MEMU extends Module with MEMUtrait{
     // Perf
     io.memu_perf_probe.ld_data_event := io.memu_mem.resp.fire & isload
     io.memu_perf_probe.st_data_event := io.memu_mem.resp.fire & (~isload & io.EXU2MEMU.bits.LSUop =/= LSUop.nop)
+    io.memu_perf_probe.wait_req_event := io.memu_mem.req.valid & ~io.memu_mem.req.ready & io.MEMU2WBU.bits.men
+    io.memu_perf_probe.wait_resp_event := ~io.memu_mem.resp.valid & io.memu_mem.resp.ready & ~io.memu_mem.req.valid & io.MEMU2WBU.bits.men
 }
