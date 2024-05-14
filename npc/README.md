@@ -1,3 +1,3 @@
-# Erythcore Project
+# Erythrinacore Project
 
 TBD
