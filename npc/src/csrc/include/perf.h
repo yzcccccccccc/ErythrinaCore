@@ -3,5 +3,6 @@
 
 // print the performance res
 extern void perf_res_show();
+extern void perf_res_record();
 
 #endif

@@ -30,7 +30,7 @@ void nvboard_bind_all_pins(VSoc* dut);
 #endif
 
 int cycle = 0;
-FILE *logfile, *flash_log, *diff_log;
+FILE *logfile, *flash_log, *diff_log, *perf_log;
 // NPC state
 NPC_state npc_state;
 uint32_t npc_info;
@@ -99,6 +99,7 @@ void report(){
         case CPU_HALT_GOOD:
             printf("[Hit Trap] Halt from ebreak. Hit %sGood%s Trap\n", FontGreen, Restore);
             perf_res_show();
+            perf_res_record();
             break;
         case CPU_HALT_BAD:
             printf("[Hit Trap] Halt from ebreak. Hit %sBad%s Trap\n", FontRed, Restore);
@@ -201,15 +202,15 @@ void init_cpu(){
     cpu_reset();
 
     if (ITRACE){
-        logfile = fopen("./trace.log", "w");
+        logfile = fopen("./build/itrace.log", "w");
     }
     if (MTRACE){
-        flash_log = fopen("./flash.log", "w");
+        flash_log = fopen("./build/mtrace.log", "w");
     }
     if (DIFF_TEST){
-        diff_log = fopen("./diff.log", "w");
+        diff_log = fopen("./build/diff.log", "w");
     }
-
+    perf_log = fopen("./build/report/perf.log", "w");
 }
 
 void cpu_sim(){

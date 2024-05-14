@@ -40,7 +40,7 @@ typedef VSimTop VSoc;
 #endif
 extern VSoc *dut;
 
-extern FILE *logfile, *flash_log, *diff_log;
+extern FILE *logfile, *flash_log, *diff_log, *perf_log;
 
 // commit tools
 extern uint32_t get_commit_valid(VSoc *dut);

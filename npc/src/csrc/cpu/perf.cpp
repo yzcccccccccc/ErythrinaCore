@@ -1,4 +1,6 @@
 #include "common.h"
+#include <bits/types/time_t.h>
+#include <ctime>
 #include <perf.h>
 
 #include <cstdio>
@@ -90,4 +92,46 @@ void perf_res_show(){
     printf("\t%sOnly support __SOC__%s\n", FontYellow, Restore);
 #endif
     printf("%s=================================================================%s\n", FontBlue, Restore);
+}
+
+// Record the performance res to perf_log
+void perf_res_record(){
+    fprintf(perf_log, "Performance Counter Result\n");
+    
+    time_t cur_time;
+    time(&cur_time);
+    struct tm *local_time = localtime(&cur_time);
+    fprintf(perf_log, "Test Time: %s\n", asctime(local_time)); 
+
+#ifdef __SOC__
+    fprintf(perf_log, "\tCycles: \t\t\t\t\t%d\n", perf_cnt.cycles);
+    fprintf(perf_log, "\tInstrs: \t\t\t\t\t%d\n", perf_cnt.instrs );
+    fprintf(perf_log, "\tIPC = \t\t\t\t\t\t%.10lf\n", (double)perf_cnt.instrs / perf_cnt.cycles);
+    fprintf(perf_log, "\n");
+    fprintf(perf_log, "\tGet Instr Event: \t\t\t%d\n", perf_cnt.get_instr_event);
+    fprintf(perf_log, "\tInst Req Wait: \t\t\t\t%d\n", perf_cnt.inst_req_wait);
+    fprintf(perf_log, "\tInst Resp Wait: \t\t\t%d\n", perf_cnt.inst_resp_wait);
+    fprintf(perf_log, "\tInst Total Delay: \t\t\t%d\n", perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait);
+    fprintf(perf_log, "\tInst Average Delay: \t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.get_instr_event);
+    fprintf(perf_log, "\n");
+    fprintf(perf_log, "\tCAL Instrs: \t\t\t\t%d\n", perf_cnt.cal_instrs);
+    fprintf(perf_log, "\tCSR Instrs: \t\t\t\t%d\n", perf_cnt.csr_instrs);
+    fprintf(perf_log, "\tLD Instrs: \t\t\t\t\t%d\n", perf_cnt.ld_instrs);
+    fprintf(perf_log, "\tST Instrs: \t\t\t\t\t%d\n", perf_cnt.st_instrs);
+    fprintf(perf_log, "\tJ Instrs: \t\t\t\t\t%d\n", perf_cnt.j_instrs);
+    fprintf(perf_log, "\tB Instrs: \t\t\t\t\t%d\n", perf_cnt.b_instrs);
+    fprintf(perf_log, "\n");
+    fprintf(perf_log, "\tLD Data Event: \t\t\t\t%d\n", perf_cnt.ld_data_event);
+    fprintf(perf_log, "\tST Data Event: \t\t\t\t%d\n", perf_cnt.st_data_event);
+    fprintf(perf_log, "\tData Req Wait: \t\t\t\t%d\n", perf_cnt.data_req_wait);
+    fprintf(perf_log, "\tData Resp Wait: \t\t\t%d\n", perf_cnt.data_resp_wait);
+    fprintf(perf_log, "\tData Total Delay: \t\t\t%d\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
+    fprintf(perf_log, "\tData Average Delay: \t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
+#endif
+
+#ifdef __SIM__
+    fprintf(perf_log, "\t%sOnly support __SOC__%s\n", FontYellow, Restore);
+#endif
+
+    printf("%s Result has been recorded in build/report/perf.log %s\n", FontBlue, Restore);
 }
