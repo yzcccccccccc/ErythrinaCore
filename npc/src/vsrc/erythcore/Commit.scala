@@ -12,6 +12,8 @@ class CommitWrapperIO extends Bundle{
 class CommitWrapper extends Module{
     val io = IO(new CommitWrapperIO)
 
-    val port_r = RegNext(io.port)
-    dontTouch(port_r)
+    if (!ErythrinaSetting.isSTA){
+        val port_r = RegNext(io.port)
+        dontTouch(port_r)
+    }
 }
