@@ -101,8 +101,8 @@ void perf_res_record(){
     time_t cur_time;
     time(&cur_time);
     struct tm *local_time = localtime(&cur_time);
-    fprintf(perf_log, "Test Time: %s\n", asctime(local_time)); 
-
+    fprintf(perf_log, "Test Time: %s", asctime(local_time)); 
+    fprintf(perf_log, "------------------------------------------------------------\n");
 #ifdef __SOC__
     fprintf(perf_log, "\tCycles: \t\t\t\t\t%d\n", perf_cnt.cycles);
     fprintf(perf_log, "\tInstrs: \t\t\t\t\t%d\n", perf_cnt.instrs );
@@ -132,6 +132,6 @@ void perf_res_record(){
 #ifdef __SIM__
     fprintf(perf_log, "\t%sOnly support __SOC__%s\n", FontYellow, Restore);
 #endif
-
+    fprintf(perf_log, "------------------------------------------------------------\n");
     printf("%s Result has been recorded in build/report/perf.log %s\n", FontBlue, Restore);
 }
