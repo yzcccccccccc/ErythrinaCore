@@ -16,3 +16,4 @@ yosys-sta/
 /fceux-am
 /am-kernels
 /rt-thread-am
+!.gitmodules
