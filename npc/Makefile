@@ -33,7 +33,8 @@ micro-test: verilate_sim
 # Perf
 PERF_BENCH ?= dummy
 perf:
-	@echo "Running Perf Test:"
+	@echo "Running Perf Test, bench: $(PERF_BENCH)"
+	bash ./script/perf.sh $(PERF_BENCH)
 
 clean:
 	-rm -rf $(BUILD_DIR)

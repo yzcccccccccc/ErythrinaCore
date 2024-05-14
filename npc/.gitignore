@@ -15,6 +15,7 @@
 build/
 
 !microtest/linker.ld
+!script/perf.sh
 
 # mill
 out/
