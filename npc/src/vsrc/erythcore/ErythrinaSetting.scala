@@ -14,9 +14,7 @@ trait ErythrinaDefault {
     val MASKLEN = XLEN/8         // 32/8=4
     val RESPLEN = 2
 
-    val ARCH = "multi"
     val LATENCY = 0
-
     val MARCH = "P"
 }
 

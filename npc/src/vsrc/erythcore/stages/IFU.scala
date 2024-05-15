@@ -13,7 +13,7 @@ import utils._
 class IFUIO extends Bundle with IFUtrait{
   val step    = Input(Bool())
   val req_en  = Input(Bool())
-  val IFU2IDU = Decoupled(new IF2IDzip)         // pipeline ctrl, to IDU
+  val ifu_to_idu = Decoupled(new if_to_id_zip)         // pipeline ctrl, to IDU
   val BPU2IFU = Flipped(new RedirectInfo)
   val ifu_mem = new IvyBus
 
@@ -56,9 +56,9 @@ class IFU extends Module with IFUtrait{
   }.elsewhen(io.step){
     inst_valid  := 0.B
   }
-  io.IFU2IDU.valid       := inst_valid
-  io.IFU2IDU.bits.inst   := inst_r
-  io.IFU2IDU.bits.pc     := pc
+  io.ifu_to_idu.valid       := inst_valid
+  io.ifu_to_idu.bits.inst   := inst_r
+  io.ifu_to_idu.bits.pc     := pc
 
   // perf
   val has_mem_req_fire = RegInit(false.B)

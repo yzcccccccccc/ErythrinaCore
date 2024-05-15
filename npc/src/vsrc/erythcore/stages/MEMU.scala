@@ -9,8 +9,8 @@ import bus.ivybus._
 
 class MEMUIO extends Bundle with MEMUtrait{
     val en          = Input(Bool())
-    val EXU2MEMU    = Flipped(Decoupled(new EX2MEMzip))
-    val MEMU2WBU    = Decoupled(new MEM2WBzip)
+    val exu_to_memu    = Flipped(Decoupled(new ex_to_mem_zip))
+    val memu_to_wbu    = Decoupled(new mem_to_wb_zip)
 
     // memory
     val memu_mem    = new IvyBus
@@ -22,13 +22,13 @@ class MEMUIO extends Bundle with MEMUtrait{
 class MEMU extends Module with MEMUtrait{
     val io = IO(new MEMUIO)
 
-    io.EXU2MEMU.ready   := 1.B
+    io.exu_to_memu.ready   := 1.B
 
     // TODO: May be transfered to LSU in the future?
 
     // MemReq
-    val addr = io.EXU2MEMU.bits.addr
-    io.memu_mem.req.valid       := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid & io.en
+    val addr = io.exu_to_memu.bits.addr
+    io.memu_mem.req.valid       := io.exu_to_memu.bits.LSUop =/= LSUop.nop & io.exu_to_memu.valid & io.en
     io.memu_mem.req.bits.addr   := addr
 
     // MemResp
@@ -51,7 +51,7 @@ class MEMU extends Module with MEMUtrait{
         "b11".U     -> ld_data(31,16)
     ))
 
-    val lsuop = io.EXU2MEMU.bits.LSUop
+    val lsuop = io.exu_to_memu.bits.LSUop
     // Load
     val load_info_lst   = List(               // (res, size)
         LSUop.lb    -> (SignExt(ByteRes, XLEN), "b000".U),
@@ -70,9 +70,9 @@ class MEMU extends Module with MEMUtrait{
         LSUop.sw    -> "b1111".U
     ))
     val st_data = LookupTree(lsuop, List(
-        LSUop.sb    -> (io.EXU2MEMU.bits.data2store(7, 0) << (addr(1, 0) << 3.U)),      // *8
-        LSUop.sh    -> (io.EXU2MEMU.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
-        LSUop.sw    -> (io.EXU2MEMU.bits.data2store)
+        LSUop.sb    -> (io.exu_to_memu.bits.data2store(7, 0) << (addr(1, 0) << 3.U)),      // *8
+        LSUop.sh    -> (io.exu_to_memu.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
+        LSUop.sw    -> (io.exu_to_memu.bits.data2store)
     ))
     val st_size = LookupTree(lsuop, List(
         LSUop.sb    -> "b000".U,
@@ -123,7 +123,7 @@ class MEMU extends Module with MEMUtrait{
     assert(~io.memu_mem.req.valid | (io.memu_mem.req.valid & ((addr(1, 0) === 0.U & is_word) | (addr(0) === 0.U & is_half) | is_byte)), "Unaligned Memory Access!")
 
     // to EXU
-    //io.EXU2MEMU.ready           := io.MEMU2WBU.valid & io.MEMU2WBU.ready
+    //io.exu_to_memu.ready           := io.memu_to_wbu.valid & io.memu_to_wbu.ready
 
     // to WBU!
     val isload = LookupTreeDefault(lsuop, false.B, List(
@@ -133,15 +133,15 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lhu   -> true.B,
         LSUop.lw    -> true.B
     ))
-    val wdata   = RegNext(Mux(isload, LoadRes, io.EXU2MEMU.bits.addr))
-    io.MEMU2WBU.valid       := (io.memu_mem.resp.fire | ~io.memu_mem.req.valid)
-    io.MEMU2WBU.bits.pc     := io.EXU2MEMU.bits.pc
-    io.MEMU2WBU.bits.inst   := io.EXU2MEMU.bits.inst
-    io.MEMU2WBU.bits.RegWriteIO.waddr   := io.EXU2MEMU.bits.rd
-    io.MEMU2WBU.bits.RegWriteIO.wdata   := wdata
-    io.MEMU2WBU.bits.RegWriteIO.wen     := io.EXU2MEMU.bits.rf_wen
-    io.MEMU2WBU.bits.maddr  := addr
-    io.MEMU2WBU.bits.men    := io.EXU2MEMU.bits.LSUop =/= LSUop.nop & io.EXU2MEMU.valid
+    val wdata   = RegNext(Mux(isload, LoadRes, io.exu_to_memu.bits.addr))
+    io.memu_to_wbu.valid       := (io.memu_mem.resp.fire | ~io.memu_mem.req.valid)
+    io.memu_to_wbu.bits.pc     := io.exu_to_memu.bits.pc
+    io.memu_to_wbu.bits.inst   := io.exu_to_memu.bits.inst
+    io.memu_to_wbu.bits.RegWriteIO.waddr   := io.exu_to_memu.bits.rd
+    io.memu_to_wbu.bits.RegWriteIO.wdata   := wdata
+    io.memu_to_wbu.bits.RegWriteIO.wen     := io.exu_to_memu.bits.rf_wen
+    io.memu_to_wbu.bits.maddr  := addr
+    io.memu_to_wbu.bits.men    := io.exu_to_memu.bits.LSUop =/= LSUop.nop & io.exu_to_memu.valid
 
     // Perf
     val has_mem_req_fire = Reg(Bool())
@@ -153,7 +153,7 @@ class MEMU extends Module with MEMUtrait{
     }
 
     io.memu_perf_probe.ld_data_event := io.memu_mem.resp.fire & isload
-    io.memu_perf_probe.st_data_event := io.memu_mem.resp.fire & (~isload & io.EXU2MEMU.bits.LSUop =/= LSUop.nop)
-    io.memu_perf_probe.wait_req_event := io.memu_mem.req.valid & ~io.memu_mem.req.ready & io.MEMU2WBU.bits.men
-    io.memu_perf_probe.wait_resp_event := ~io.memu_mem.resp.valid & io.memu_mem.resp.ready & ~io.memu_mem.req.valid & io.MEMU2WBU.bits.men & has_mem_req_fire
+    io.memu_perf_probe.st_data_event := io.memu_mem.resp.fire & (~isload & io.exu_to_memu.bits.LSUop =/= LSUop.nop)
+    io.memu_perf_probe.wait_req_event := io.memu_mem.req.valid & ~io.memu_mem.req.ready & io.memu_to_wbu.bits.men
+    io.memu_perf_probe.wait_resp_event := ~io.memu_mem.resp.valid & io.memu_mem.resp.ready & ~io.memu_mem.req.valid & io.memu_to_wbu.bits.men & has_mem_req_fire
 }

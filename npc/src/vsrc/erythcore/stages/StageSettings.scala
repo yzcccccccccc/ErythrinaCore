@@ -13,7 +13,7 @@ trait IFUtrait extends ErythrinaDefault with FUtrait{
   // Exception Info (to be continued)
 }
 
-class IF2IDzip extends Bundle with IFUtrait{
+class if_to_id_zip extends Bundle with IFUtrait{
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 }
@@ -23,7 +23,7 @@ trait IDUtrait extends ErythrinaDefault with FUtrait with InstrType{
 
 }
 
-class ID2EXzip extends Bundle with IDUtrait{
+class id_to_ex_zip extends Bundle with IDUtrait{
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 
@@ -48,7 +48,7 @@ trait EXUtrait extends ErythrinaDefault with FUtrait{
 
 }
 
-class EX2MEMzip extends Bundle with EXUtrait{
+class ex_to_mem_zip extends Bundle with EXUtrait{
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 
@@ -67,7 +67,7 @@ trait MEMUtrait extends ErythrinaDefault with FUtrait{
 
 }
 
-class MEM2WBzip extends Bundle with MEMUtrait{
+class mem_to_wb_zip extends Bundle with MEMUtrait{
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 
@@ -87,14 +87,8 @@ trait WBUtrait extends ErythrinaDefault with FUtrait{
 // Tool
 object StageConnect extends ErythrinaDefault{
   def apply[T <: Data](left: DecoupledIO[T], right: DecoupledIO[T]) = {
-    if (ARCH == "single")
-        right.bits := left.bits
-    else
-      if (ARCH == "multi")
-          right <> left
-      else
-        if (ARCH == "pipeline")
-          // TODO: to be continued
-          right <> RegEnable(left, left.fire)
+    right.valid := left.valid
+    left.ready := right.ready
+    right.bits := RegEnable(left.bits, right.fire)
   }
 }

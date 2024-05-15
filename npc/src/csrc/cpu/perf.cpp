@@ -4,9 +4,9 @@
 #include <perf.h>
 
 #include <cstdio>
+#include <cpu.h>
 
 #ifdef __SOC__
-#include "cpu.h"
 #include "VysyxSoCFull.h"
 #include "VysyxSoCFull___024root.h"
 #endif
@@ -130,7 +130,7 @@ void perf_res_record(){
 #endif
 
 #ifdef __SIM__
-    fprintf(perf_log, "\t%sOnly support __SOC__%s\n", FontYellow, Restore);
+    fprintf(perf_log, "\tOnly support __SOC__\n");
 #endif
     fprintf(perf_log, "------------------------------------------------------------\n");
     printf("%s Result has been recorded in build/report/perf.log %s\n", FontBlue, Restore);

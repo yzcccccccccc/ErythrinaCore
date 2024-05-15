@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 import bus.mem._
-import bus.ivybus.IvyBus
+import bus.ivybus._
 import bus.axi4._
 
 import utils._
@@ -88,17 +88,20 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     EXU_inst.io.EX2BPU  <> BPU_inst.io.EX2BPU
 
     // TODO: pipelines
-    IFU_inst.io.IFU2IDU <> IDU_inst.io.IFU2IDU
-    IDU_inst.io.IDU2EXU <> EXU_inst.io.IDU2EXU
-    EXU_inst.io.EXU2MEMU <> MEMU_inst.io.EXU2MEMU
-    MEMU_inst.io.MEMU2WBU <> WBU_inst.io.MEMU2WBU
+    IFU_inst.io.ifu_to_idu <> IDU_inst.io.ifu_to_idu
+    IDU_inst.io.idu_to_exu <> EXU_inst.io.idu_to_exu
+    EXU_inst.io.exu_to_memu <> MEMU_inst.io.exu_to_memu
+    MEMU_inst.io.memu_to_wbu <> WBU_inst.io.memu_to_wbu
 
     // TODO: mem (change to LSU)
-    val MM_inst     = Module(new MemManager2x2)
-    MM_inst.io.mem1     <> io.mem_port1
-    MM_inst.io.mem2     <> io.mem_port2
-    MM_inst.io.ifu_in   <> IFU_inst.io.ifu_mem
-    MM_inst.io.memu_in  <> MEMU_inst.io.memu_mem
+    val ifu_conv    = Module(new Ivy2AXI4)
+    val memu_conv   = Module(new Ivy2AXI4)
+
+    ifu_conv.io.in  <> IFU_inst.io.ifu_mem
+    ifu_conv.io.out <> io.mem_port1
+
+    memu_conv.io.in  <> MEMU_inst.io.memu_mem
+    memu_conv.io.out <> io.mem_port2
     
     // commit
     io.InstCommit <> WBU_inst.io.inst_commit
