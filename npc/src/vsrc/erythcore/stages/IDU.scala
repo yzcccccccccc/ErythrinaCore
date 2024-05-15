@@ -7,12 +7,11 @@ import utils._
 
 // IDU!
 class IDUIO extends Bundle with IDUtrait{
-    val step    = Input(Bool())
     val ifu_to_idu = Flipped(Decoupled(new if_to_id_zip))
     val idu_to_exu = Decoupled(new id_to_ex_zip)
-    val ID2BPU = Flipped(new IDU2BPUzip)           // 2 BPU
-    val RFRead  = Flipped(new RegFileIN)        // 2 Regfile
-    val BPU2IDU = Flipped(new RedirectInfo)
+    val idu_to_bpu = Flipped(new idu_to_bpu_zip)           // 2 BPU
+    val rf_rd_port    = Flipped(new RegFileIN)        // 2 Regfile
+    val bpu_to_idu = Flipped(new RedirectInfo)
 
     // perf
     val idu_perf_probe = Flipped(new PerfIDU)
@@ -23,8 +22,9 @@ class IDU extends Module with IDUtrait{
 
     io.ifu_to_idu.ready    := 1.B
     
-    val instr   = io.ifu_to_idu.bits.inst
-    val pc      = io.ifu_to_idu.bits.pc
+    val content_valid   = io.ifu_to_idu.bits.content_valid
+    val instr           = io.ifu_to_idu.bits.inst
+    val pc              = io.ifu_to_idu.bits.pc
 
     // Decode Instr
     val decodeList = ListLookup(instr, Instructions.decodeDefault, Instructions.decode_table)
@@ -34,8 +34,8 @@ class IDU extends Module with IDUtrait{
     val rd  = instr(11, 7)
 
     // RegFile
-    io.RFRead.raddr1 := rs1
-    io.RFRead.raddr2 := rs2
+    io.rf_rd_port.raddr1 := rs1
+    io.rf_rd_port.raddr2 := rs2
 
     // Get src
     val immj = Mux(instr(3, 3) === 1.B, SignExt(Cat(instr(31), instr(19, 12), instr(20), instr(30, 21), 0.U(1.W)), XLEN), SignExt(instr(31, 20), XLEN))
@@ -47,8 +47,8 @@ class IDU extends Module with IDUtrait{
         TypeU   -> SignExt(Cat(instr(31, 12), 0.U(12.W)), XLEN),
         TypeJ   -> immj
     ))
-    val rdata1 = io.RFRead.rdata1
-    val rdata2 = io.RFRead.rdata2
+    val rdata1 = io.rf_rd_port.rdata1
+    val rdata2 = io.rf_rd_port.rdata2
 
     // Generate Decode Information
     // TODO: What About TypeN ??
@@ -83,22 +83,21 @@ class IDU extends Module with IDUtrait{
     val csr_src2 = imm     
 
     // to BPU
-    io.ID2BPU.bpuop := bpuop
-    io.ID2BPU.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
-    io.ID2BPU.src2  := imm
-    io.ID2BPU.pc    := pc
+    io.idu_to_bpu.bpuop := bpuop
+    io.idu_to_bpu.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
+    io.idu_to_bpu.src2  := imm
+    io.idu_to_bpu.pc    := pc
 
-    // unknown inst
-    if (!ErythrinaSetting.isSTA){
-        val HaltUnkonwInst = Module(new haltUnknownInst)
-        HaltUnkonwInst.io.halt_trigger := instType === TypeER & io.ifu_to_idu.valid
-    }
 
     // to IFU!
-    //io.ifu_to_idu.ready            := io.idu_to_exu.valid & io.idu_to_exu.ready
+    io.ifu_to_idu.ready            :=  io.idu_to_exu.ready | ~content_valid
 
     // to EXU!
-    io.idu_to_exu.valid            := io.ifu_to_idu.valid
+    io.idu_to_exu.valid            := 1.B
+    io.idu_to_exu.bits.content_valid := 1.B
+    io.idu_to_exu.bits.pc    := pc
+    io.idu_to_exu.bits.inst  := instr
+    
     io.idu_to_exu.bits.src1        := Mux(csrop === CSRop.nop, src1, csr_src1)
     io.idu_to_exu.bits.src2        := Mux(csrop === CSRop.nop, src2, csr_src2)
     io.idu_to_exu.bits.ALUop       := aluop
@@ -108,14 +107,15 @@ class IDU extends Module with IDUtrait{
     io.idu_to_exu.bits.data2store  := rdata2
     io.idu_to_exu.bits.rd          := rd
     io.idu_to_exu.bits.rf_wen      := rf_wen & io.ifu_to_idu.valid
-    io.idu_to_exu.bits.pc          := pc
-    io.idu_to_exu.bits.inst        := instr
+    io.idu_to_exu.bits.exception.isEbreak   := 0.B
+    io.idu_to_exu.bits.exception.isUnknown  := instType === TypeER & content_valid
+    
 
     // Perf
-    io.idu_perf_probe.cal_inst_event := io.ifu_to_idu.valid & aluop =/= ALUop.nop & io.step
-    io.idu_perf_probe.csr_inst_event := io.ifu_to_idu.valid & csrop =/= CSRop.nop & io.step
-    io.idu_perf_probe.ld_inst_event := io.ifu_to_idu.valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu) & io.step
-    io.idu_perf_probe.st_inst_event := io.ifu_to_idu.valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb) & io.step
-    io.idu_perf_probe.j_inst_event := io.ifu_to_idu.valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr) & io.step
-    io.idu_perf_probe.b_inst_event := io.ifu_to_idu.valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu) & io.step
+    io.idu_perf_probe.cal_inst_event := content_valid & aluop =/= ALUop.nop 
+    io.idu_perf_probe.csr_inst_event := content_valid & csrop =/= CSRop.nop 
+    io.idu_perf_probe.ld_inst_event := content_valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu) 
+    io.idu_perf_probe.st_inst_event := content_valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb) 
+    io.idu_perf_probe.j_inst_event := content_valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr) 
+    io.idu_perf_probe.b_inst_event := content_valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu) 
 }

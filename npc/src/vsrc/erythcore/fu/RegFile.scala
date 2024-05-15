@@ -26,8 +26,8 @@ class RegFileOUT extends Bundle with RegTrait{
 }
 
 class RegFileIO extends Bundle with RegTrait{
-    val readIO  = new RegFileIN
-    val writeIO = new RegFileOUT
+    val rf_rport  = new RegFileIN
+    val rf_wport = new RegFileOUT
 }
 
 class RegFile extends Module with RegTrait {
@@ -35,10 +35,10 @@ class RegFile extends Module with RegTrait {
 
     val RegArray = RegInit(VecInit(Seq.fill(RegNum)(0.U(XLEN.W))))
 
-    when (io.writeIO.wen){
-        RegArray(io.writeIO.waddr) := Mux(io.writeIO.waddr === 0.U, 0.U, io.writeIO.wdata)
+    when (io.rf_wport.wen){
+        RegArray(io.rf_wport.waddr) := Mux(io.rf_wport.waddr === 0.U, 0.U, io.rf_wport.wdata)
     }
 
-    io.readIO.rdata1 := RegArray(io.readIO.raddr1)
-    io.readIO.rdata2 := RegArray(io.readIO.raddr2)
+    io.rf_rport.rdata1 := RegArray(io.rf_rport.raddr1)
+    io.rf_rport.rdata2 := RegArray(io.rf_rport.raddr2)
 }

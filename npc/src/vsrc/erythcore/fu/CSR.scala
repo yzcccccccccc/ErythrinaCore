@@ -27,10 +27,11 @@ trait CSRtrait extends ErythrinaDefault{
 }
 
 class EXU2CSRzip extends Bundle with CSRtrait{
-    val src1    = Input(UInt(XLEN.W))
-    val src2    = Input(UInt(XLEN.W))
-    val csrop   = Input(UInt(CSRopLEN.W))
-    val rdata   = Output(UInt(XLEN.W))
+    val src1        = Input(UInt(XLEN.W))
+    val src2        = Input(UInt(XLEN.W))
+    val csrop       = Input(UInt(CSRopLEN.W))
+    val rdata       = Output(UInt(XLEN.W))
+    val isEBREAK    = Output(Bool())
 }
 
 class WBU2CSRzip extends Bundle with CSRtrait{
@@ -42,8 +43,8 @@ class CSR2BPUzip extends  Bundle with CSRtrait{
 }
 
 class CSRIO extends Bundle with CSRtrait{
-    val EXU2CSR = new EXU2CSRzip
-    val CSR2BPU = new CSR2BPUzip
+    val exu_to_csr = new EXU2CSRzip
+    val csr_to_bpu = new CSR2BPUzip
     val en = Input(Bool())
 }
 
@@ -65,9 +66,9 @@ object CSRnum{
 class CSR extends Module with ErythrinaDefault{
     val io = IO(new CSRIO)
 
-    val src1    = io.EXU2CSR.src1
-    val src2    = io.EXU2CSR.src2
-    val csrop   = io.EXU2CSR.csrop
+    val src1    = io.exu_to_csr.src1
+    val src2    = io.exu_to_csr.src2
+    val csrop   = io.exu_to_csr.csrop
 
     // priv
     def privECALL   = 0x000.U
@@ -93,7 +94,7 @@ class CSR extends Module with ErythrinaDefault{
         isEBREAK    -> 0.U,
         isMRET      -> mepc
     ))
-    io.CSR2BPU.target_pc := tar_pc
+    io.csr_to_bpu.target_pc := tar_pc
 
     // choose the reg!
     val csrval  = LookupTreeDefault(csrnum, 0.U, List(
@@ -104,7 +105,7 @@ class CSR extends Module with ErythrinaDefault{
         CSRnum.marchid      -> marchid,
         CSRnum.mvendorid    -> mvendorid
     ))
-    io.EXU2CSR.rdata    := csrval
+    io.exu_to_csr.rdata    := csrval
     
     // update
     val csr_wen = (csrop =/= CSRop.nop) && (csrop =/= CSRop.jmp)
@@ -133,11 +134,7 @@ class CSR extends Module with ErythrinaDefault{
         }
     }
 
-    // halt if is EBREAK
-    if (!ErythrinaSetting.isSTA){
-        val HaltEbreak = Module(new haltEbreak)
-        HaltEbreak.io.halt_trigger    := isEBREAK
-    }
+    io.exu_to_csr.isEBREAK := isEBREAK
 
     // ecall
     when (isECALL & io.en){ // update in WB?

@@ -11,10 +11,8 @@ import utils._
 // Instruction Fetch Stage (pipeline, to be continued)
 
 class IFUIO extends Bundle with IFUtrait{
-  val step    = Input(Bool())
-  val req_en  = Input(Bool())
   val ifu_to_idu = Decoupled(new if_to_id_zip)         // pipeline ctrl, to IDU
-  val BPU2IFU = Flipped(new RedirectInfo)
+  val bpu_to_ifu = Flipped(new RedirectInfo)
   val ifu_mem = new IvyBus
 
   // perf
@@ -24,20 +22,45 @@ class IFUIO extends Bundle with IFUtrait{
 class IFU extends Module with IFUtrait{
   val io = IO(new IFUIO)
 
+  val sIDLE :: sREQ :: sRECV :: Nil = Enum(3)
+  val state = RegInit(sIDLE)
+  switch (state){
+    is (sIDLE){
+      when (~reset.asBool){
+        state := sREQ
+      }
+    }
+    is (sREQ){
+      when (io.ifu_mem.req.fire){
+        state := sRECV
+      }
+    }
+    is (sRECV){
+      when (io.ifu_mem.resp.fire){
+        state := sIDLE
+      }
+    }
+  }
+
+  // flush (bpu)
+  val flush   = (io.ifu_mem.req.fire | state === sRECV) & io.bpu_to_ifu.redirect
+  val flush_r = Reg(Bool())
+  when (io.ifu_mem.req.fire | state === sRECV){
+    flush_r := io.bpu_to_ifu.redirect
+  }.elsewhen(io.ifu_mem.resp.fire){
+    flush_r := 0.B
+  }
+
   // pc
   val pc    = RegInit(ErythrinaSetting.RESETVEC.U(XLEN.W))
   val snpc  = pc + 4.U
-  when (io.step){
-    when (io.BPU2IFU.redirect){
-      pc := io.BPU2IFU.target
-    }.otherwise{
-      pc := snpc
-    }
+  when (io.bpu_to_ifu.redirect){
+    pc := io.bpu_to_ifu.target
+  }.elsewhen(io.ifu_to_idu.fire){
+    pc := snpc
   }
   
-  val valid_r = Reg(Bool())
-  valid_r := ~reset.asBool
-  io.ifu_mem.req.valid      := valid_r & io.req_en
+  io.ifu_mem.req.valid      := state === sREQ
   io.ifu_mem.req.bits.wen   := 0.B
   io.ifu_mem.req.bits.addr  := pc
   io.ifu_mem.req.bits.mask  := 0.U
@@ -45,31 +68,20 @@ class IFU extends Module with IFUtrait{
   io.ifu_mem.req.bits.size  := "b010".U     // 4 bytes transfer
 
   // inst
-  io.ifu_mem.resp.ready   := 1.B
+  io.ifu_mem.resp.ready   := state === sRECV
   val inst    = io.ifu_mem.resp.bits.data
-  val inst_r  = RegEnable(io.ifu_mem.resp.bits.data, io.ifu_mem.resp.fire)
 
-  // zip
+  // IFU to IDU zip
   val inst_valid = Reg(Bool())
-  when (io.ifu_mem.resp.fire){
-    inst_valid  := 1.B
-  }.elsewhen(io.step){
-    inst_valid  := 0.B
-  }
-  io.ifu_to_idu.valid       := inst_valid
-  io.ifu_to_idu.bits.inst   := inst_r
-  io.ifu_to_idu.bits.pc     := pc
+
+  io.ifu_to_idu.valid               := io.ifu_mem.resp.fire
+  io.ifu_to_idu.bits.content_valid  := ~flush_r
+  io.ifu_to_idu.bits.pc             := pc
+  io.ifu_to_idu.bits.inst           := inst
+
 
   // perf
-  val has_mem_req_fire = RegInit(false.B)
-  when (io.ifu_mem.req.fire){
-    has_mem_req_fire := 1.B
-  }
-  when (io.ifu_mem.resp.fire){
-    has_mem_req_fire := 0.B
-  }
-
   io.ifu_perf_probe.get_inst_event := io.ifu_mem.resp.fire
-  io.ifu_perf_probe.wait_req_event := io.ifu_mem.req.valid & ~io.ifu_mem.req.ready
-  io.ifu_perf_probe.wait_resp_event := ~io.ifu_mem.resp.valid & io.ifu_mem.resp.ready & ~io.ifu_mem.req.valid & has_mem_req_fire
+  io.ifu_perf_probe.wait_req_event := state === sREQ
+  io.ifu_perf_probe.wait_resp_event := state === sRECV
 }

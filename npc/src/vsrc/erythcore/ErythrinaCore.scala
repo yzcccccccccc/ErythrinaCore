@@ -66,32 +66,27 @@ class ErythrinaCore extends Module with ErythrinaDefault{
             state := sIF
         }
     }
-    IFU_inst.io.req_en  := state === sIF
-    IFU_inst.io.step    := state === sWB
-    IDU_inst.io.step    := state === sWB
-    WBU_inst.io.step    := state === sWB
-    MEMU_inst.io.en     := state === sMEM
     CSR_inst.io.en      := state === sWB
 
     // CSR
-    CSR_inst.io.CSR2BPU <> BPU_inst.io.CSR2BPU
-    CSR_inst.io.EXU2CSR <> EXU_inst.io.EX2CSR
+    CSR_inst.io.csr_to_bpu <> BPU_inst.io.csr_to_bpu
+    CSR_inst.io.exu_to_csr <> EXU_inst.io.exu_to_csr
     
     // regfile 
-    regfile.io.readIO <> IDU_inst.io.RFRead
-    regfile.io.writeIO <> WBU_inst.io.RegWriteIO
+    regfile.io.rf_rport <> IDU_inst.io.rf_rd_port
+    regfile.io.rf_wport <> WBU_inst.io.RegWriteIO
 
     // BPU  
-    IFU_inst.io.BPU2IFU <> BPU_inst.io.IF_Redirect
-    IDU_inst.io.BPU2IDU <> BPU_inst.io.ID_Redirect
-    IDU_inst.io.ID2BPU  <> BPU_inst.io.ID2BPU
-    EXU_inst.io.EX2BPU  <> BPU_inst.io.EX2BPU
+    IFU_inst.io.bpu_to_ifu <> BPU_inst.io.IF_Redirect
+    IDU_inst.io.bpu_to_idu <> BPU_inst.io.ID_Redirect
+    IDU_inst.io.idu_to_bpu  <> BPU_inst.io.idu_to_bpu
+    EXU_inst.io.exu_to_bpu  <> BPU_inst.io.exu_to_bpu
 
     // TODO: pipelines
-    IFU_inst.io.ifu_to_idu <> IDU_inst.io.ifu_to_idu
-    IDU_inst.io.idu_to_exu <> EXU_inst.io.idu_to_exu
-    EXU_inst.io.exu_to_memu <> MEMU_inst.io.exu_to_memu
-    MEMU_inst.io.memu_to_wbu <> WBU_inst.io.memu_to_wbu
+    StageConnect(IFU_inst.io.ifu_to_idu, IDU_inst.io.ifu_to_idu)
+    StageConnect(IDU_inst.io.idu_to_exu, EXU_inst.io.idu_to_exu)
+    StageConnect(EXU_inst.io.exu_to_memu, MEMU_inst.io.exu_to_memu)
+    StageConnect(MEMU_inst.io.memu_to_wbu, WBU_inst.io.memu_to_wbu)
 
     // TODO: mem (change to LSU)
     val ifu_conv    = Module(new Ivy2AXI4)

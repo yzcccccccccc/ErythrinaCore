@@ -3,10 +3,13 @@ package erythcore
 import chisel3._
 import chisel3.util._
 
-// FU trait
-trait FUtrait extends ErythrinaDefault with ALUtrait with LSUtrait with BPUtrait with RegTrait with CSRtrait{
-
+class ExceptionVec extends Bundle with ErythrinaDefault{
+  val isEbreak  = Bool()
+  val isUnknown = Bool()
 }
+
+// FU trait
+trait FUtrait extends ErythrinaDefault with ALUtrait with LSUtrait with BPUtrait with RegTrait with CSRtrait{}
 
 // IFU
 trait IFUtrait extends ErythrinaDefault with FUtrait{
@@ -14,8 +17,9 @@ trait IFUtrait extends ErythrinaDefault with FUtrait{
 }
 
 class if_to_id_zip extends Bundle with IFUtrait{
-  val inst  = UInt(XLEN.W)
-  val pc    = UInt(XLEN.W)
+  val content_valid = Bool()
+  val inst = UInt(XLEN.W)
+  val pc   = UInt(XLEN.W)
 }
 
 // IDU
@@ -24,8 +28,9 @@ trait IDUtrait extends ErythrinaDefault with FUtrait with InstrType{
 }
 
 class id_to_ex_zip extends Bundle with IDUtrait{
-  val inst  = UInt(XLEN.W)
-  val pc    = UInt(XLEN.W)
+  val content_valid = Bool()
+  val inst = UInt(XLEN.W)
+  val pc   = UInt(XLEN.W)
 
   // for ALU, BPU (EX), CSR
   val src1  = UInt(XLEN.W)
@@ -41,6 +46,9 @@ class id_to_ex_zip extends Bundle with IDUtrait{
   // for WBU (WB)
   val rd      = UInt(RegAddrLen.W)
   val rf_wen  = Bool() 
+
+  // exception
+  val exception = new ExceptionVec
 }
 
 // EXU
@@ -49,6 +57,7 @@ trait EXUtrait extends ErythrinaDefault with FUtrait{
 }
 
 class ex_to_mem_zip extends Bundle with EXUtrait{
+  val content_valid = Bool()
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 
@@ -60,6 +69,9 @@ class ex_to_mem_zip extends Bundle with EXUtrait{
   // for WBU (WB)
   val rd      = UInt(RegAddrLen.W)
   val rf_wen  = Bool()
+
+  // exception
+  val exception = new ExceptionVec
 }
 
 // MEMU
@@ -68,6 +80,7 @@ trait MEMUtrait extends ErythrinaDefault with FUtrait{
 }
 
 class mem_to_wb_zip extends Bundle with MEMUtrait{
+  val content_valid = Bool()
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
 
@@ -77,6 +90,9 @@ class mem_to_wb_zip extends Bundle with MEMUtrait{
   // mem commit
   val maddr = UInt(XLEN.W)
   val men   = Bool()
+
+  // exception
+  val exception = new ExceptionVec
 }
 
 // WBU

@@ -8,7 +8,6 @@ import utils._
 import bus.ivybus._
 
 class MEMUIO extends Bundle with MEMUtrait{
-    val en          = Input(Bool())
     val exu_to_memu    = Flipped(Decoupled(new ex_to_mem_zip))
     val memu_to_wbu    = Decoupled(new mem_to_wb_zip)
 
@@ -22,17 +21,41 @@ class MEMUIO extends Bundle with MEMUtrait{
 class MEMU extends Module with MEMUtrait{
     val io = IO(new MEMUIO)
 
+    // FSM
+    val sIDLE :: sREQ :: sRECV :: Nil = Enum(3)
+    val state = RegInit(sIDLE)
+    switch (state){
+        is (sIDLE){
+            when (~reset.asBool){
+                state := sREQ
+            }
+        }
+        is (sREQ){
+            when (io.memu_mem.req.fire){
+                state := sRECV
+            }
+        }
+        is (sRECV){
+            when (io.memu_mem.resp.fire){
+                state := sREQ
+            }
+        }
+    }
+
     io.exu_to_memu.ready   := 1.B
 
     // TODO: May be transfered to LSU in the future?
 
+    val content_valid   = io.exu_to_memu.bits.content_valid
+    val need_mem_op     = io.exu_to_memu.bits.LSUop =/= LSUop.nop & content_valid
+
     // MemReq
     val addr = io.exu_to_memu.bits.addr
-    io.memu_mem.req.valid       := io.exu_to_memu.bits.LSUop =/= LSUop.nop & io.exu_to_memu.valid & io.en
+    io.memu_mem.req.valid       := need_mem_op & state === sREQ
     io.memu_mem.req.bits.addr   := addr
 
     // MemResp
-    io.memu_mem.resp.ready      := 1.B
+    io.memu_mem.resp.ready      := state === sRECV
     val ld_data = io.memu_mem.resp.bits.data
 
     // Byte Res
@@ -123,7 +146,8 @@ class MEMU extends Module with MEMUtrait{
     assert(~io.memu_mem.req.valid | (io.memu_mem.req.valid & ((addr(1, 0) === 0.U & is_word) | (addr(0) === 0.U & is_half) | is_byte)), "Unaligned Memory Access!")
 
     // to EXU
-    //io.exu_to_memu.ready           := io.memu_to_wbu.valid & io.memu_to_wbu.ready
+    val data_valid = Mux(need_mem_op, io.memu_mem.resp.fire, true.B)
+    io.exu_to_memu.ready           := io.memu_mem.req.ready & data_valid | ~content_valid
 
     // to WBU!
     val isload = LookupTreeDefault(lsuop, false.B, List(
@@ -134,14 +158,16 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lw    -> true.B
     ))
     val wdata   = RegNext(Mux(isload, LoadRes, io.exu_to_memu.bits.addr))
-    io.memu_to_wbu.valid       := (io.memu_mem.resp.fire | ~io.memu_mem.req.valid)
-    io.memu_to_wbu.bits.pc     := io.exu_to_memu.bits.pc
-    io.memu_to_wbu.bits.inst   := io.exu_to_memu.bits.inst
+    io.memu_to_wbu.valid       := data_valid
+    io.memu_to_wbu.bits.content_valid   := content_valid
+    io.memu_to_wbu.bits.pc              := io.exu_to_memu.bits.pc
+    io.memu_to_wbu.bits.inst            := io.exu_to_memu.bits.inst
     io.memu_to_wbu.bits.RegWriteIO.waddr   := io.exu_to_memu.bits.rd
     io.memu_to_wbu.bits.RegWriteIO.wdata   := wdata
     io.memu_to_wbu.bits.RegWriteIO.wen     := io.exu_to_memu.bits.rf_wen
-    io.memu_to_wbu.bits.maddr  := addr
-    io.memu_to_wbu.bits.men    := io.exu_to_memu.bits.LSUop =/= LSUop.nop & io.exu_to_memu.valid
+    io.memu_to_wbu.bits.maddr   := addr
+    io.memu_to_wbu.bits.men     := need_mem_op
+    io.memu_to_wbu.bits.exception := io.exu_to_memu.bits.exception
 
     // Perf
     val has_mem_req_fire = Reg(Bool())
