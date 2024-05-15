@@ -16,7 +16,7 @@ trait IFUtrait extends ErythrinaDefault with FUtrait{
   // Exception Info (to be continued)
 }
 
-class if_to_id_zip extends Bundle with IFUtrait{
+class IF_ID_zip extends Bundle with IFUtrait{
   val content_valid = Bool()
   val inst = UInt(XLEN.W)
   val pc   = UInt(XLEN.W)
@@ -27,7 +27,7 @@ trait IDUtrait extends ErythrinaDefault with FUtrait with InstrType{
 
 }
 
-class id_to_ex_zip extends Bundle with IDUtrait{
+class ID_EX_zip extends Bundle with IDUtrait{
   val content_valid = Bool()
   val inst = UInt(XLEN.W)
   val pc   = UInt(XLEN.W)
@@ -56,7 +56,7 @@ trait EXUtrait extends ErythrinaDefault with FUtrait{
 
 }
 
-class ex_to_mem_zip extends Bundle with EXUtrait{
+class EX_MEM_zip extends Bundle with EXUtrait{
   val content_valid = Bool()
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)
@@ -79,7 +79,7 @@ trait MEMUtrait extends ErythrinaDefault with FUtrait{
 
 }
 
-class mem_to_wb_zip extends Bundle with MEMUtrait{
+class MEM_WB_zip extends Bundle with MEMUtrait{
   val content_valid = Bool()
   val inst  = UInt(XLEN.W)
   val pc    = UInt(XLEN.W)

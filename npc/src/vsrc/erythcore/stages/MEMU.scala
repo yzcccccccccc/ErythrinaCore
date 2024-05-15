@@ -8,8 +8,8 @@ import utils._
 import bus.ivybus._
 
 class MEMUIO extends Bundle with MEMUtrait{
-    val exu_to_memu    = Flipped(Decoupled(new ex_to_mem_zip))
-    val memu_to_wbu    = Decoupled(new mem_to_wb_zip)
+    val exu_memu_zip    = Flipped(Decoupled(new EX_MEM_zip))
+    val memu_wbu_zip    = Decoupled(new MEM_WB_zip)
 
     // memory
     val memu_mem    = new IvyBus
@@ -42,15 +42,15 @@ class MEMU extends Module with MEMUtrait{
         }
     }
 
-    io.exu_to_memu.ready   := 1.B
+    io.exu_memu_zip.ready   := 1.B
 
     // TODO: May be transfered to LSU in the future?
 
-    val content_valid   = io.exu_to_memu.bits.content_valid
-    val need_mem_op     = io.exu_to_memu.bits.LSUop =/= LSUop.nop & content_valid
+    val content_valid   = io.exu_memu_zip.bits.content_valid
+    val need_mem_op     = io.exu_memu_zip.bits.LSUop =/= LSUop.nop & content_valid
 
     // MemReq
-    val addr = io.exu_to_memu.bits.addr
+    val addr = io.exu_memu_zip.bits.addr
     io.memu_mem.req.valid       := need_mem_op & state === sREQ
     io.memu_mem.req.bits.addr   := addr
 
@@ -74,7 +74,7 @@ class MEMU extends Module with MEMUtrait{
         "b11".U     -> ld_data(31,16)
     ))
 
-    val lsuop = io.exu_to_memu.bits.LSUop
+    val lsuop = io.exu_memu_zip.bits.LSUop
     // Load
     val load_info_lst   = List(               // (res, size)
         LSUop.lb    -> (SignExt(ByteRes, XLEN), "b000".U),
@@ -93,9 +93,9 @@ class MEMU extends Module with MEMUtrait{
         LSUop.sw    -> "b1111".U
     ))
     val st_data = LookupTree(lsuop, List(
-        LSUop.sb    -> (io.exu_to_memu.bits.data2store(7, 0) << (addr(1, 0) << 3.U)),      // *8
-        LSUop.sh    -> (io.exu_to_memu.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
-        LSUop.sw    -> (io.exu_to_memu.bits.data2store)
+        LSUop.sb    -> (io.exu_memu_zip.bits.data2store(7, 0) << (addr(1, 0) << 3.U)),      // *8
+        LSUop.sh    -> (io.exu_memu_zip.bits.data2store(15, 0) << ((addr(1, 0) & "b10".U) << 3.U)),
+        LSUop.sw    -> (io.exu_memu_zip.bits.data2store)
     ))
     val st_size = LookupTree(lsuop, List(
         LSUop.sb    -> "b000".U,
@@ -147,7 +147,7 @@ class MEMU extends Module with MEMUtrait{
 
     // to EXU
     val data_valid = Mux(need_mem_op, io.memu_mem.resp.fire, true.B)
-    io.exu_to_memu.ready           := io.memu_mem.req.ready & data_valid | ~content_valid
+    io.exu_memu_zip.ready           := io.memu_mem.req.ready & data_valid | ~content_valid
 
     // to WBU!
     val isload = LookupTreeDefault(lsuop, false.B, List(
@@ -157,17 +157,17 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lhu   -> true.B,
         LSUop.lw    -> true.B
     ))
-    val wdata   = RegNext(Mux(isload, LoadRes, io.exu_to_memu.bits.addr))
-    io.memu_to_wbu.valid       := data_valid
-    io.memu_to_wbu.bits.content_valid   := content_valid
-    io.memu_to_wbu.bits.pc              := io.exu_to_memu.bits.pc
-    io.memu_to_wbu.bits.inst            := io.exu_to_memu.bits.inst
-    io.memu_to_wbu.bits.RegWriteIO.waddr   := io.exu_to_memu.bits.rd
-    io.memu_to_wbu.bits.RegWriteIO.wdata   := wdata
-    io.memu_to_wbu.bits.RegWriteIO.wen     := io.exu_to_memu.bits.rf_wen
-    io.memu_to_wbu.bits.maddr   := addr
-    io.memu_to_wbu.bits.men     := need_mem_op
-    io.memu_to_wbu.bits.exception := io.exu_to_memu.bits.exception
+    val wdata   = RegNext(Mux(isload, LoadRes, io.exu_memu_zip.bits.addr))
+    io.memu_wbu_zip.valid       := data_valid
+    io.memu_wbu_zip.bits.content_valid   := content_valid
+    io.memu_wbu_zip.bits.pc              := io.exu_memu_zip.bits.pc
+    io.memu_wbu_zip.bits.inst            := io.exu_memu_zip.bits.inst
+    io.memu_wbu_zip.bits.RegWriteIO.waddr   := io.exu_memu_zip.bits.rd
+    io.memu_wbu_zip.bits.RegWriteIO.wdata   := wdata
+    io.memu_wbu_zip.bits.RegWriteIO.wen     := io.exu_memu_zip.bits.rf_wen
+    io.memu_wbu_zip.bits.maddr   := addr
+    io.memu_wbu_zip.bits.men     := need_mem_op
+    io.memu_wbu_zip.bits.exception := io.exu_memu_zip.bits.exception
 
     // Perf
     val has_mem_req_fire = Reg(Bool())
@@ -179,7 +179,7 @@ class MEMU extends Module with MEMUtrait{
     }
 
     io.memu_perf_probe.ld_data_event := io.memu_mem.resp.fire & isload
-    io.memu_perf_probe.st_data_event := io.memu_mem.resp.fire & (~isload & io.exu_to_memu.bits.LSUop =/= LSUop.nop)
-    io.memu_perf_probe.wait_req_event := io.memu_mem.req.valid & ~io.memu_mem.req.ready & io.memu_to_wbu.bits.men
-    io.memu_perf_probe.wait_resp_event := ~io.memu_mem.resp.valid & io.memu_mem.resp.ready & ~io.memu_mem.req.valid & io.memu_to_wbu.bits.men & has_mem_req_fire
+    io.memu_perf_probe.st_data_event := io.memu_mem.resp.fire & (~isload & io.exu_memu_zip.bits.LSUop =/= LSUop.nop)
+    io.memu_perf_probe.wait_req_event := io.memu_mem.req.valid & ~io.memu_mem.req.ready & io.memu_wbu_zip.bits.men
+    io.memu_perf_probe.wait_resp_event := ~io.memu_mem.resp.valid & io.memu_mem.resp.ready & ~io.memu_mem.req.valid & io.memu_wbu_zip.bits.men & has_mem_req_fire
 }

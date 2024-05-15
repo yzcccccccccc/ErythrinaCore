@@ -26,7 +26,7 @@ trait CSRtrait extends ErythrinaDefault{
     val CSRopLEN = 4
 }
 
-class EXU2CSRzip extends Bundle with CSRtrait{
+class EXU_CSR_zip extends Bundle with CSRtrait{
     val src1        = Input(UInt(XLEN.W))
     val src2        = Input(UInt(XLEN.W))
     val csrop       = Input(UInt(CSRopLEN.W))
@@ -38,14 +38,13 @@ class WBU2CSRzip extends Bundle with CSRtrait{
     // TODO: TBD, in the future (pipeline?), CSR write action will be triggered in WB
 }
 
-class CSR2BPUzip extends  Bundle with CSRtrait{
+class CSR_BPU_zip extends  Bundle with CSRtrait{
     val target_pc = Output(UInt(XLEN.W))
 }
 
 class CSRIO extends Bundle with CSRtrait{
-    val exu_to_csr = new EXU2CSRzip
-    val csr_to_bpu = new CSR2BPUzip
-    val en = Input(Bool())
+    val exu_csr_zip = new EXU_CSR_zip
+    val csr_bpu_zip = new CSR_BPU_zip
 }
 
 object TrapCause{
@@ -66,9 +65,9 @@ object CSRnum{
 class CSR extends Module with ErythrinaDefault{
     val io = IO(new CSRIO)
 
-    val src1    = io.exu_to_csr.src1
-    val src2    = io.exu_to_csr.src2
-    val csrop   = io.exu_to_csr.csrop
+    val src1    = io.exu_csr_zip.src1
+    val src2    = io.exu_csr_zip.src2
+    val csrop   = io.exu_csr_zip.csrop
 
     // priv
     def privECALL   = 0x000.U
@@ -94,7 +93,7 @@ class CSR extends Module with ErythrinaDefault{
         isEBREAK    -> 0.U,
         isMRET      -> mepc
     ))
-    io.csr_to_bpu.target_pc := tar_pc
+    io.csr_bpu_zip.target_pc := tar_pc
 
     // choose the reg!
     val csrval  = LookupTreeDefault(csrnum, 0.U, List(
@@ -105,7 +104,7 @@ class CSR extends Module with ErythrinaDefault{
         CSRnum.marchid      -> marchid,
         CSRnum.mvendorid    -> mvendorid
     ))
-    io.exu_to_csr.rdata    := csrval
+    io.exu_csr_zip.rdata    := csrval
     
     // update
     val csr_wen = (csrop =/= CSRop.nop) && (csrop =/= CSRop.jmp)
@@ -117,7 +116,7 @@ class CSR extends Module with ErythrinaDefault{
         isSET   -> (csrval | src1),
         isCLR   -> (csrval & ~src1)
     ))
-    when (io.en & csr_wen){
+    when (csr_wen){
         switch (csrnum){
             is (CSRnum.mcause){
                 mcause  := csr_new
@@ -134,10 +133,10 @@ class CSR extends Module with ErythrinaDefault{
         }
     }
 
-    io.exu_to_csr.isEBREAK := isEBREAK
+    io.exu_csr_zip.isEBREAK := isEBREAK
 
     // ecall
-    when (isECALL & io.en){ // update in WB?
+    when (isECALL){ // update in WB?
         mepc    := src1
         mcause  := TrapCause.MECALL
     }

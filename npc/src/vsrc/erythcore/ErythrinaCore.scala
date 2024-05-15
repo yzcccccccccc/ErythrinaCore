@@ -28,49 +28,9 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     val CSR_inst    = Module(new CSR)
     val regfile     = Module(new RegFile)
 
-    // FSM
-    val sIF :: sIF_Recv :: sID :: sEX :: sMEM :: sMEM_Recv :: sWB :: Nil = Enum(7)
-    val state   = RegInit(sIF)
-    switch (state){
-        is (sIF){
-            when (IFU_inst.io.ifu_mem.req.fire){
-                state := sIF_Recv
-            }
-        }
-        is (sIF_Recv){
-            when (IFU_inst.io.ifu_mem.resp.fire){
-                state := sID
-            }
-        }
-        is (sID){
-            state := sEX
-        }
-        is (sEX){
-            state := sMEM
-        }
-        is (sMEM){
-            when (MEMU_inst.io.memu_mem.req.fire){
-                state := sMEM_Recv
-            }.elsewhen(MEMU_inst.io.memu_mem.req.valid){
-                state := sMEM
-            }.otherwise{
-                state := sWB
-            }
-        }
-        is (sMEM_Recv){
-            when (MEMU_inst.io.memu_mem.resp.fire){
-                state := sWB
-            }
-        }
-        is (sWB){
-            state := sIF
-        }
-    }
-    CSR_inst.io.en      := state === sWB
-
     // CSR
-    CSR_inst.io.csr_to_bpu <> BPU_inst.io.csr_to_bpu
-    CSR_inst.io.exu_to_csr <> EXU_inst.io.exu_to_csr
+    CSR_inst.io.csr_bpu_zip <> BPU_inst.io.csr_bpu_zip
+    CSR_inst.io.exu_csr_zip <> EXU_inst.io.exu_csr_zip
     
     // regfile 
     regfile.io.rf_rport <> IDU_inst.io.rf_rd_port
@@ -79,14 +39,14 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     // BPU  
     IFU_inst.io.bpu_to_ifu <> BPU_inst.io.IF_Redirect
     IDU_inst.io.bpu_to_idu <> BPU_inst.io.ID_Redirect
-    IDU_inst.io.idu_to_bpu  <> BPU_inst.io.idu_to_bpu
-    EXU_inst.io.exu_to_bpu  <> BPU_inst.io.exu_to_bpu
+    IDU_inst.io.idu_bpu_zip  <> BPU_inst.io.idu_bpu_zip
+    EXU_inst.io.exu_bpu_zip  <> BPU_inst.io.exu_bpu_zip
 
     // TODO: pipelines
-    StageConnect(IFU_inst.io.ifu_to_idu, IDU_inst.io.ifu_to_idu)
-    StageConnect(IDU_inst.io.idu_to_exu, EXU_inst.io.idu_to_exu)
-    StageConnect(EXU_inst.io.exu_to_memu, MEMU_inst.io.exu_to_memu)
-    StageConnect(MEMU_inst.io.memu_to_wbu, WBU_inst.io.memu_to_wbu)
+    StageConnect(IFU_inst.io. ifu_idu_zip, IDU_inst.io. ifu_idu_zip)
+    StageConnect(IDU_inst.io.idu_exu_zip, EXU_inst.io.idu_exu_zip)
+    StageConnect(EXU_inst.io.exu_memu_zip, MEMU_inst.io.exu_memu_zip)
+    StageConnect(MEMU_inst.io.memu_wbu_zip, WBU_inst.io.memu_wbu_zip)
 
     // TODO: mem (change to LSU)
     val ifu_conv    = Module(new Ivy2AXI4)

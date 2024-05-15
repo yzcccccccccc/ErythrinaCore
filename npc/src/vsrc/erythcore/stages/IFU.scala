@@ -11,7 +11,7 @@ import utils._
 // Instruction Fetch Stage (pipeline, to be continued)
 
 class IFUIO extends Bundle with IFUtrait{
-  val ifu_to_idu = Decoupled(new if_to_id_zip)         // pipeline ctrl, to IDU
+  val ifu_idu_zip = Decoupled(new IF_ID_zip)         // pipeline ctrl, to IDU
   val bpu_to_ifu = Flipped(new RedirectInfo)
   val ifu_mem = new IvyBus
 
@@ -56,7 +56,7 @@ class IFU extends Module with IFUtrait{
   val snpc  = pc + 4.U
   when (io.bpu_to_ifu.redirect){
     pc := io.bpu_to_ifu.target
-  }.elsewhen(io.ifu_to_idu.fire){
+  }.elsewhen(io. ifu_idu_zip.fire){
     pc := snpc
   }
   
@@ -74,10 +74,10 @@ class IFU extends Module with IFUtrait{
   // IFU to IDU zip
   val inst_valid = Reg(Bool())
 
-  io.ifu_to_idu.valid               := io.ifu_mem.resp.fire
-  io.ifu_to_idu.bits.content_valid  := ~flush_r
-  io.ifu_to_idu.bits.pc             := pc
-  io.ifu_to_idu.bits.inst           := inst
+  io. ifu_idu_zip.valid               := io.ifu_mem.resp.fire
+  io. ifu_idu_zip.bits.content_valid  := ~flush_r
+  io. ifu_idu_zip.bits.pc             := pc
+  io. ifu_idu_zip.bits.inst           := inst
 
 
   // perf

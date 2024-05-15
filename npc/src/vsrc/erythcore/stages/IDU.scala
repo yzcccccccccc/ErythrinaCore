@@ -7,9 +7,9 @@ import utils._
 
 // IDU!
 class IDUIO extends Bundle with IDUtrait{
-    val ifu_to_idu = Flipped(Decoupled(new if_to_id_zip))
-    val idu_to_exu = Decoupled(new id_to_ex_zip)
-    val idu_to_bpu = Flipped(new idu_to_bpu_zip)           // 2 BPU
+    val ifu_idu_zip = Flipped(Decoupled(new IF_ID_zip))
+    val idu_exu_zip = Decoupled(new ID_EX_zip)
+    val idu_bpu_zip = Flipped(new IDU_BPU_zip)           // 2 BPU
     val rf_rd_port    = Flipped(new RegFileIN)        // 2 Regfile
     val bpu_to_idu = Flipped(new RedirectInfo)
 
@@ -20,11 +20,11 @@ class IDUIO extends Bundle with IDUtrait{
 class IDU extends Module with IDUtrait{
     val io = IO(new IDUIO)
 
-    io.ifu_to_idu.ready    := 1.B
+    io. ifu_idu_zip.ready    := 1.B
     
-    val content_valid   = io.ifu_to_idu.bits.content_valid
-    val instr           = io.ifu_to_idu.bits.inst
-    val pc              = io.ifu_to_idu.bits.pc
+    val content_valid   = io. ifu_idu_zip.bits.content_valid
+    val instr           = io. ifu_idu_zip.bits.inst
+    val pc              = io. ifu_idu_zip.bits.pc
 
     // Decode Instr
     val decodeList = ListLookup(instr, Instructions.decodeDefault, Instructions.decode_table)
@@ -83,32 +83,32 @@ class IDU extends Module with IDUtrait{
     val csr_src2 = imm     
 
     // to BPU
-    io.idu_to_bpu.bpuop := bpuop
-    io.idu_to_bpu.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
-    io.idu_to_bpu.src2  := imm
-    io.idu_to_bpu.pc    := pc
+    io.idu_bpu_zip.bpuop := bpuop
+    io.idu_bpu_zip.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
+    io.idu_bpu_zip.src2  := imm
+    io.idu_bpu_zip.pc    := pc
 
 
     // to IFU!
-    io.ifu_to_idu.ready            :=  io.idu_to_exu.ready | ~content_valid
+    io. ifu_idu_zip.ready            :=  io.idu_exu_zip.ready | ~content_valid
 
     // to EXU!
-    io.idu_to_exu.valid            := 1.B
-    io.idu_to_exu.bits.content_valid := 1.B
-    io.idu_to_exu.bits.pc    := pc
-    io.idu_to_exu.bits.inst  := instr
+    io.idu_exu_zip.valid            := 1.B
+    io.idu_exu_zip.bits.content_valid := 1.B
+    io.idu_exu_zip.bits.pc    := pc
+    io.idu_exu_zip.bits.inst  := instr
     
-    io.idu_to_exu.bits.src1        := Mux(csrop === CSRop.nop, src1, csr_src1)
-    io.idu_to_exu.bits.src2        := Mux(csrop === CSRop.nop, src2, csr_src2)
-    io.idu_to_exu.bits.ALUop       := aluop
-    io.idu_to_exu.bits.BPUop       := bpuop
-    io.idu_to_exu.bits.LSUop       := lsuop
-    io.idu_to_exu.bits.CSRop       := csrop
-    io.idu_to_exu.bits.data2store  := rdata2
-    io.idu_to_exu.bits.rd          := rd
-    io.idu_to_exu.bits.rf_wen      := rf_wen & io.ifu_to_idu.valid
-    io.idu_to_exu.bits.exception.isEbreak   := 0.B
-    io.idu_to_exu.bits.exception.isUnknown  := instType === TypeER & content_valid
+    io.idu_exu_zip.bits.src1        := Mux(csrop === CSRop.nop, src1, csr_src1)
+    io.idu_exu_zip.bits.src2        := Mux(csrop === CSRop.nop, src2, csr_src2)
+    io.idu_exu_zip.bits.ALUop       := aluop
+    io.idu_exu_zip.bits.BPUop       := bpuop
+    io.idu_exu_zip.bits.LSUop       := lsuop
+    io.idu_exu_zip.bits.CSRop       := csrop
+    io.idu_exu_zip.bits.data2store  := rdata2
+    io.idu_exu_zip.bits.rd          := rd
+    io.idu_exu_zip.bits.rf_wen      := rf_wen & io. ifu_idu_zip.valid
+    io.idu_exu_zip.bits.exception.isEbreak   := 0.B
+    io.idu_exu_zip.bits.exception.isUnknown  := instType === TypeER & content_valid
     
 
     // Perf

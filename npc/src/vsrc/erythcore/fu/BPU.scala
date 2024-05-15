@@ -22,14 +22,14 @@ object BPUop{
     def csr     = "b1001".U     // ecall, ebreak, ret
 }
 
-class idu_to_bpu_zip extends Bundle with BPUtrait{
+class IDU_BPU_zip extends Bundle with BPUtrait{
     val pc      = Input(UInt(XLEN.W))
     val src1    = Input(UInt(XLEN.W))
     val src2    = Input(UInt(XLEN.W))
     val bpuop   = Input(UInt(BPUopLEN.W))
 }
 
-class EXU2BPUzip extends Bundle with BPUtrait{
+class EXU_BPU_zip extends Bundle with BPUtrait{
     val aluout  = Flipped(new ALUIO_out)        // in
 }
 
@@ -39,9 +39,9 @@ class RedirectInfo extends Bundle with BPUtrait{
 }
 
 class BPUIO extends Bundle with BPUtrait{
-    val idu_to_bpu      = new idu_to_bpu_zip
-    val exu_to_bpu      = new EXU2BPUzip
-    val csr_to_bpu      = Flipped(new CSR2BPUzip)
+    val idu_bpu_zip     = new IDU_BPU_zip
+    val exu_bpu_zip      = new EXU_BPU_zip
+    val csr_bpu_zip      = Flipped(new CSR_BPU_zip)
     val IF_Redirect = new RedirectInfo
     val ID_Redirect = new RedirectInfo      // to be used when pipeline is implemented
 }
@@ -50,21 +50,21 @@ class BPUIO extends Bundle with BPUtrait{
 class BPU extends Module with BPUtrait{
     val io      = IO(new BPUIO)
 
-    val bpuop   = io.idu_to_bpu.bpuop
-    val tar_pc  = Mux(bpuop === BPUop.csr, io.csr_to_bpu.target_pc, io.idu_to_bpu.src1 + io.idu_to_bpu.src2)
+    val bpuop   = io.idu_bpu_zip.bpuop
+    val tar_pc  = Mux(bpuop === BPUop.csr, io.csr_bpu_zip.target_pc, io.idu_bpu_zip.src1 + io.idu_bpu_zip.src2)
     val dnpc    = Mux(bpuop === BPUop.jalr, Cat(tar_pc(XLEN - 1, 1), 0.B), tar_pc);
-    val snpc    = io.idu_to_bpu.pc + 4.U
+    val snpc    = io.idu_bpu_zip.pc + 4.U
 
     val redirect = LookupTree(bpuop, List(
         BPUop.nop   -> 0.B,
         BPUop.jal   -> (dnpc =/= snpc),
         BPUop.jalr  -> (dnpc =/= snpc),
-        BPUop.beq   -> io.exu_to_bpu.aluout.zero,
-        BPUop.bne   -> ~io.exu_to_bpu.aluout.zero,
-        BPUop.blt   -> ~io.exu_to_bpu.aluout.zero,
-        BPUop.bge   -> io.exu_to_bpu.aluout.zero,
-        BPUop.bltu  -> ~io.exu_to_bpu.aluout.zero,
-        BPUop.bgeu  -> io.exu_to_bpu.aluout.zero,
+        BPUop.beq   -> io.exu_bpu_zip.aluout.zero,
+        BPUop.bne   -> ~io.exu_bpu_zip.aluout.zero,
+        BPUop.blt   -> ~io.exu_bpu_zip.aluout.zero,
+        BPUop.bge   -> io.exu_bpu_zip.aluout.zero,
+        BPUop.bltu  -> ~io.exu_bpu_zip.aluout.zero,
+        BPUop.bgeu  -> io.exu_bpu_zip.aluout.zero,
         BPUop.csr   -> 1.B
     ))
 
