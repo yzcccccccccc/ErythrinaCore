@@ -37,7 +37,6 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
     if (DIFF_TEST){
         ref_difftest_init(port);
         ref_difftest_memcpy(PC_RSTVEC, guest2host(PC_RSTVEC), img_size, DIFFTEST_TO_REF);
-        ref_difftest_memcpy(FLASH_BASE, guest2host(FLASH_BASE), FLASH_SIZE, DIFFTEST_TO_REF);
     }
 }
 
@@ -59,6 +58,8 @@ bool checkregs(rv32_CPU_state *ref, uint32_t pc){
 bool is_skip = 0;
 
 void check_skip(){
+    is_skip = 0;
+#ifdef __SOC__
     uint32_t addr   = get_commit_mem_addr(dut);
     uint32_t en     = get_commit_mem_en(dut);
     if (addr >= DEV_CLINT && addr < DEV_CLINT + DEV_CLINT_SZ && en){
@@ -95,6 +96,7 @@ void check_skip(){
     else{
         is_skip = 0;
     }
+#endif
 }
 
 void difftest_step(uint32_t pc){

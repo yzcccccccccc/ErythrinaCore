@@ -30,12 +30,14 @@ void init_mem(){
 uint8_t* guest2host(paddr_t paddr){
     if (in_pmem(paddr))
         return pmem + paddr - MEMBASE;
+#ifdef __SOC__
     if (in_mrom(paddr))
         return mrom + paddr - MROM_BASE;
     if (in_sram(paddr))
         return sram + paddr - SRAM_BASE;
     if (in_flash(paddr))
         return flash + paddr - FLASH_BASE;
+#endif
     npc_info = paddr;
     npc_alert(0, CPU_ABORT_MEMLEAK);
 }

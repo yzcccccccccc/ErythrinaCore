@@ -24,6 +24,13 @@ class MEMUIO extends Bundle with MEMUtrait{
 class MEMU extends Module with MEMUtrait{
     val io = IO(new MEMUIO)
 
+    val has_resp_fire = RegInit(false.B)
+    when (io.memu_mem.resp.fire){
+        has_resp_fire := true.B
+    }.elsewhen(io.memu_mem.req.fire){
+        has_resp_fire := false.B
+    }
+
     // FSM
     val sIDLE :: sREQ :: sRECV :: Nil = Enum(3)
     val state = RegInit(sIDLE)
@@ -39,13 +46,12 @@ class MEMU extends Module with MEMUtrait{
             }
         }
         is (sRECV){
-            when (io.memu_mem.resp.fire){
+            when ((io.memu_mem.resp.fire | has_resp_fire) & io.memu_wbu_zip.fire){
                 state := sREQ
             }
         }
     }
 
-    io.exu_memu_zip.ready   := 1.B
 
     // TODO: May be transfered to LSU in the future?
 
@@ -59,7 +65,8 @@ class MEMU extends Module with MEMUtrait{
 
     // MemResp
     io.memu_mem.resp.ready      := state === sRECV
-    val ld_data = io.memu_mem.resp.bits.data
+    val data_r  = RegEnable(io.memu_mem.resp.bits.data, io.memu_mem.resp.fire)
+    val ld_data = Mux(has_resp_fire, data_r, io.memu_mem.resp.bits.data)
 
     // Byte Res
     val ByteRes     = LookupTree(addr(1,0), List(
@@ -149,8 +156,8 @@ class MEMU extends Module with MEMUtrait{
     assert(~io.memu_mem.req.valid | (io.memu_mem.req.valid & ((addr(1, 0) === 0.U & is_word) | (addr(0) === 0.U & is_half) | is_byte)), "Unaligned Memory Access!")
 
     // to EXU
-    val data_valid = Mux(need_mem_op, io.memu_mem.resp.fire, true.B)
-    io.exu_memu_zip.ready           := io.memu_mem.req.ready & data_valid | ~content_valid
+    val data_valid = Mux(need_mem_op, io.memu_mem.resp.fire | has_resp_fire, true.B)
+    io.exu_memu_zip.ready           := io.memu_wbu_zip.ready & data_valid | ~content_valid
 
     // to WBU!
     val isload = LookupTreeDefault(lsuop, false.B, List(
@@ -160,8 +167,8 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lhu   -> true.B,
         LSUop.lw    -> true.B
     ))
-    val wdata   = RegNext(Mux(isload, LoadRes, io.exu_memu_zip.bits.addr_or_res))
-    io.memu_wbu_zip.valid       := data_valid
+    val wdata   = Mux(isload, LoadRes, io.exu_memu_zip.bits.addr_or_res)
+    io.memu_wbu_zip.valid       := data_valid & io.exu_memu_zip.valid
     io.memu_wbu_zip.bits.content_valid   := content_valid
     io.memu_wbu_zip.bits.pc              := io.exu_memu_zip.bits.pc
     io.memu_wbu_zip.bits.inst            := io.exu_memu_zip.bits.inst

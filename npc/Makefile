@@ -21,8 +21,9 @@ DIFF_SO ?= $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 -include ./script/nvboard.mk
 -include ./script/yosys.mk
 
+GTKWAVERC = .gtkwaverc
 view_wave:
-	$(GTKWAVE) ./wave.vcd
+	$(GTKWAVE) -r $(GTKWAVERC) ./wave.vcd
 
 # Micro Test
 OBJNAME ?= char-test

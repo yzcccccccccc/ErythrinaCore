@@ -39,7 +39,8 @@ class RedirectInfo extends Bundle with BPUtrait{
 }
 
 class BPUIO extends Bundle with BPUtrait{
-    val idu_bpu_zip     = new IDU_BPU_zip
+    val idu_bpu_trigger  = Input(Bool())
+    val idu_bpu_zip      = new IDU_BPU_zip
     val exu_bpu_zip      = new EXU_BPU_zip
     val csr_bpu_zip      = Flipped(new CSR_BPU_zip)
     val IF_Redirect = new RedirectInfo
@@ -49,11 +50,16 @@ class BPUIO extends Bundle with BPUtrait{
 // TODO: cut into 2 stages pipeline? [decode|pc+imm]
 class BPU extends Module with BPUtrait{
     val io      = IO(new BPUIO)
+    
+    val pc_r    = RegEnable(io.idu_bpu_zip.pc, io.idu_bpu_trigger)
+    val src1_r  = RegEnable(io.idu_bpu_zip.src1, io.idu_bpu_trigger)
+    val src2_r  = RegEnable(io.idu_bpu_zip.src2, io.idu_bpu_trigger)
+    val bpuop_r = RegEnable(io.idu_bpu_zip.bpuop, io.idu_bpu_trigger)
 
-    val bpuop   = io.idu_bpu_zip.bpuop
-    val tar_pc  = Mux(bpuop === BPUop.csr, io.csr_bpu_zip.target_pc, io.idu_bpu_zip.src1 + io.idu_bpu_zip.src2)
+    val bpuop   = bpuop_r
+    val tar_pc  = Mux(bpuop === BPUop.csr, io.csr_bpu_zip.target_pc, src1_r + src2_r)
     val dnpc    = Mux(bpuop === BPUop.jalr, Cat(tar_pc(XLEN - 1, 1), 0.B), tar_pc);
-    val snpc    = io.idu_bpu_zip.pc + 4.U
+    val snpc    = pc_r + 4.U
 
     val redirect = LookupTree(bpuop, List(
         BPUop.nop   -> 0.B,

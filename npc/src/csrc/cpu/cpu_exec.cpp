@@ -120,7 +120,7 @@ void report(){
             printf("[Hit Trap] %sAbort%s from difftesting fail.\n", FontRed, Restore);
             break;
         default:
-            printf("[Hit Trap] Unknown signal.\n");
+            printf("[Hit Trap] %sAbort%s due to Unknown signal.\n", FontRed, Restore);
     }
 }
 
@@ -168,8 +168,6 @@ void execute(uint32_t n){
         }
 
         check_skip();
-
-        single_cycle(dut, tfp, contx);
         update_npcstate();
 
         difftest_step(CPU_state.pc);

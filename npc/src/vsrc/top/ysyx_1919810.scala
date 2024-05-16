@@ -16,8 +16,8 @@ class ysyx_1919810 extends Module{
     val erythrinacore = Module(new ErythrinaCore)
 
     val arbiter = Module(new AXI4ArbiterNto1(2))
-    arbiter.io.in(0)    <> erythrinacore.io.mem_port1
-    arbiter.io.in(1)    <> erythrinacore.io.mem_port2
+    arbiter.io.in(0)    <> erythrinacore.io.mem_port2
+    arbiter.io.in(1)    <> erythrinacore.io.mem_port1
 
     val clint = Module(new AXI4CLINT)
 

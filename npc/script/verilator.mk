@@ -38,18 +38,19 @@ ifeq ($(TOPNAME), ysyxSoCFull)
 VSRCS 		?= $(shell find $(abspath $(RTL_SOC_DIR)) -name "*.v" -or -name "*.sv")
 VSRCS += $(SOC_PERIP)
 VSRCS += $(SOC_TOP)
+$(VSRCS): $(VSOC_FILE)
 else
 ifeq ($(TOPNAME), SimTop)
 VSRCS 		?= $(shell find $(abspath $(RTL_SIM_DIR)) -name "*.v" -or -name "*.sv")
+$(VSRCS): $(VSIM_FILE)
 endif
 endif
 
 CSRCS 		?= $(shell find $(abspath ./src/csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 HSRCS		?= $(shell find $(abspath ./src/csrc) -name "*.h")
 
-Verilator_TAR	= $(OBJ_DIR)/V$(TOPNAME).h
 $(CSRCS): $(VSRCS)
-$(VSRCS): verilog
+Verilator_TAR	= $(OBJ_DIR)/V$(TOPNAME).h
 $(Verilator_TAR): $(VSRCS)
 	@ $(VERILATOR) $(Verilator_VFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS)
 
@@ -61,7 +62,7 @@ verilate: $(Verilator_TAR)
 
 verilate_sim: $(SIM_TAR)
 
-sim: verilate_sim
+sim: $(SIM_TAR)
 	@echo "Topname: $(TOPNAME)"
 	$(call git_commit, "sim RTL") # DO NOT REMOVE THIS LINE!!!
 	$(SIM_TAR) -d $(DIFF_SO) -b $(ARG) $(IMG)

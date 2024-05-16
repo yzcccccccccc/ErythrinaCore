@@ -22,6 +22,13 @@ class IFUIO extends Bundle with IFUtrait{
 class IFU extends Module with IFUtrait{
   val io = IO(new IFUIO)
 
+  val has_resp_fire = RegInit(false.B)
+  when (io.ifu_mem.resp.fire){
+    has_resp_fire := true.B
+  }.elsewhen(io.ifu_mem.req.fire){
+    has_resp_fire := false.B
+  }
+
   val sIDLE :: sREQ :: sRECV :: Nil = Enum(3)
   val state = RegInit(sIDLE)
   switch (state){
@@ -36,8 +43,8 @@ class IFU extends Module with IFUtrait{
       }
     }
     is (sRECV){
-      when (io.ifu_mem.resp.fire){
-        state := sIDLE
+      when ((io.ifu_mem.resp.fire | has_resp_fire) & io.ifu_idu_zip.fire){
+        state := sREQ
       }
     }
   }
@@ -69,13 +76,13 @@ class IFU extends Module with IFUtrait{
 
   // inst
   io.ifu_mem.resp.ready   := state === sRECV
-  val inst    = io.ifu_mem.resp.bits.data
+  val data_r  = RegEnable(io.ifu_mem.resp.bits.data, io.ifu_mem.resp.fire)
+  val inst    = Mux(has_resp_fire, data_r, io.ifu_mem.resp.bits.data)
 
   // IFU to IDU zip
-  val inst_valid = Reg(Bool())
-
+  val content_valid = ~flush_r & ~reset.asBool
   io. ifu_idu_zip.valid               := io.ifu_mem.resp.fire
-  io. ifu_idu_zip.bits.content_valid  := ~flush_r
+  io. ifu_idu_zip.bits.content_valid  := ~flush_r & ~reset.asBool
   io. ifu_idu_zip.bits.pc             := pc
   io. ifu_idu_zip.bits.inst           := inst
 
