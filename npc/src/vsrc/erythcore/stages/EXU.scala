@@ -58,5 +58,4 @@ class EXU extends Module with EXUtrait{
     io.exu_memu_zip.bits.data2store      := io.idu_exu_zip.bits.data2store
     io.exu_memu_zip.bits.exception.isEbreak  := content_valid & io.exu_csr_zip.isEBREAK
     io.exu_memu_zip.bits.exception.isUnknown := io.idu_exu_zip.bits.exception.isUnknown
-
 }

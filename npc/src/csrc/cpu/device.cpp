@@ -17,6 +17,7 @@ uint8_t* try_device_write(paddr_t paddr, uint32_t *data, uint32_t mask){
         }
         uint32_t real_data = *data & real_mask;
         printf("%c", (uint8_t)real_data);
+        fflush(stdout);
         return (uint8_t*)(&public_dev_addr);
     }
     return 0;

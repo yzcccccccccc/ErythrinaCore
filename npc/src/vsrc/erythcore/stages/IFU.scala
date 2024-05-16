@@ -52,8 +52,8 @@ class IFU extends Module with IFUtrait{
   // flush (bpu)
   val flush   = (io.ifu_mem.req.fire | state === sRECV) & io.bpu_redirect.redirect
   val flush_r = Reg(Bool())
-  when (io.ifu_mem.req.fire | state === sRECV){
-    flush_r := io.bpu_redirect.redirect
+  when ((io.ifu_mem.req.fire | state === sRECV) & io.bpu_redirect.redirect){
+    flush_r := 1.B
   }.elsewhen(io.ifu_idu_zip.fire){
     flush_r := 0.B
   }
@@ -63,7 +63,7 @@ class IFU extends Module with IFUtrait{
   val snpc  = pc + 4.U
   when (io.bpu_redirect.redirect){
     pc := io.bpu_redirect.target
-  }.elsewhen(io. ifu_idu_zip.fire & ~flush_r){
+  }.elsewhen(io. ifu_idu_zip.fire & ~(flush_r | flush)){
     pc := snpc
   }
   
@@ -82,7 +82,7 @@ class IFU extends Module with IFUtrait{
   // IFU to IDU zip
   val content_valid = ~flush_r & ~reset.asBool
   io. ifu_idu_zip.valid               := io.ifu_mem.resp.fire | has_resp_fire
-  io. ifu_idu_zip.bits.content_valid  := ~flush_r & ~reset.asBool
+  io. ifu_idu_zip.bits.content_valid  := ~(flush_r | flush) & ~reset.asBool
   io. ifu_idu_zip.bits.pc             := pc
   io. ifu_idu_zip.bits.inst           := inst
 

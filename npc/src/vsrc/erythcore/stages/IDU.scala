@@ -71,7 +71,7 @@ class IDU extends Module with IDUtrait{
 
     // forward
     io.idu_fwd_zip.rs1 := rs1
-    io.idu_fwd_zip.rs1_en := src1_type === SrcType.reg && rs1 =/= 0.U | bpuop === BPUop.jalr
+    io.idu_fwd_zip.rs1_en := src1_type === SrcType.reg && rs1 =/= 0.U | bpuop === BPUop.jalr | ~CSRop.usei(csrop) & ~instType === TypeN
     io.idu_fwd_zip.rs2 := rs2
     io.idu_fwd_zip.rs2_en := src2_type === SrcType.reg && rs2 =/= 0.U | LSUop.isStore(lsuop)
     val fwd_rs1_occ = io.idu_fwd_zip.rs1_occ
