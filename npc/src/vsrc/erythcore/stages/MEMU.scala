@@ -11,6 +11,9 @@ class MEMUIO extends Bundle with MEMUtrait{
     val exu_memu_zip    = Flipped(Decoupled(new EX_MEM_zip))
     val memu_wbu_zip    = Decoupled(new MEM_WB_zip)
 
+    // FWD
+    val memu_fwd_zip    = Flipped(new FWD_RESP_zip)
+
     // memory
     val memu_mem    = new IvyBus
 
@@ -50,7 +53,7 @@ class MEMU extends Module with MEMUtrait{
     val need_mem_op     = io.exu_memu_zip.bits.LSUop =/= LSUop.nop & content_valid
 
     // MemReq
-    val addr = io.exu_memu_zip.bits.addr
+    val addr = io.exu_memu_zip.bits.addr_or_res
     io.memu_mem.req.valid       := need_mem_op & state === sREQ
     io.memu_mem.req.bits.addr   := addr
 
@@ -157,7 +160,7 @@ class MEMU extends Module with MEMUtrait{
         LSUop.lhu   -> true.B,
         LSUop.lw    -> true.B
     ))
-    val wdata   = RegNext(Mux(isload, LoadRes, io.exu_memu_zip.bits.addr))
+    val wdata   = RegNext(Mux(isload, LoadRes, io.exu_memu_zip.bits.addr_or_res))
     io.memu_wbu_zip.valid       := data_valid
     io.memu_wbu_zip.bits.content_valid   := content_valid
     io.memu_wbu_zip.bits.pc              := io.exu_memu_zip.bits.pc
@@ -168,6 +171,14 @@ class MEMU extends Module with MEMUtrait{
     io.memu_wbu_zip.bits.maddr   := addr
     io.memu_wbu_zip.bits.men     := need_mem_op
     io.memu_wbu_zip.bits.exception := io.exu_memu_zip.bits.exception
+
+    // to FWD
+    io.memu_fwd_zip.datasrc := FwdDataSrc.DONTCARE
+    io.memu_fwd_zip.rd      := io.exu_memu_zip.bits.rd
+    io.memu_fwd_zip.wdata   := wdata
+    io.memu_fwd_zip.wen     := io.exu_memu_zip.bits.rf_wen
+    io.memu_fwd_zip.valid   := data_valid
+
 
     // Perf
     val has_mem_req_fire = Reg(Bool())

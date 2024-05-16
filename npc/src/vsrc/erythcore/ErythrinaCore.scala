@@ -26,6 +26,7 @@ class ErythrinaCore extends Module with ErythrinaDefault{
 
     val BPU_inst    = Module(new BPU)
     val CSR_inst    = Module(new CSR)
+    val FWD_inst    = Module(new FWD)
     val regfile     = Module(new RegFile)
 
     // CSR
@@ -37,10 +38,17 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     regfile.io.rf_wport <> WBU_inst.io.RegWriteIO
 
     // BPU  
-    IFU_inst.io.bpu_to_ifu <> BPU_inst.io.IF_Redirect
-    IDU_inst.io.bpu_to_idu <> BPU_inst.io.ID_Redirect
+    IFU_inst.io.bpu_redirect <> BPU_inst.io.IF_Redirect
+    IDU_inst.io.bpu_redirect <> BPU_inst.io.ID_Redirect
     IDU_inst.io.idu_bpu_zip  <> BPU_inst.io.idu_bpu_zip
     EXU_inst.io.exu_bpu_zip  <> BPU_inst.io.exu_bpu_zip
+
+    // FWD
+    IDU_inst.io.idu_fwd_zip     <> FWD_inst.io.req
+    EXU_inst.io.exu_fwd_zip     <> FWD_inst.io.resp(0)
+    MEMU_inst.io.memu_fwd_zip   <> FWD_inst.io.resp(1)
+    WBU_inst.io.wbu_fwd_zip     <> FWD_inst.io.resp(2)
+
 
     // TODO: pipelines
     StageConnect(IFU_inst.io. ifu_idu_zip, IDU_inst.io. ifu_idu_zip)

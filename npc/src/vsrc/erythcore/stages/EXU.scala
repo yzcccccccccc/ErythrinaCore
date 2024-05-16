@@ -10,6 +10,7 @@ class EXUIO extends Bundle with EXUtrait{
     val exu_memu_zip    = Decoupled(new EX_MEM_zip)
     val exu_bpu_zip     = Flipped(new EXU_BPU_zip)
     val exu_csr_zip     = Flipped(new EXU_CSR_zip)
+    val exu_fwd_zip     = Flipped(new FWD_RESP_zip)
 }
 
 class EXU extends Module with EXUtrait{
@@ -33,7 +34,13 @@ class EXU extends Module with EXUtrait{
     io.exu_csr_zip.src2  := io.idu_exu_zip.bits.src2
     val csr_res = io.exu_csr_zip.rdata
 
-    // TODO: give the result to BPU
+    // to FWD
+    io.exu_fwd_zip.datasrc  := Mux(LSUop.isLoad(io.idu_exu_zip.bits.LSUop), FwdDataSrc.FROM_MEM, Mux(csrop === CSRop.nop, FwdDataSrc.FROM_ALU, FwdDataSrc.FROM_CSR))
+    io.exu_fwd_zip.rd       := io.idu_exu_zip.bits.rd
+    io.exu_fwd_zip.wdata    := Mux(csrop === CSRop.nop, alu_res, csr_res)
+    io.exu_fwd_zip.wen      := io.idu_exu_zip.bits.rf_wen
+    io.exu_fwd_zip.valid    := 1.B
+
     // to BPU
     io.exu_bpu_zip.aluout <> ALU0.io.ALUout
 
@@ -46,7 +53,7 @@ class EXU extends Module with EXUtrait{
     io.exu_memu_zip.bits.inst            := io.idu_exu_zip.bits.inst
     io.exu_memu_zip.bits.pc              := io.idu_exu_zip.bits.pc
     io.exu_memu_zip.bits.LSUop           := io.idu_exu_zip.bits.LSUop
-    io.exu_memu_zip.bits.addr            := Mux(csrop === CSRop.nop, alu_res, csr_res)
+    io.exu_memu_zip.bits.addr_or_res     := Mux(csrop === CSRop.nop, alu_res, csr_res)
     io.exu_memu_zip.bits.rd              := io.idu_exu_zip.bits.rd
     io.exu_memu_zip.bits.rf_wen          := io.idu_exu_zip.bits.rf_wen
     io.exu_memu_zip.bits.data2store      := io.idu_exu_zip.bits.data2store

@@ -8,6 +8,9 @@ import utils._
 class WBUIO extends Bundle with WBUtrait{
     val memu_wbu_zip    = Flipped(Decoupled(new MEM_WB_zip))
 
+    // FWD
+    val wbu_fwd_zip     = Flipped(new FWD_RESP_zip)
+
     // RegFile
     val RegWriteIO  = Flipped(new RegFileOUT)
 
@@ -32,6 +35,13 @@ class WBU extends Module with WBUtrait{
     io.inst_commit.valid    := content_valid
     io.inst_commit.mem_addr := io.memu_wbu_zip.bits.maddr
     io.inst_commit.mem_en   := io.memu_wbu_zip.bits.men
+
+    // FWD
+    io.wbu_fwd_zip.datasrc  := FwdDataSrc.DONTCARE
+    io.wbu_fwd_zip.rd       := io.memu_wbu_zip.bits.RegWriteIO.waddr
+    io.wbu_fwd_zip.wdata    := io.memu_wbu_zip.bits.RegWriteIO.wdata
+    io.wbu_fwd_zip.wen      := io.memu_wbu_zip.bits.RegWriteIO.wen
+    io.wbu_fwd_zip.valid    := 1.B
 
     if (!ErythrinaSetting.isSTA){
         val isEbreak = io.memu_wbu_zip.bits.exception.isEbreak

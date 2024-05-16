@@ -11,8 +11,8 @@ import utils._
 // Instruction Fetch Stage (pipeline, to be continued)
 
 class IFUIO extends Bundle with IFUtrait{
-  val ifu_idu_zip = Decoupled(new IF_ID_zip)         // pipeline ctrl, to IDU
-  val bpu_to_ifu = Flipped(new RedirectInfo)
+  val ifu_idu_zip   = Decoupled(new IF_ID_zip)         // pipeline ctrl, to IDU
+  val bpu_redirect  = Flipped(new RedirectInfo)
   val ifu_mem = new IvyBus
 
   // perf
@@ -43,10 +43,10 @@ class IFU extends Module with IFUtrait{
   }
 
   // flush (bpu)
-  val flush   = (io.ifu_mem.req.fire | state === sRECV) & io.bpu_to_ifu.redirect
+  val flush   = (io.ifu_mem.req.fire | state === sRECV) & io.bpu_redirect.redirect
   val flush_r = Reg(Bool())
   when (io.ifu_mem.req.fire | state === sRECV){
-    flush_r := io.bpu_to_ifu.redirect
+    flush_r := io.bpu_redirect.redirect
   }.elsewhen(io.ifu_mem.resp.fire){
     flush_r := 0.B
   }
@@ -54,8 +54,8 @@ class IFU extends Module with IFUtrait{
   // pc
   val pc    = RegInit(ErythrinaSetting.RESETVEC.U(XLEN.W))
   val snpc  = pc + 4.U
-  when (io.bpu_to_ifu.redirect){
-    pc := io.bpu_to_ifu.target
+  when (io.bpu_redirect.redirect){
+    pc := io.bpu_redirect.target
   }.elsewhen(io. ifu_idu_zip.fire){
     pc := snpc
   }

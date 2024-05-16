@@ -9,9 +9,11 @@ import utils._
 class IDUIO extends Bundle with IDUtrait{
     val ifu_idu_zip = Flipped(Decoupled(new IF_ID_zip))
     val idu_exu_zip = Decoupled(new ID_EX_zip)
-    val idu_bpu_zip = Flipped(new IDU_BPU_zip)           // 2 BPU
-    val rf_rd_port    = Flipped(new RegFileIN)        // 2 Regfile
-    val bpu_to_idu = Flipped(new RedirectInfo)
+
+    val idu_bpu_zip     = Flipped(new IDU_BPU_zip)      // to BPU
+    val rf_rd_port      = Flipped(new RegFileIN)        // to Regfile
+    val bpu_redirect    = Flipped(new RedirectInfo)
+    val idu_fwd_zip     = Flipped(new FWD_REQ_zip)
 
     // perf
     val idu_perf_probe = Flipped(new PerfIDU)
@@ -88,18 +90,30 @@ class IDU extends Module with IDUtrait{
     io.idu_bpu_zip.src2  := imm
     io.idu_bpu_zip.pc    := pc
 
+    // forward
+    io.idu_fwd_zip.rs1 := rs1
+    io.idu_fwd_zip.rs1_en := src1_type === SrcType.reg && rs1 =/= 0.U
+    io.idu_fwd_zip.rs2 := rs2
+    io.idu_fwd_zip.rs2_en := src2_type === SrcType.reg && rs2 =/= 0.U
+    val fwd_rs1_occ = io.idu_fwd_zip.rs1_occ
+    val fwd_rs2_occ = io.idu_fwd_zip.rs2_occ
+    val fwd_rdata1  = io.idu_fwd_zip.rdata1
+    val fwd_rdata2  = io.idu_fwd_zip.rdata2
+    val fwd_pause   = io.idu_fwd_zip.pause
 
     // to IFU!
     io. ifu_idu_zip.ready            :=  io.idu_exu_zip.ready | ~content_valid
 
     // to EXU!
-    io.idu_exu_zip.valid            := 1.B
-    io.idu_exu_zip.bits.content_valid := 1.B
-    io.idu_exu_zip.bits.pc    := pc
-    io.idu_exu_zip.bits.inst  := instr
+    io.idu_exu_zip.valid                := 1.B
+    io.idu_exu_zip.bits.content_valid   := content_valid & ~io.bpu_redirect.redirect
+    io.idu_exu_zip.bits.pc              := pc
+    io.idu_exu_zip.bits.inst            := instr
     
-    io.idu_exu_zip.bits.src1        := Mux(csrop === CSRop.nop, src1, csr_src1)
-    io.idu_exu_zip.bits.src2        := Mux(csrop === CSRop.nop, src2, csr_src2)
+    val rf_src1 = Mux(fwd_rs1_occ, fwd_rdata1, src1)
+    val rf_src2 = Mux(fwd_rs2_occ, fwd_rdata2, src2)
+    io.idu_exu_zip.bits.src1        := Mux(csrop === CSRop.nop, rf_src1, csr_src1)
+    io.idu_exu_zip.bits.src2        := Mux(csrop === CSRop.nop, rf_src2, csr_src2)
     io.idu_exu_zip.bits.ALUop       := aluop
     io.idu_exu_zip.bits.BPUop       := bpuop
     io.idu_exu_zip.bits.LSUop       := lsuop
@@ -109,7 +123,6 @@ class IDU extends Module with IDUtrait{
     io.idu_exu_zip.bits.rf_wen      := rf_wen & io. ifu_idu_zip.valid
     io.idu_exu_zip.bits.exception.isEbreak   := 0.B
     io.idu_exu_zip.bits.exception.isUnknown  := instType === TypeER & content_valid
-    
 
     // Perf
     io.idu_perf_probe.cal_inst_event := content_valid & aluop =/= ALUop.nop 

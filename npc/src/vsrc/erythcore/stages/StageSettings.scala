@@ -64,7 +64,7 @@ class EX_MEM_zip extends Bundle with EXUtrait{
   // for LSU (MEM)
   val LSUop       = UInt(LSUopLen.W)
   val data2store  = UInt(XLEN.W)
-  val addr        = UInt(XLEN.W)
+  val addr_or_res = UInt(XLEN.W)
 
   // for WBU (WB)
   val rd      = UInt(RegAddrLen.W)
