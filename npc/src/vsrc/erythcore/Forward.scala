@@ -44,12 +44,8 @@ class FWDIO extends Bundle with FWDtrait{
 class FWD extends Module with FWDtrait{
     val io = IO(new FWDIO)
     
-    val rs1_hit_vec = Vec(3, Wire(Bool()))
-    val rs2_hit_vec = Vec(3, Wire(Bool()))
-    for (i <- 0 until 3){
-        rs1_hit_vec(i) := io.req.rs1 === io.resp(i).rd && io.req.rs1_en && io.resp(i).wen
-        rs2_hit_vec(i) := io.req.rs2 === io.resp(i).rd && io.req.rs2_en && io.resp(i).wen
-    }
+    val rs1_hit_vec = VecInit(io.resp.map(p  => (io.req.rs1 === p.rd && io.req.rs1_en && p.wen)))
+    val rs2_hit_vec = VecInit(io.resp.map(p  => (io.req.rs2 === p.rd && io.req.rs2_en && p.wen)))
     
     val rs1_sel_vec = VecInit(PriorityEncoderOH(rs1_hit_vec))
     val rs2_sel_vec = VecInit(PriorityEncoderOH(rs2_hit_vec))
