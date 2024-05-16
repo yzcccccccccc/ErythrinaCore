@@ -30,6 +30,9 @@ struct perf_t{
     uint32_t st_data_event;
     uint32_t data_req_wait;
     uint32_t data_resp_wait;
+
+    uint32_t bpu_hit_event;
+    uint32_t bpu_miss_event;
 } perf_cnt;
 
 // get data from dut
@@ -56,6 +59,10 @@ void perf_res_get(){
     perf_cnt.st_data_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_st_data_events;
     perf_cnt.data_req_wait = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_memu_wait_req;
     perf_cnt.data_resp_wait = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_memu_wait_resp;
+
+    // BPU Event
+    perf_cnt.bpu_hit_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_hit;
+    perf_cnt.bpu_miss_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_miss;
 #endif
 }
 
@@ -87,7 +94,9 @@ void perf_res_show(){
     printf("\tData Resp Wait: \t\t\t%d\n", perf_cnt.data_resp_wait);
     printf("\tData Total Delay: \t\t\t%d\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
     printf("\tData Average Delay: \t\t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
-
+    printf("\n");
+    printf("\tBPU Hit Event: \t\t\t\t%d\n", perf_cnt.bpu_hit_event);
+    printf("\tBPU Miss Event: \t\t\t%d\n", perf_cnt.bpu_miss_event);
 #else
     printf("\t%sOnly support __SOC__%s\n", FontYellow, Restore);
 #endif

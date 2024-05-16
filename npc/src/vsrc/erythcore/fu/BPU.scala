@@ -45,6 +45,9 @@ class BPUIO extends Bundle with BPUtrait{
     val csr_bpu_zip      = Flipped(new CSR_BPU_zip)
     val IF_Redirect = new RedirectInfo
     val ID_Redirect = new RedirectInfo      // to be used when pipeline is implemented
+
+    // perf
+    val bpu_perf_probe = Flipped(new PerfBPU)
 }
 
 // TODO: cut into 2 stages pipeline? [decode|pc+imm]
@@ -65,12 +68,12 @@ class BPU extends Module with BPUtrait{
         BPUop.nop   -> 0.B,
         BPUop.jal   -> (dnpc =/= snpc),
         BPUop.jalr  -> (dnpc =/= snpc),
-        BPUop.beq   -> io.exu_bpu_zip.aluout.zero,
-        BPUop.bne   -> ~io.exu_bpu_zip.aluout.zero,
-        BPUop.blt   -> ~io.exu_bpu_zip.aluout.zero,
-        BPUop.bge   -> io.exu_bpu_zip.aluout.zero,
-        BPUop.bltu  -> ~io.exu_bpu_zip.aluout.zero,
-        BPUop.bgeu  -> io.exu_bpu_zip.aluout.zero,
+        BPUop.beq   -> (io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
+        BPUop.bne   -> (~io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
+        BPUop.blt   -> (~io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
+        BPUop.bge   -> (io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
+        BPUop.bltu  -> (~io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
+        BPUop.bgeu  -> (io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
         BPUop.csr   -> 1.B
     ))
 
@@ -79,6 +82,10 @@ class BPU extends Module with BPUtrait{
     io.IF_Redirect.target   := dnpc
     io.ID_Redirect.redirect := redirect
     io.ID_Redirect.target   := dnpc
+
+    // perf
+    io.bpu_perf_probe.hit_event     := dnpc === snpc & bpuop =/= BPUop.nop
+    io.bpu_perf_probe.miss_event    := dnpc =/= snpc & bpuop =/= BPUop.nop
 }
 
 // TODO: plan to implement a 2-bits guesser !

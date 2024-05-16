@@ -11,6 +11,6 @@
 #define DTRACE 0
 
 //#define __SIM__
-//#define __SOC__
+#define __SOC__
 
 #endif

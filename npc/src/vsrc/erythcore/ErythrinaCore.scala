@@ -73,7 +73,8 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     // Performance Counter
     val perfbox    = Module(new PerfBox)
     perfbox.io.inst_trigger := io.InstCommit.valid
-    perfbox.io.ifu_perf_probe <> IFU_inst.io.ifu_perf_probe
-    perfbox.io.idu_perf_probe <> IDU_inst.io.idu_perf_probe
-    perfbox.io.memu_perf_probe <> MEMU_inst.io.memu_perf_probe
+    perfbox.io.ifu_perf_probe   <> IFU_inst.io.ifu_perf_probe
+    perfbox.io.idu_perf_probe   <> IDU_inst.io.idu_perf_probe
+    perfbox.io.memu_perf_probe  <> MEMU_inst.io.memu_perf_probe
+    perfbox.io.bpu_perf_probe   <> BPU_inst.io.bpu_perf_probe
 }
