@@ -105,6 +105,6 @@ object StageConnect extends ErythrinaDefault{
   def apply[T <: Data](left: DecoupledIO[T], right: DecoupledIO[T]) = {
     right.valid := left.valid
     left.ready := right.ready
-    right.bits := RegEnable(left.bits, right.fire)
+    right.bits := RegEnable(Mux(right.fire, left.bits, 0.U.asTypeOf(left.bits)), right.fire | (right.ready & ~left.valid))
   }
 }

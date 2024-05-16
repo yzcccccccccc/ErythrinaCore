@@ -22,8 +22,6 @@ class IDUIO extends Bundle with IDUtrait{
 
 class IDU extends Module with IDUtrait{
     val io = IO(new IDUIO)
-
-    io. ifu_idu_zip.ready    := 1.B
     
     val content_valid   = io.ifu_idu_zip.bits.content_valid & ~io.bpu_redirect.redirect
     val instr           = io.ifu_idu_zip.bits.inst
@@ -56,8 +54,6 @@ class IDU extends Module with IDUtrait{
         TypeU   -> SignExt(Cat(instr(31, 12), 0.U(12.W)), XLEN),
         TypeJ   -> immj
     ))
-    val rdata1 = io.rf_rd_port.rdata1
-    val rdata2 = io.rf_rd_port.rdata2
 
     // Generate Decode Information
     // TODO: What About TypeN ??
@@ -69,8 +65,24 @@ class IDU extends Module with IDUtrait{
         TypeS   -> (SrcType.reg, SrcType.imm),
         TypeU   -> (SrcType.imm, SrcType.pc)
     )
+
     val src1_type = LookupTree(instType, srcTypeList.map(p => (p._1, p._2._1)))
     val src2_type = LookupTree(instType, srcTypeList.map(p => (p._1, p._2._2)))
+
+    // forward
+    io.idu_fwd_zip.rs1 := rs1
+    io.idu_fwd_zip.rs1_en := src1_type === SrcType.reg && rs1 =/= 0.U | bpuop === BPUop.jalr
+    io.idu_fwd_zip.rs2 := rs2
+    io.idu_fwd_zip.rs2_en := src2_type === SrcType.reg && rs2 =/= 0.U | LSUop.isStore(lsuop)
+    val fwd_rs1_occ = io.idu_fwd_zip.rs1_occ
+    val fwd_rs2_occ = io.idu_fwd_zip.rs2_occ
+    val fwd_rdata1  = io.idu_fwd_zip.rdata1
+    val fwd_rdata2  = io.idu_fwd_zip.rdata2
+    val fwd_pause   = io.idu_fwd_zip.pause
+
+    val rdata1 = Mux(fwd_rs1_occ, fwd_rdata1, io.rf_rd_port.rdata1)
+    val rdata2 = Mux(fwd_rs2_occ, fwd_rdata2, io.rf_rd_port.rdata2)
+
     val src1 = LookupTree(src1_type, List(
         SrcType.imm     -> imm,
         SrcType.pc      -> pc,
@@ -98,30 +110,17 @@ class IDU extends Module with IDUtrait{
     io.idu_bpu_zip.pc    := pc
     io.idu_bpu_trigger   := io.idu_exu_zip.fire
 
-    // forward
-    io.idu_fwd_zip.rs1 := rs1
-    io.idu_fwd_zip.rs1_en := src1_type === SrcType.reg && rs1 =/= 0.U
-    io.idu_fwd_zip.rs2 := rs2
-    io.idu_fwd_zip.rs2_en := src2_type === SrcType.reg && rs2 =/= 0.U
-    val fwd_rs1_occ = io.idu_fwd_zip.rs1_occ
-    val fwd_rs2_occ = io.idu_fwd_zip.rs2_occ
-    val fwd_rdata1  = io.idu_fwd_zip.rdata1
-    val fwd_rdata2  = io.idu_fwd_zip.rdata2
-    val fwd_pause   = io.idu_fwd_zip.pause
-
     // to IFU!
-    io. ifu_idu_zip.ready            :=  io.idu_exu_zip.ready | ~content_valid
+    io. ifu_idu_zip.ready            :=  io.idu_exu_zip.ready & io.idu_exu_zip.valid
 
     // to EXU!
-    io.idu_exu_zip.valid                := io.ifu_idu_zip.valid & ~fwd_pause
+    io.idu_exu_zip.valid                := ~fwd_pause | ~content_valid
     io.idu_exu_zip.bits.content_valid   := content_valid
     io.idu_exu_zip.bits.pc              := pc
     io.idu_exu_zip.bits.inst            := instr
     
-    val rf_src1 = Mux(fwd_rs1_occ, fwd_rdata1, src1)
-    val rf_src2 = Mux(fwd_rs2_occ, fwd_rdata2, src2)
-    io.idu_exu_zip.bits.src1        := Mux(csrop === CSRop.nop, rf_src1, csr_src1)
-    io.idu_exu_zip.bits.src2        := Mux(csrop === CSRop.nop, rf_src2, csr_src2)
+    io.idu_exu_zip.bits.src1        := Mux(csrop === CSRop.nop, src1, csr_src1)
+    io.idu_exu_zip.bits.src2        := Mux(csrop === CSRop.nop, src2, csr_src2)
     io.idu_exu_zip.bits.ALUop       := aluop
     io.idu_exu_zip.bits.BPUop       := bpuop
     io.idu_exu_zip.bits.LSUop       := lsuop

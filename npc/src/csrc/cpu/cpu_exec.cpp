@@ -139,6 +139,12 @@ void cpu_end(){
     if (ITRACE){
         fclose(logfile);
     }
+    if (DIFF_TEST){
+        fclose(diff_log);
+    }
+    if (MTRACE){
+        fclose(flash_log);
+    }
     report();
     collect();
 }

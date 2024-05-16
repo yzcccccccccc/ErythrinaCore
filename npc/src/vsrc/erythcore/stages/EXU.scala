@@ -16,7 +16,6 @@ class EXUIO extends Bundle with EXUtrait{
 class EXU extends Module with EXUtrait{
     val io = IO(new EXUIO)
     
-    io.idu_exu_zip.ready    := 1.B
     val content_valid   = io.idu_exu_zip.bits.content_valid
 
     // ALU
@@ -45,10 +44,10 @@ class EXU extends Module with EXUtrait{
     io.exu_bpu_zip.aluout <> ALU0.io.ALUout
 
     // to IDU
-    io.idu_exu_zip.ready        := io.exu_memu_zip.ready | ~content_valid
+    io.idu_exu_zip.ready        := io.exu_memu_zip.ready & io.exu_memu_zip.valid
 
     // to MEM!
-    io.exu_memu_zip.valid       := io.idu_exu_zip.valid
+    io.exu_memu_zip.valid       := 1.B
     io.exu_memu_zip.bits.content_valid   := content_valid
     io.exu_memu_zip.bits.inst            := io.idu_exu_zip.bits.inst
     io.exu_memu_zip.bits.pc              := io.idu_exu_zip.bits.pc
