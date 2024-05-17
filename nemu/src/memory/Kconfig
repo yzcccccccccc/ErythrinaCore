@@ -32,7 +32,7 @@ config FLASH_BASE
 config FLASH_SIZE
   depends on YSYXSOC
   hex "FALSH size"
-  default 0x10000
+  default 0x300000
 
 config DRAM_BASE
   depends on YSYXSOC
