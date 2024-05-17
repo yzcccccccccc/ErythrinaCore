@@ -136,6 +136,9 @@ void perf_res_record(){
     fprintf(perf_log, "\tData Resp Wait: \t\t\t%d\n", perf_cnt.data_resp_wait);
     fprintf(perf_log, "\tData Total Delay: \t\t\t%d\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
     fprintf(perf_log, "\tData Average Delay: \t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
+    fprintf(perf_log, "\n");
+    fprintf(perf_log, "\tBPU Hit Event: \t\t\t\t%d\n", perf_cnt.bpu_hit_event);
+    fprintf(perf_log, "\tBPU Miss Event: \t\t\t%d\n", perf_cnt.bpu_miss_event);
 #endif
 
 #ifdef __SIM__
