@@ -40,9 +40,11 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     // BPU  
     IFU_inst.io.bpu_redirect <> BPU_inst.io.IF_Redirect
     IDU_inst.io.bpu_redirect <> BPU_inst.io.ID_Redirect
+    IFU_inst.io.ifu_bpu_zip  <> BPU_inst.io.ifu_bpu_zip
     IDU_inst.io.idu_bpu_zip  <> BPU_inst.io.idu_bpu_zip
-    BPU_inst.io.idu_bpu_trigger := IDU_inst.io.idu_bpu_trigger
     EXU_inst.io.exu_bpu_zip  <> BPU_inst.io.exu_bpu_zip
+    BPU_inst.io.idu_bpu_trigger := IDU_inst.io.idu_bpu_trigger
+    BPU_inst.io.exu_bpu_trigger := EXU_inst.io.exu_bpu_trigger
 
     // FWD
     IDU_inst.io.idu_fwd_zip     <> FWD_inst.io.req

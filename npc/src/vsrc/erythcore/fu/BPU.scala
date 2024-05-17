@@ -7,6 +7,11 @@ import utils._
 
 trait BPUtrait extends ErythrinaDefault{
     val BPUopLEN = 4
+
+    val BHVidxLEN   = 3
+    val BHVtagLEN   = 28
+    val BHVbitsLEN  = 2
+    val BHVtarLEN   = 31
 }
 
 object BPUop{
@@ -22,7 +27,13 @@ object BPUop{
     def csr     = "b1001".U     // ecall, ebreak, ret
 }
 
+class IFU_BPU_zip extends Bundle with BPUtrait{
+    val pc      = Input(UInt(XLEN.W))
+    val pred_pc = Output(UInt(XLEN.W))
+}
+
 class IDU_BPU_zip extends Bundle with BPUtrait{
+    val content_valid = Input(Bool())
     val pc      = Input(UInt(XLEN.W))
     val src1    = Input(UInt(XLEN.W))
     val src2    = Input(UInt(XLEN.W))
@@ -38,8 +49,65 @@ class RedirectInfo extends Bundle with BPUtrait{
     val redirect    = Output(Bool())
 }
 
+class BHVEntry extends Bundle with BPUtrait{
+    val valid   = Bool()
+    val tag     = UInt(BHVtagLEN.W)
+    val bits    = UInt(BHVbitsLEN.W)
+    val tar     = UInt(BHVtarLEN.W)
+}
+class BHVIO extends Bundle with BPUtrait{
+    val update_trigger = Input(Bool())
+    val update_idx = Input(UInt(BHVidxLEN.W))
+    val update_tag = Input(UInt(BHVtagLEN.W))
+    val update_tak = Input(Bool())
+    val update_tar = Input(UInt(BHVtarLEN.W))
+    val ifu_zip    = new IFU_BPU_zip
+}
+
+class BHV extends Module with BPUtrait{
+    def get_next_bit(bits: UInt, tak: Bool): UInt = {
+        val next_bit = LookupTreeDefault(bits, "b00".U, Array(
+            "b00".U -> Mux(tak, "b01".U, "b00".U),
+            "b01".U -> Mux(tak, "b11".U, "b00".U),
+            "b10".U -> Mux(tak, "b11".U, "b01".U),
+            "b11".U -> Mux(tak, "b11".U, "b10".U)
+        ))
+        next_bit
+    }
+
+    val io = IO(new BHVIO)
+
+    val bhv = RegInit(VecInit(Seq.fill(1 << BHVidxLEN)(0.U.asTypeOf(new BHVEntry))))
+
+    /*--------------- update ---------------*/
+    when (io.update_trigger){
+        bhv(io.update_idx).valid := true.B
+        when (bhv(io.update_idx).tag === io.update_tag){
+            bhv(io.update_idx).bits := get_next_bit(bhv(io.update_idx).bits, io.update_tak)
+            bhv(io.update_idx).tar  := io.update_tar
+        }.otherwise{
+            bhv(io.update_idx).tag  := io.update_tag
+            bhv(io.update_idx).bits := "b00".U
+            bhv(io.update_idx).tar  := io.update_tar
+        
+        }
+    }
+
+    /*--------------- predict ---------------*/
+    val idx = io.ifu_zip.pc(BHVidxLEN, 1)
+    val tag = io.ifu_zip.pc(XLEN - 1, BHVidxLEN + 1)
+
+    val snpc = io.ifu_zip.pc + 4.U
+    val dnpc = Mux(bhv(idx).bits(1), Cat(bhv(idx).tar, 0.B), io.ifu_zip.pc + 4.U)
+    val pred_hit = bhv(idx).valid & (bhv(idx).tag === tag)
+
+    io.ifu_zip.pred_pc := Mux(pred_hit, dnpc, snpc)
+}
+
 class BPUIO extends Bundle with BPUtrait{
     val idu_bpu_trigger  = Input(Bool())
+    val exu_bpu_trigger  = Input(Bool())
+    val ifu_bpu_zip      = new IFU_BPU_zip
     val idu_bpu_zip      = new IDU_BPU_zip
     val exu_bpu_zip      = new EXU_BPU_zip
     val csr_bpu_zip      = Flipped(new CSR_BPU_zip)
@@ -59,23 +127,33 @@ class BPU extends Module with BPUtrait{
     val src2_r  = RegEnable(io.idu_bpu_zip.src2, io.idu_bpu_trigger)
     val bpuop_r = RegEnable(io.idu_bpu_zip.bpuop, io.idu_bpu_trigger)
 
+    /*---------- Stage 2 ----------*/
     val bpuop   = bpuop_r
     val tar_pc  = Mux(bpuop === BPUop.csr, io.csr_bpu_zip.target_pc, src1_r + src2_r)
-    val dnpc    = Mux(bpuop === BPUop.jalr, Cat(tar_pc(XLEN - 1, 1), 0.B), tar_pc);
-    val snpc    = pc_r + 4.U
+    val snpc    = Mux(io.idu_bpu_zip.content_valid, io.idu_bpu_zip.pc, io.ifu_bpu_zip.pc)
 
-    val redirect = LookupTree(bpuop, List(
-        BPUop.nop   -> 0.B,
-        BPUop.jal   -> (dnpc =/= snpc),
-        BPUop.jalr  -> (dnpc =/= snpc),
-        BPUop.beq   -> (io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
-        BPUop.bne   -> (~io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
-        BPUop.blt   -> (~io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
-        BPUop.bge   -> (io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
-        BPUop.bltu  -> (~io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
-        BPUop.bgeu  -> (io.exu_bpu_zip.aluout.zero & (dnpc =/= snpc)),
-        BPUop.csr   -> 1.B
+    val alu_zero = io.exu_bpu_zip.aluout.zero
+    val dnpc    = LookupTree(bpuop, List(
+        BPUop.jal   -> (src1_r + src2_r),
+        BPUop.jalr  -> Cat((src1_r + src2_r)(XLEN - 1, 1), 0.B),
+        BPUop.beq   -> Mux(alu_zero, tar_pc, pc_r + 4.U),
+        BPUop.bne   -> Mux(~alu_zero, tar_pc, pc_r + 4.U),
+        BPUop.blt   -> Mux(~alu_zero, tar_pc, pc_r + 4.U),
+        BPUop.bge   -> Mux(alu_zero, tar_pc, pc_r + 4.U),
+        BPUop.bltu  -> Mux(~alu_zero, tar_pc, pc_r + 4.U),
+        BPUop.bgeu  -> Mux(alu_zero, tar_pc, pc_r + 4.U),
+        BPUop.csr   -> io.csr_bpu_zip.target_pc
     ))
+    val redirect = Mux(bpuop === BPUop.nop, false.B, dnpc =/= snpc)
+
+    // BHV
+    val bhv = Module(new BHV)
+    bhv.io.update_trigger   := io.exu_bpu_trigger & (bpuop =/= BPUop.nop)
+    bhv.io.update_idx       := pc_r(BHVidxLEN, 1)
+    bhv.io.update_tag       := pc_r(XLEN - 1, BHVidxLEN + 1)
+    bhv.io.update_tak       := redirect
+    bhv.io.update_tar       := dnpc(XLEN - 1, 1)
+    bhv.io.ifu_zip <> io.ifu_bpu_zip
 
     // to IF & ID
     io.IF_Redirect.redirect := redirect

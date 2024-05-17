@@ -104,6 +104,7 @@ class IDU extends Module with IDUtrait{
     val csr_src2 = imm     
 
     // to BPU
+    io.idu_bpu_zip.content_valid := io.ifu_idu_zip.bits.content_valid
     io.idu_bpu_zip.bpuop := bpuop
     io.idu_bpu_zip.src1  := Mux(bpuop === BPUop.jalr, rdata1, pc)
     io.idu_bpu_zip.src2  := imm

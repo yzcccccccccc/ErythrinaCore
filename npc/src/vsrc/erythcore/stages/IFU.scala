@@ -12,6 +12,8 @@ import utils._
 
 class IFUIO extends Bundle with IFUtrait{
   val ifu_idu_zip   = Decoupled(new IF_ID_zip)         // pipeline ctrl, to IDU
+
+  val ifu_bpu_zip   = Flipped(new IFU_BPU_zip)
   val bpu_redirect  = Flipped(new RedirectInfo)
   val ifu_mem = new IvyBus
 
@@ -60,7 +62,8 @@ class IFU extends Module with IFUtrait{
 
   // pc
   val pc    = RegInit(ErythrinaSetting.RESETVEC.U(XLEN.W))
-  val snpc  = pc + 4.U
+  val snpc  = io.ifu_bpu_zip.pred_pc
+  io.ifu_bpu_zip.pc := pc
   when (io.bpu_redirect.redirect){
     pc := io.bpu_redirect.target
   }.elsewhen(io. ifu_idu_zip.fire & ~(flush_r | flush)){

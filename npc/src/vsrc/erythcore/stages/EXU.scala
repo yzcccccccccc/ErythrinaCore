@@ -9,6 +9,7 @@ class EXUIO extends Bundle with EXUtrait{
     val idu_exu_zip     = Flipped(Decoupled(new ID_EX_zip))
     val exu_memu_zip    = Decoupled(new EX_MEM_zip)
     val exu_bpu_zip     = Flipped(new EXU_BPU_zip)
+    val exu_bpu_trigger = Output(Bool())
     val exu_csr_zip     = Flipped(new EXU_CSR_zip)
     val exu_fwd_zip     = Flipped(new FWD_RESP_zip)
 }
@@ -42,6 +43,7 @@ class EXU extends Module with EXUtrait{
 
     // to BPU
     io.exu_bpu_zip.aluout <> ALU0.io.ALUout
+    io.exu_bpu_trigger := content_valid & io.exu_memu_zip.fire
 
     // to IDU
     io.idu_exu_zip.ready        := io.exu_memu_zip.ready & io.exu_memu_zip.valid
