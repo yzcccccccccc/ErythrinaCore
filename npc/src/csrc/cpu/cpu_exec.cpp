@@ -11,7 +11,7 @@
 #include "perf.h"
 
 #include "verilated.h"
-#include "verilated_vcd_c.h"
+#include "verilated_fst_c.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -39,20 +39,20 @@ FILE *logfile, *flash_log, *diff_log, *perf_log;
 NPC_state npc_state;
 uint32_t npc_info;
 
-void wave_record(VerilatedVcdC *tfp, VerilatedContext *contx){
+void wave_record(VerilatedFstC *tfp, VerilatedContext *contx){
     if (DUMP_WAVE){
         tfp->dump(contx->time());
     }
 }
 
-void half_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
+void half_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp){
     dut->clock = !dut->clock;
     dut->eval();
     wave_record(tfp, contextp);
     contextp->timeInc(1);
 }
 
-void single_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
+void single_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp){
 #ifdef NVBOARD
     nvboard_update();
 #endif
@@ -69,13 +69,13 @@ void single_cycle(VSoc *dut, VerilatedVcdC *tfp, VerilatedContext* contextp){
 
 // Soc DUT
 VSoc *dut = NULL;
-VerilatedVcdC *tfp = NULL;
+VerilatedFstC *tfp = NULL;
 VerilatedContext *contx = NULL;
 
 void init_verilate(){
     contx = new VerilatedContext;
     dut = new VSoc(contx);
-    tfp = (DUMP_WAVE) ? new VerilatedVcdC : NULL;
+    tfp = (DUMP_WAVE) ? new VerilatedFstC : NULL;
 
     if (DUMP_WAVE){
         contx->traceEverOn(true);
@@ -101,9 +101,9 @@ void cpu_reset(){
 void report(){
     switch (npc_state) {
         case CPU_HALT_GOOD:
-            printf("[Hit Trap] Halt from ebreak. Hit %sGood%s Trap\n", FontGreen, Restore);
             perf_res_show();
             perf_res_record();
+            printf("[Hit Trap] Halt from ebreak. Hit %sGood%s Trap\n", FontGreen, Restore);
             break;
         case CPU_HALT_BAD:
             printf("[Hit Trap] Halt from ebreak. Hit %sBad%s Trap\n", FontRed, Restore);
@@ -168,7 +168,7 @@ void execute(uint32_t n){
             uint32_t inst   = get_commit_inst(dut);
             uint32_t pc     = get_commit_pc(dut);
             disassemble(inst_disasm, 100, pc, (uint8_t *)&(inst), 4);
-            fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), rf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d, addr=0x%08x, en=%x\n",
+            fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), \n\trf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d, addr=0x%08x, en=%x\n",
                     pc, inst, inst_disasm,
                     get_commit_rf_waddr(dut), get_commit_rf_wdata(dut),
                     get_commit_rf_wen(dut),

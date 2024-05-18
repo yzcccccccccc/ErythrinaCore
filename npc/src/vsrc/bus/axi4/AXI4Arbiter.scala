@@ -33,6 +33,7 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
 
     val aw_has_fire = Reg(Bool())
     val w_has_fire  = Reg(Bool())
+    val ar_has_fire = Reg(Bool())
 
     // FSM
     val sIdle :: sRead :: sWrite :: Nil = Enum(3)
@@ -40,9 +41,10 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
 
     switch (state){
         is (sIdle){
-            when (io.out.ar.fire){
+            assert(~(io.out.ar.valid & io.out.aw.valid), "AXI4ArbiterNto1: Both ar and aw are valid!")
+            when (io.out.ar.valid){
                 state   := sRead
-            }.elsewhen((io.out.aw.fire | aw_has_fire) & (io.out.w.fire | w_has_fire)){
+            }.elsewhen(io.out.aw.valid){
                 state   := sWrite
             }
         }
@@ -58,6 +60,7 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
         }
     }
 
+    // Write Mark
     when (io.out.aw.fire){
         aw_has_fire := 1.B
     }
@@ -66,49 +69,60 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
         w_has_fire  := 1.B
     }
 
-    when (state === sWrite){
+    when (io.out.b.fire){
         aw_has_fire := 0.B
         w_has_fire  := 0.B
     }
 
-    val hit_vec     = VecInit(io.in.map(p => (p.ar.valid | p.aw.valid)))
-    val hit_vec_r   = RegEnable(hit_vec, io.out.ar.fire | io.out.aw.fire)
+    // Read Mark
+    when (io.out.ar.fire){
+        ar_has_fire := 1.B
+    }
+
+    when (io.out.r.fire){
+        ar_has_fire := 0.B
+    }
+
+    val hit_vec     = VecInit(io.in.map(p => ((p.ar.valid | p.aw.valid) & state === sIdle)))
+    val hit_vec_r   = RegEnable(hit_vec, (io.out.ar.valid | io.out.aw.valid) & state === sIdle)
 
     val select_vec_idle = VecInit(PriorityEncoderOH(hit_vec))
     val select_vec      = VecInit(PriorityEncoderOH(hit_vec_r))
 
+    val select_vec_use  = Mux(state === sIdle, select_vec_idle, select_vec)
+
     // AR
-    io.out.ar.valid := Mux1H(select_vec_idle, io.in.map(_.ar.valid)) && state === sIdle
-    io.out.ar.bits  := Mux1H(select_vec_idle, io.in.map(_.ar.bits))
+    io.out.ar.valid := Mux1H(select_vec_use, io.in.map(_.ar.valid))
+    io.out.ar.bits  := Mux1H(select_vec_use, io.in.map(_.ar.bits))
     for (i <- 0 until io.in.length){
-        io.in(i).ar.ready   := select_vec_idle(i) && io.out.ar.ready && state === sIdle
+        io.in(i).ar.ready   := select_vec_use(i) && io.out.ar.ready
     }
 
     // AW
-    io.out.aw.valid := Mux1H(select_vec_idle, io.in.map(_.aw.valid)) && state === sIdle
-    io.out.aw.bits  := Mux1H(select_vec_idle, io.in.map(_.aw.bits))
+    io.out.aw.valid := Mux1H(select_vec_use, io.in.map(_.aw.valid))
+    io.out.aw.bits  := Mux1H(select_vec_use, io.in.map(_.aw.bits))
     for (i <- 0 until io.in.length){
-        io.in(i).aw.ready   := select_vec_idle(i) && io.out.aw.ready && state === sIdle
+        io.in(i).aw.ready   := select_vec_use(i) && io.out.aw.ready
     }
 
     // R
-    io.out.r.ready  := Mux1H(select_vec, io.in.map(_.r.ready)) && state === sRead
+    io.out.r.ready  := Mux1H(select_vec_use, io.in.map(_.r.ready)) && ar_has_fire
     for (i <- 0 until io.in.length){
-        io.in(i).r.valid    := select_vec(i) && io.out.r.valid && state === sRead
+        io.in(i).r.valid    := select_vec_use(i) && io.out.r.valid && ar_has_fire
         io.in(i).r.bits     := io.out.r.bits
     }
 
     // W
-    io.out.w.valid  := Mux1H(select_vec_idle, io.in.map(_.w.valid)) && state === sIdle
-    io.out.w.bits   := Mux1H(select_vec_idle, io.in.map(_.w.bits))
+    io.out.w.valid  := Mux1H(select_vec_use, io.in.map(_.w.valid))
+    io.out.w.bits   := Mux1H(select_vec_use, io.in.map(_.w.bits))
     for (i <- 0 until io.in.length){
-        io.in(i).w.ready    := select_vec_idle(i) && io.out.w.ready && state === sIdle
+        io.in(i).w.ready    := select_vec_use(i) && io.out.w.ready
     }
 
     // B
-    io.out.b.ready  := Mux1H(select_vec, io.in.map(_.b.ready)) && state === sWrite
+    io.out.b.ready  := Mux1H(select_vec_use, io.in.map(_.b.ready)) && aw_has_fire && w_has_fire
     for (i <- 0 until io.in.length){
-        io.in(i).b.valid    := select_vec(i) && io.out.b.valid && state === sWrite
+        io.in(i).b.valid    := select_vec_use(i) && io.out.b.valid && aw_has_fire && w_has_fire
         io.in(i).b.bits     := io.out.b.bits
     }
 }

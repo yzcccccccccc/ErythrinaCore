@@ -112,7 +112,7 @@ class IDU extends Module with IDUtrait{
     io.idu_bpu_trigger   := io.idu_exu_zip.fire
 
     // to IFU!
-    io. ifu_idu_zip.ready            :=  io.idu_exu_zip.ready & io.idu_exu_zip.valid
+    io.ifu_idu_zip.ready            :=  io.idu_exu_zip.ready & io.idu_exu_zip.valid
 
     // to EXU!
     io.idu_exu_zip.valid                := ~fwd_pause | ~content_valid
