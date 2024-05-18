@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "setting.h"
 #include "svdpi.h"
+#include "trace.h"
 
 #ifdef __SOC__
 #include "VysyxSoCFull__Dpi.h"
@@ -20,7 +21,7 @@
 extern "C" void flash_read(int addr, int *data) {
     *data = *(uint32_t *)(flash + (addr & (~0x3u)));
     if (MTRACE)
-        fprintf(flash_log, "[flash ]read at 0x%x (data: 0x%08x)\n", addr & (~0x3u), *data);
+        fprintf(mtrace_file, "[flash ]read at 0x%x (data: 0x%08x)\n", addr & (~0x3u), *data);
 }
 extern "C" void mrom_read(int addr, int *data) {
     *data = pmem_read(addr & (~0x3u));

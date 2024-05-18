@@ -9,6 +9,7 @@
 #include "util.h"
 #include "device.h"
 #include "perf.h"
+#include "trace.h"
 
 #include "verilated.h"
 #include "verilated_fst_c.h"
@@ -16,6 +17,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <csignal>
+#include <chrono>
 
 #ifdef __SOC__
 #include "VysyxSoCFull.h"
@@ -31,9 +33,7 @@ void nvboard_bind_all_pins(VSoc* dut);
 
 #endif
 
-#include <chrono>
-
-int cycle = 0;
+uint64_t cycle = 0, instr = 0;
 FILE *logfile, *flash_log, *diff_log, *perf_log;
 // NPC state
 NPC_state npc_state;
@@ -56,13 +56,12 @@ void single_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp){
 #ifdef NVBOARD
     nvboard_update();
 #endif
-
     half_cycle(dut, tfp, contextp);
     
     half_cycle(dut, tfp, contextp);
 
     cycle++;
-    if (cycle > (uint32_t)CYCLE_BOUND){
+    if (cycle > (uint64_t)CYCLE_BOUND){
         npc_state = CPU_ABORT_CYCLE_BOUND;
     }
 }
@@ -144,42 +143,31 @@ void collect(){
 
 void cpu_end(){
     if (ITRACE){
-        fclose(logfile);
+        irbuf_dump();
+        fclose(itrace_file);
     }
     if (DIFF_TEST){
         fclose(diff_log);
     }
     if (MTRACE){
-        fclose(flash_log);
+        fclose(mtrace_file);
     }
     report();
     collect();
 }
 
-char inst_disasm[100];
 void execute(uint32_t n){
     auto start = std::chrono::high_resolution_clock::now();
 
     for (;n > 0 && npc_state == CPU_RUN && !contx->gotFinish(); n--){
         while (!get_commit_valid(dut) && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
         if (npc_state != CPU_RUN) break;
-        //void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
+        instr++;
         if (ITRACE){
-            uint32_t inst   = get_commit_inst(dut);
-            uint32_t pc     = get_commit_pc(dut);
-            disassemble(inst_disasm, 100, pc, (uint8_t *)&(inst), 4);
-            fprintf(logfile, "[Trace]: PC=0x%08x, Inst=0x%08x (%s), \n\trf_waddr=0x%x, rf_wdata=0x%08x, rf_wen=%d, addr=0x%08x, en=%x\n",
-                    pc, inst, inst_disasm,
-                    get_commit_rf_waddr(dut), get_commit_rf_wdata(dut),
-                    get_commit_rf_wen(dut),
-                    get_commit_mem_addr(dut), get_commit_mem_en(dut));
+            itrace_record();
         }
         if (MTRACE){
-            uint32_t en = get_commit_mem_en(dut);
-            uint32_t addr = get_commit_mem_addr(dut);
-            if (en){
-                fprintf(flash_log, "[mtrace] r/w at 0x%08x\n", addr);
-            }
+            mtrace_record();
         }
 
         check_skip();
@@ -227,10 +215,10 @@ void init_cpu(){
     cpu_reset();
 
     if (ITRACE){
-        logfile = fopen("./build/itrace.log", "w");
+        itrace_init();
     }
     if (MTRACE){
-        flash_log = fopen("./build/mtrace.log", "w");
+        mtrace_init();
     }
     if (DIFF_TEST){
         diff_log = fopen("./build/diff.log", "w");
