@@ -12,8 +12,10 @@
 
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+
 #include <cstdint>
 #include <cstdio>
+#include <csignal>
 
 #ifdef __SOC__
 #include "VysyxSoCFull.h"
@@ -28,6 +30,8 @@
 void nvboard_bind_all_pins(VSoc* dut);
 
 #endif
+
+#include <chrono>
 
 int cycle = 0;
 FILE *logfile, *flash_log, *diff_log, *perf_log;
@@ -116,6 +120,9 @@ void report(){
         case CPU_ABORT_CYCLE_BOUND:
             printf("[Hit Trap] %sAbort%s from hitting cycles bound.\n", FontRed, Restore);
             break;
+        case CPU_ABORT_INTERRUPT:
+            printf("[Hit Trap] %sAbort%s from interrupt.\n", FontRed, Restore);
+            break;
         case CPU_ABORT_DIFF_ERR:
             printf("[Hit Trap] %sAbort%s from difftesting fail.\n", FontRed, Restore);
             break;
@@ -129,10 +136,10 @@ void collect(){
     if (DUMP_WAVE){
         tfp->close();
     }
-
+    delete contx;
+    
     if (npc_state != CPU_HALT_GOOD)
         assert(0);
-    delete contx;
 }
 
 void cpu_end(){
@@ -151,6 +158,8 @@ void cpu_end(){
 
 char inst_disasm[100];
 void execute(uint32_t n){
+    auto start = std::chrono::high_resolution_clock::now();
+
     for (;n > 0 && npc_state == CPU_RUN && !contx->gotFinish(); n--){
         while (!get_commit_valid(dut) && npc_state == CPU_RUN) single_cycle(dut, tfp, contx);
         if (npc_state != CPU_RUN) break;
@@ -179,6 +188,10 @@ void execute(uint32_t n){
         difftest_step(CPU_state.pc);
         single_cycle(dut, tfp, contx);
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+
+    printf("[INFO] Simulation Speed: %.2lf CPS\n", (double)cycle / duration.count());
     if (contx->gotFinish()){
         npc_state = CPU_HALT_BAD;
     }
@@ -196,7 +209,15 @@ void init_nvboard(){
 #endif
 }
 
+void handle_interrupt(int signum){
+    if (signum == SIGINT){
+        npc_state = CPU_ABORT_INTERRUPT;
+    }
+}
+
 void init_cpu(){
+    signal(SIGINT, handle_interrupt);
+
     init_verilate();
 
     //init_mem();
