@@ -25,8 +25,8 @@ Verilator_CFLG  += -D__SIM__
 endif
 
 SOC_FLAGS 		+= -I$(UART_RTLDIR) -I$(SPI_RTLDIR) --timescale "1ns/1ns" --no-timing
-Verilator_SFLG	+= -cc --exe --trace-fst --build -j -CFLAGS "${Verilator_CFLG}" -LDFLAGS "${Verilator_LDFLG}" --autoflush
-Verilator_VFLG	+= -cc --trace-fst --build	# Only pack up the .v files
+Verilator_SFLG	+= -cc --exe --trace-fst -O3 --build -j -CFLAGS "${Verilator_CFLG}" -LDFLAGS "${Verilator_LDFLG}" --autoflush
+Verilator_VFLG	+= -cc --trace-fst -O3 --build # Only pack up the .v files
 
 ifeq ($(TOPNAME), ysyxSoCFull)
 Verilator_SFLG	+= $(SOC_FLAGS)

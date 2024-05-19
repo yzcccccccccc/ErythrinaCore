@@ -4,7 +4,7 @@ import chisel3._
 import erythcore._
 import bus.axi4._
 import device._
-import bus.mem._
+import erythcore.mem.SimpleRamAXI
 
 // thie module is mainly for analyzing the corectness of the core
 class SimTop extends Module with ErythrinaDefault{

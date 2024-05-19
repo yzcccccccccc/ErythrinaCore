@@ -1,4 +1,4 @@
-package bus.mem
+package erythcore.mem
 
 import  bus.ivybus._
 

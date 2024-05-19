@@ -21,11 +21,14 @@ typedef enum{
     CPU_ABORT_CYCLE_BOUND,
     CPU_ABORT_DIFF_ERR,
     CPU_ABORT_INTERRUPT,
+    CPU_ABORT_TIMEOUT,          // no response from DUT
     CPU_HALT_GOOD,
     CPU_HALT_BAD
 }NPC_state;
 extern NPC_state npc_state;
 extern uint32_t npc_info;
+
+#define TIMEOUT_BOUND 1000000
 
 extern void cpu_sim();
 extern void cpu_end();
