@@ -176,8 +176,8 @@ class MEMU extends Module with MEMUtrait{
     io.memu_wbu_zip.bits.RegWriteIO.wdata   := wdata
     io.memu_wbu_zip.bits.RegWriteIO.wen     := io.exu_memu_zip.bits.rf_wen
 
-    io.memu_wbu_zip.bits.mdata   := ld_data
-    io.memu_wbu_zip.bits.maddr   := Mux(isload, LoadRes, st_data)
+    io.memu_wbu_zip.bits.mdata   := Mux(isload, LoadRes, st_data)
+    io.memu_wbu_zip.bits.maddr   := addr
     io.memu_wbu_zip.bits.mwen    := io.memu_mem.req.bits.wen
     io.memu_wbu_zip.bits.men     := need_mem_op
     io.memu_wbu_zip.bits.exception := io.exu_memu_zip.bits.exception

@@ -20,8 +20,6 @@
 #ifdef __SOC__
 extern "C" void flash_read(int addr, int *data) {
     *data = *(uint32_t *)(flash + (addr & (~0x3u)));
-    if (MTRACE)
-        fprintf(mtrace_file, "[flash ]read at 0x%x (data: 0x%08x)\n", addr & (~0x3u), *data);
 }
 extern "C" void mrom_read(int addr, int *data) {
     *data = pmem_read(addr & (~0x3u));
@@ -49,8 +47,8 @@ extern "C" void halt_UnknownINST(){
 #ifdef __SOC__
     if (npc_state == CPU_RUN){
         printf("[Halt NINST] unknown inst at 0x%08x (%08x)\n", 
-            dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__idu_pc_r,
-            dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__idu_inst_r
+            dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__WBU_inst__DOT__pc_r,
+            dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__WBU_inst__DOT__inst_r
         );
         npc_state = CPU_ABORT_INSTERR;
     }
@@ -59,8 +57,8 @@ extern "C" void halt_UnknownINST(){
 #ifdef __SIM__
     if (npc_state == CPU_RUN){
         printf("[Halt NINST] unknown inst at 0x%08x (%08x)\n", 
-            dut->rootp->SimTop__DOT__erythcore__DOT__idu_pc_r,
-            dut->rootp->SimTop__DOT__erythcore__DOT__idu_inst_r
+            dut->rootp->SimTop__DOT__erythcore__DOT__WBU_inst__DOT__pc_r,
+            dut->rootp->SimTop__DOT__erythcore__DOT__WBU_inst__DOT__inst_r
         );
         npc_state = CPU_ABORT_INSTERR;
     }

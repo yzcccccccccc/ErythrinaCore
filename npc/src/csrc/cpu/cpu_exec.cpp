@@ -179,7 +179,7 @@ void execute(uint32_t n){
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
 
-    printf("[INFO] Simulation Speed: %.2lf CPS\n", (double)cycle / duration.count());
+    printf("[INFO] Total Cycles: %ld, Simulation Speed: %.2lf CPS\n", cycle, (double)cycle / duration.count());
     if (contx->gotFinish()){
         npc_state = CPU_HALT_BAD;
     }

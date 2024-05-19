@@ -15,94 +15,102 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
         val out = Flipped(Flipped(_type))
     })
 
-    val aw_has_fire = Reg(Bool())
-    val w_has_fire  = Reg(Bool())
+    val has_aw_fire = RegInit(false.B)
+    val has_w_fire  = RegInit(false.B)
+
+    when (io.out.aw.fire){
+        has_aw_fire := true.B
+    }.elsewhen(io.out.w.fire){
+        has_w_fire := true.B
+    }.elsewhen(io.out.b.fire){
+        has_aw_fire := false.B
+        has_w_fire  := false.B
+    }
 
     // FSM
-    val sIDLE :: sR :: sW :: Nil = Enum(3)
+    val sIDLE :: sR_req :: sR_recv :: sW_req :: sW_recv :: Nil = Enum(5)
     val state = RegInit(sIDLE)
-
     switch (state){
         is (sIDLE){
+            when (io.in.req.fire){
+                state := Mux(io.in.req.bits.wen, sW_req, sR_req)
+            }
+        }
+        is (sR_req){
             when (io.out.ar.fire){
-                state   := sR
-            }.elsewhen((io.out.aw.fire | aw_has_fire) & (io.out.w.fire | w_has_fire)){
-                state   := sW
+                state := sR_recv
             }
         }
-        is (sR){
-            when (io.out.r.fire){
-                state   := sIDLE
+        is (sR_recv){
+            when (io.in.resp.fire){
+                state := sIDLE
             }
         }
-        is (sW){
-            when (io.out.b.fire){
-                state   := sIDLE
+        is (sW_req){
+            when ((io.out.aw.fire | has_aw_fire) & (io.out.w.fire | has_w_fire)){
+                state := sW_recv
+            }
+        }
+        is (sW_recv){
+            when (io.in.resp.fire){
+                state := sIDLE
             }
         }
     }
-    
-    // Fire Reg
-    when (io.out.aw.fire){
-        aw_has_fire := 1.B
-    }
 
-    when (io.out.w.fire){
-        w_has_fire  := 1.B
-    }
+    val req_info = RegEnable(io.in.req.bits, io.in.req.fire)
 
-    when (state === sW){
-        aw_has_fire := 0.B
-        w_has_fire  := 0.B
-    }
+    // AXI-Read
+    io.out.ar.valid     := LatencyPipeBit(state === sR_req, LATENCY)
+    io.out.ar.bits.addr := req_info.addr
 
-    // AXI Read
-    io.out.ar.valid     := LatencyPipeBit(state === sIDLE && io.in.req.valid && ~io.in.req.bits.wen, LATENCY)
-    io.out.ar.bits.addr := io.in.req.bits.addr
-    val ar_addr_r   = RegEnable(io.out.ar.bits.addr, io.out.ar.fire)
+    io.out.r.ready      := LatencyPipeBit(state === sR_recv & io.in.resp.ready, LATENCY)
 
-    io.out.r.ready      := LatencyPipeBit(state === sR && io.in.resp.ready, LATENCY)
+    // AXI-Write
+    io.out.aw.valid     := LatencyPipeBit(state === sW_req, LATENCY)
+    io.out.aw.bits.addr := req_info.addr
 
-    // AXI Write
-    io.out.aw.valid     := LatencyPipeBit(state === sIDLE && io.in.req.valid && io.in.req.bits.wen, LATENCY)
-    io.out.aw.bits.addr := io.in.req.bits.addr
+    val strb = Mux(req_info.addr(2), Cat(req_info.mask, Fill(MASKLEN, 0.B)), Cat(Fill(MASKLEN, 0.B), req_info.mask))
+    val data = Mux(req_info.addr(2), Cat(req_info.data, Fill(XLEN, 0.B)), Cat(Fill(XLEN, 0.B), req_info.data))
+    io.out.w.valid      := LatencyPipeBit(state === sW_req, LATENCY)
+    io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) data else req_info.data)
+    io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) strb else req_info.mask)
 
-    val strb = Mux(io.in.req.bits.addr(2), Cat(io.in.req.bits.mask, Fill(MASKLEN, 0.B)), Cat(Fill(MASKLEN, 0.B), io.in.req.bits.mask))
-    val data = Mux(io.in.req.bits.addr(2), Cat(io.in.req.bits.data, Fill(XLEN, 0.B)), Cat(Fill(XLEN, 0.B), io.in.req.bits.data))
-    io.out.w.valid      := LatencyPipeBit(state === sIDLE && io.in.req.valid && io.in.req.bits.wen, LATENCY)
-    io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) data else io.in.req.bits.data)
-    io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) strb else io.in.req.bits.mask)
+    io.out.b.ready      := LatencyPipeBit(state === sW_recv & io.in.resp.ready, LATENCY)
 
-    io.out.b.ready      := LatencyPipeBit(state === sW && io.in.resp.ready, LATENCY)
-
-    // AXI4 Specific
+    // AXI4 specific
     if (_type.getClass() == classOf[AXI4]){
         val axi4 = io.out.asInstanceOf[AXI4]
-        
-        // TODO TBD
+
         // AR
         axi4.ar.bits.id     := "h01".U
         axi4.ar.bits.len    := "h00".U
-        axi4.ar.bits.size   := io.in.req.bits.size
+        axi4.ar.bits.size   := req_info.size
         axi4.ar.bits.burst  := AXI4Parameters.BURST_FIXED
 
         // AW
         axi4.aw.bits.id     := "h01".U
         axi4.aw.bits.len    := "h00".U
-        axi4.aw.bits.size   := io.in.req.bits.size
+        axi4.aw.bits.size   := req_info.size
         axi4.aw.bits.burst  := AXI4Parameters.BURST_FIXED
 
         // W
-        axi4.w.bits.last            := 1.B
+        axi4.w.bits.last    := 1.B
 
-        // R, B, ...
+        // R, B ...
     }
 
     // IvyBus
-    io.in.req.ready         := state === sIDLE & Mux(io.in.req.bits.wen, io.out.aw.ready, io.out.ar.ready)
-    io.in.resp.valid        := (state === sR && io.out.r.valid) | (state === sW && io.out.b.valid)
-    io.in.resp.bits.data    := Mux(ar_addr_r(2), io.out.r.bits.data(63, 32), io.out.r.bits.data(31, 0))
-    io.in.resp.bits.resp    := Mux(state === sW, io.out.b.bits.resp, io.out.r.bits.resp)
+    io.in.req.ready         := state === sIDLE
+    io.in.resp.valid        := LookupTreeDefault(state, 0.B, List(
+        sR_recv -> io.out.r.valid,
+        sW_recv -> io.out.b.valid
+    ))
+    io.in.resp.bits.data    := Mux(req_info.addr(2), io.out.r.bits.data(63, 32), io.out.r.bits.data(31, 0))
+    io.in.resp.bits.resp    := LookupTreeDefault(state, 0.U, List(
+        sR_recv -> io.out.r.bits.resp,
+        sW_recv -> io.out.b.bits.resp
+    ))
 }
 
 object Ivy2AXI4{

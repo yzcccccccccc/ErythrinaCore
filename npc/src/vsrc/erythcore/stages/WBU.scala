@@ -50,9 +50,15 @@ class WBU extends Module with WBUtrait{
         val isUnknown = io.memu_wbu_zip.bits.exception.isUnknown
 
         val HaltEbreak = Module(new haltEbreak)
-        HaltEbreak.io.halt_trigger := isEbreak
+        HaltEbreak.io.halt_trigger := RegNext(isEbreak)
 
         val HaltUnknown = Module(new haltUnknownInst)
-        HaltUnknown.io.halt_trigger := isUnknown
+        HaltUnknown.io.halt_trigger := RegNext(isUnknown)
+
+        // debug
+        val pc_r    = RegNext(io.memu_wbu_zip.bits.pc)
+        dontTouch(pc_r)
+        val inst_r  = RegNext(io.memu_wbu_zip.bits.inst)
+        dontTouch(inst_r)
     }
 }
