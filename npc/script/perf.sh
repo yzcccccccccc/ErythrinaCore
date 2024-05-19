@@ -11,14 +11,14 @@ benchname=$1
 # microbench
 if [ $benchname == "microbench" ]; then
     echo "Run microbench"
-    make -C ../am-kernels/microbench ARCH=riscv32e-ysyxsoc run mainargs=train
+    make -C ../am-kernels/benchmarks/microbench ARCH=riscv32e-ysyxsoc run mainargs=train
     echo "Finish microbench. Performance result in ./build/report/perf.log"
 fi
 
 # dhyrstone
 if [ $benchname == "dhrystone" ]; then
     echo "Run dhrystone"
-    make -C ../am-kernels/dhyrstone ARCH=riscv32e-ysyxsoc ALL=dhrystone run
+    make -C ../am-kernels/benchmarks/dhyrstone ARCH=riscv32e-ysyxsoc ALL=dhrystone run
     echo "Finish dhrystone. Performance result in ./build/report/perf.log"
 fi
 
