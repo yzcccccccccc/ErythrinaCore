@@ -6,7 +6,7 @@ FILE *itrace_file, *mtrace_file, *irbuf_file;
 
 #define IRINGBUF_LEN 1000
 char irbuf[IRINGBUF_LEN][256];
-char irbuf_ptr;
+int irbuf_ptr;
 int irbuf_valid[IRINGBUF_LEN];
 
 void itrace_init(){
@@ -33,10 +33,10 @@ void itrace_record(){
 
 void irbuf_dump(){
     irbuf_file  = fopen("./build/irbuf.log", "w");
-    for (int i = 0; i < IRINGBUF_LEN; i++){
+    for (int i = (irbuf_ptr + 1) % IRINGBUF_LEN, j = 1; i != irbuf_ptr; i = (i + 1) % IRINGBUF_LEN, j++){
         if (irbuf_valid[i]){
             fprintf(irbuf_file, "------------------------------------------------------------------------------------\n");
-            fprintf(irbuf_file, "%s%s", (i == irbuf_ptr - 1 ? "->" : "  "), irbuf[i]);
+            fprintf(irbuf_file, "%s %03d %s", (i == irbuf_ptr - 1 ? "->" : "  "), j, irbuf[i]);
         }
     }
     fprintf(irbuf_file, "------------------------------------------------------------------------------------\n");
@@ -49,8 +49,16 @@ void mtrace_init(){
 
 void mtrace_record(){
     uint32_t en = get_commit_mem_en(dut);
+    uint32_t wen = get_commit_mem_wen(dut);
     uint32_t addr = get_commit_mem_addr(dut);
+    uint32_t data = get_commit_mem_data(dut);
+
     if (en){
-        fprintf(mtrace_file, "[mtrace] r/w at 0x%08x\n", addr);
+        if (wen){
+            fprintf(mtrace_file, "[mtrace] write 0x%08x to 0x%08x\n", data, addr);
+        }
+        else{
+            fprintf(mtrace_file, "[mtrace] read 0x%08x from 0x%08x\n", data, addr);
+        }
     }
 }

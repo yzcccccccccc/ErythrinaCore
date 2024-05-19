@@ -34,6 +34,8 @@ class WBU extends Module with WBUtrait{
     io.inst_commit.rf_waddr := io.memu_wbu_zip.bits.RegWriteIO.waddr
     io.inst_commit.valid    := content_valid
     io.inst_commit.mem_addr := io.memu_wbu_zip.bits.maddr
+    io.inst_commit.mem_data := io.memu_wbu_zip.bits.mdata
+    io.inst_commit.mem_wen  := io.memu_wbu_zip.bits.mwen
     io.inst_commit.mem_en   := io.memu_wbu_zip.bits.men
 
     // FWD

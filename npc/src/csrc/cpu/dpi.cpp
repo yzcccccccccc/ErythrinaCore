@@ -48,14 +48,20 @@ extern "C" void halt_Ebreak(){
 extern "C" void halt_UnknownINST(){
 #ifdef __SOC__
     if (npc_state == CPU_RUN){
-        printf("[Halt NINST] unknown inst at 0x%08x\n", dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__IFU_inst__DOT__pc);
+        printf("[Halt NINST] unknown inst at 0x%08x (%08x)\n", 
+            dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__idu_pc_r,
+            dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__idu_inst_r
+        );
         npc_state = CPU_ABORT_INSTERR;
     }
 #endif
 
 #ifdef __SIM__
     if (npc_state == CPU_RUN){
-        printf("[Halt NINST] unknown inst at 0x%08x\n", dut->rootp->SimTop__DOT__erythcore__DOT__IFU_inst__DOT__pc);
+        printf("[Halt NINST] unknown inst at 0x%08x (%08x)\n", 
+            dut->rootp->SimTop__DOT__erythcore__DOT__idu_pc_r,
+            dut->rootp->SimTop__DOT__erythcore__DOT__idu_inst_r
+        );
         npc_state = CPU_ABORT_INSTERR;
     }
 #endif

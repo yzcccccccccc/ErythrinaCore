@@ -52,7 +52,6 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     MEMU_inst.io.memu_fwd_zip   <> FWD_inst.io.resp(1)
     WBU_inst.io.wbu_fwd_zip     <> FWD_inst.io.resp(2)
 
-
     // TODO: pipelines
     StageConnect(IFU_inst.io. ifu_idu_zip, IDU_inst.io. ifu_idu_zip)
     StageConnect(IDU_inst.io.idu_exu_zip, EXU_inst.io.idu_exu_zip)
@@ -79,4 +78,13 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     perfbox.io.idu_perf_probe   <> IDU_inst.io.idu_perf_probe
     perfbox.io.memu_perf_probe  <> MEMU_inst.io.memu_perf_probe
     perfbox.io.bpu_perf_probe   <> BPU_inst.io.bpu_perf_probe
+
+    // Debug
+    if (!ErythrinaSetting.isSTA){
+        // IDU
+        val idu_pc_r    = RegNext(IFU_inst.io.ifu_idu_zip.bits.pc)
+        dontTouch(idu_pc_r)
+        val idu_inst_r  = RegNext(IFU_inst.io.ifu_idu_zip.bits.inst)
+        dontTouch(idu_inst_r)
+    }
 }

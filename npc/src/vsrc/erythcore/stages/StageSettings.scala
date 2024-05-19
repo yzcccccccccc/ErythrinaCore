@@ -89,6 +89,8 @@ class MEM_WB_zip extends Bundle with MEMUtrait{
 
   // mem commit
   val maddr = UInt(XLEN.W)
+  val mdata = UInt(XLEN.W)
+  val mwen  = Bool()
   val men   = Bool()
 
   // exception

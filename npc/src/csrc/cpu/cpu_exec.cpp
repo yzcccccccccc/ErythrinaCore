@@ -34,7 +34,7 @@ void nvboard_bind_all_pins(VSoc* dut);
 #endif
 
 uint64_t cycle = 0, instr = 0;
-FILE *logfile, *flash_log, *diff_log, *perf_log;
+FILE *diff_log, *perf_log;
 // NPC state
 NPC_state npc_state;
 uint32_t npc_info;

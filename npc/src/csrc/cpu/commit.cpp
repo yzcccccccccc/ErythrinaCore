@@ -72,6 +72,24 @@ uint32_t get_commit_mem_addr(VSoc *dut){
 #endif
     assert(0);
 }
+uint32_t get_commit_mem_data(VSoc *dut){
+#ifdef __SOC__
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_mem_data;
+#endif
+#ifdef __SIM__
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_mem_data;
+#endif
+    assert(0);
+}
+uint32_t get_commit_mem_wen(VSoc *dut){
+#ifdef __SOC__
+    return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_mem_wen;
+#endif
+#ifdef __SIM__
+    return dut->rootp->SimTop__DOT__commit__DOT__port_r_mem_wen;
+#endif
+    assert(0);
+}
 uint32_t get_commit_mem_en(VSoc *dut){
 #ifdef __SOC__
     return dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__commit__DOT__port_r_mem_en;
