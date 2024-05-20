@@ -18,8 +18,15 @@ fi
 # dhyrstone
 if [ $benchname == "dhrystone" ]; then
     echo "Run dhrystone"
-    make -C ../am-kernels/benchmarks/dhyrstone ARCH=riscv32e-ysyxsoc ALL=dhrystone run
+    make -C ../am-kernels/benchmarks/dhyrstone ARCH=riscv32e-ysyxsoc run
     echo "Finish dhrystone. Performance result in ./build/report/perf.log"
+fi
+
+# coremark
+if [ $benchname == "coremark"]; then
+    echo "Run coremark"
+    make -C ../am-kernels/benchmarks/coremark ARCH=riscv32e-ysyxsoc run
+    echo "Finish coremark. Performance result in ./build/report/perf.log"
 fi
 
 # dummy

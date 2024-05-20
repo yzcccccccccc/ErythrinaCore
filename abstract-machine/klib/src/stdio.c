@@ -72,62 +72,102 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
   char *out_in = out;
   long d;
 
+#define sIDLE     0
+#define sPREP     1
+#define sSTRING   2
+#define sLONG     3
+#define sINT      4
+#define sCHAR     5
+  int state = sIDLE;
+
   while (*fmt){
-    if (*fmt != '%'){
-      *out = *fmt;
-      out++;
-    }
-    else{
-      fmt++;
-      switch (*fmt){
-        case 's':
-          s = va_arg(ap, char*);
-          while (*s != '\0'){
-            *out = *s;
-            out++;
-            s++;
-          }
-          break;
-        case 'd': case 'x':   // TODO: Add Hex!
-          d = va_arg(ap, int);
-          out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
-          pad_len = 0;
-          break;
-        case 'l':
+    switch (state){
+      case sIDLE:{
+        if (*fmt == '%'){
+          state = sPREP;
           fmt++;
-          assert(*fmt == 'd' || *fmt == 'x');
-          d = va_arg(ap, long);
-          out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
-          pad_len = 0;
-          break;
-        case 'c':
-          d = va_arg(ap, int);
-          *out = d;
+        }
+        else{
+          *out = *fmt;
           out++;
-          break;
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
-        // format 0...
-          if (*fmt == '0')
+          fmt++;
+        }
+        break;
+      }
+      case sPREP:{
+        if ('0' <= *fmt && *fmt <= '9'){
+          if (*fmt == '0'){
             pad_ch = '0';
-          else
+          }
+          else{
             pad_ch = ' ';
+          }
           pad_len = *fmt - '0';
           fmt++;
-          while (*fmt != 'd' && *fmt != 'x' && *fmt != '\0'){
+          while (*fmt != 'd' && *fmt != 'x' && *fmt != 'l' && *fmt != '\0'){
             pad_len = pad_len * 10 + (*fmt - '0');
             fmt++;
           }
-          assert(*fmt != '\0');
-          assert(pad_len != 0);
-          fmt--;
-          break;
-        default:
-          printf("%s", fmt);
-          assert(0);
+        }
+        switch (*fmt){
+          case 's':
+            state = sSTRING;
+            break;
+          case 'd': case 'x':
+            state = sINT;
+            break;
+          case 'l':
+            state = sLONG;
+            break;
+          case 'c':
+            state = sCHAR;
+            break;
+          default:
+            printf("%s", fmt);
+            assert(0);
+        }
+        break;
       }
+      case sSTRING:{
+        s = va_arg(ap, char*);
+        while (*s != '\0'){
+          *out = *s;
+          out++;
+          s++;
+        }
+        state = sIDLE;
+        fmt++;
+        break;
+      }
+      case sINT:{
+        d = va_arg(ap, int);
+        out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
+        state = sIDLE;
+        pad_len = 0;
+        fmt++;
+        break;
+      }
+      case sLONG:{
+        fmt++;
+        assert(*fmt == 'd' || *fmt == 'x');
+        d = va_arg(ap, long);
+        out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
+        state = sIDLE;
+        pad_len = 0;
+        fmt++;
+        break;
+      }
+      case sCHAR:{
+        d = va_arg(ap, int);
+        *out = d;
+        out++;
+        state = sIDLE;
+        fmt++;
+        break;
+      }
+      default:
+        assert(0);
     }
-    fmt++;
   }
   *out = '\0';
   return (out - out_in);
