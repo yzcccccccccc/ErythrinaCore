@@ -32,7 +32,7 @@ micro-test: verilate_sim
 	$(SIM_TAR) -d $(DIFF_SO) -b $(ARG) microtest/build/$(OBJNAME).bin
 
 # Perf
-PERF_BENCH ?= microbench
+PERF_BENCH ?= dhrystone			# in [microbench, dhrystone, coremark, dummy]
 perf:
 	@echo "Running Perf Test, bench: $(PERF_BENCH)"
 	bash ./script/perf.sh $(PERF_BENCH)

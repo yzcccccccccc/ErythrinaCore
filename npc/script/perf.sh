@@ -18,7 +18,7 @@ fi
 # dhyrstone
 if [ $benchname == "dhrystone" ]; then
     echo "Run dhrystone"
-    make -C ../am-kernels/benchmarks/dhyrstone ARCH=riscv32e-ysyxsoc run
+    make -C ../am-kernels/benchmarks/dhrystone ARCH=riscv32e-ysyxsoc run
     echo "Finish dhrystone. Performance result in ./build/report/perf.log"
 fi
 
