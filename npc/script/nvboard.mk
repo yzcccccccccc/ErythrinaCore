@@ -5,7 +5,7 @@ include $(NVBOARD_HOME)/scripts/nvboard.mk
 INC_PATH ?=
 BIN = $(OBJ_DIR)/$(TOPNAME)
 
-VERILATOR_NVFLAGS += --build -cc  --trace\
+VERILATOR_NVFLAGS += --build -cc  --trace-fst\
 				-O3 --x-assign fast --x-initial fast --noassert\
 				-j -CFLAGS "$(Verilator_CFLG)" -LDFLAGS "$(Verilator_LDFLG)" --autoflush
 VERILATOR_NVFLAGS += $(SOC_FLAGS)

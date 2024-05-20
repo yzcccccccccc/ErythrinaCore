@@ -23,7 +23,7 @@ if [ $benchname == "dhrystone" ]; then
 fi
 
 # coremark
-if [ $benchname == "coremark"]; then
+if [ $benchname == "coremark" ]; then
     echo "Run coremark"
     make -C ../am-kernels/benchmarks/coremark ARCH=riscv32e-ysyxsoc run
     echo "Finish coremark. Performance result in ./build/report/perf.log"

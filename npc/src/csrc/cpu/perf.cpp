@@ -80,6 +80,7 @@ void perf_res_show(){
     printf("\tInst Resp Wait: \t\t\t%ld\n", perf_cnt.inst_resp_wait);
     printf("\tInst Total Delay: \t\t\t%ld\n", perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait);
     printf("\tInst Average Delay: \t\t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.get_instr_event);
+    printf("\tInst-Mem-Delay Per Inst: \t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.instrs);
     printf("\n");
     printf("\tCal Instrs: \t\t\t\t%ld\n", perf_cnt.cal_instrs);
     printf("\tCSR Instrs: \t\t\t\t%ld\n", perf_cnt.csr_instrs);
@@ -94,6 +95,7 @@ void perf_res_show(){
     printf("\tData Resp Wait: \t\t\t%ld\n", perf_cnt.data_resp_wait);
     printf("\tData Total Delay: \t\t\t%ld\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
     printf("\tData Average Delay: \t\t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
+    printf("\tData-Mem-Delay Per Inst: \t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / perf_cnt.instrs);
     printf("\n");
     printf("\tBPU Hit Event: \t\t\t\t%ld\n", perf_cnt.bpu_hit_event);
     printf("\tBPU Miss Event: \t\t\t%ld\n", perf_cnt.bpu_miss_event);
@@ -122,6 +124,7 @@ void perf_res_record(){
     fprintf(perf_log, "\tInst Resp Wait: \t\t\t%ld\n", perf_cnt.inst_resp_wait);
     fprintf(perf_log, "\tInst Total Delay: \t\t\t%ld\n", perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait);
     fprintf(perf_log, "\tInst Average Delay: \t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.get_instr_event);
+    fprintf(perf_log, "Inst-Mem-Delay Per Inst: \t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.instrs);
     fprintf(perf_log, "\n");
     fprintf(perf_log, "\tCAL Instrs: \t\t\t\t%ld\n", perf_cnt.cal_instrs);
     fprintf(perf_log, "\tCSR Instrs: \t\t\t\t%ld\n", perf_cnt.csr_instrs);
@@ -136,6 +139,7 @@ void perf_res_record(){
     fprintf(perf_log, "\tData Resp Wait: \t\t\t%ld\n", perf_cnt.data_resp_wait);
     fprintf(perf_log, "\tData Total Delay: \t\t\t%ld\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
     fprintf(perf_log, "\tData Average Delay: \t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
+    fprintf(perf_log, "\tData-Mem-Delay Per Inst: \t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / perf_cnt.instrs);
     fprintf(perf_log, "\n");
     fprintf(perf_log, "\tBPU Hit Event: \t\t\t\t%ld\n", perf_cnt.bpu_hit_event);
     fprintf(perf_log, "\tBPU Miss Event: \t\t\t%ld\n", perf_cnt.bpu_miss_event);
