@@ -2,15 +2,15 @@
 #define __SETTING_H__
 
 // Wave
-#define DUMP_WAVE       1
-#define USE_WINDOW      1
-#define WINDOW_BEGIN    30000000
+#define DUMP_WAVE       0
+#define USE_WINDOW      1000000
+#define WINDOW_BEGIN    600000000
 
 #define CYCLE_BOUND -1
 #define INSTR_BOUND -1
-#define DIFF_TEST 0
+#define DIFF_TEST 1
 
-#define ITRACE 0
+#define ITRACE 1
 #define MTRACE 0
 #define DTRACE 0
 

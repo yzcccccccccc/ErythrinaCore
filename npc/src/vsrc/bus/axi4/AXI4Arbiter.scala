@@ -32,18 +32,27 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
 
     /*---------- Read Channel ----------*/
     val rd_inflight = RegInit(0.B)
-    when (io.out.ar.fire){
+    when (io.out.ar.valid){
         rd_inflight := 1.B
     }.elsewhen(io.out.r.fire & io.out.r.bits.last){
         rd_inflight := 0.B
     }
 
-    val rd_hitvec   = VecInit(io.in.map(p => (p.ar.valid & ~rd_inflight)))
-    val rd_hitvec_r = RegEnable(rd_hitvec, io.out.ar.valid)
+    val rd_hitvec   = VecInit(io.in.map(p => p.ar.valid))
+    val rd_hitvec_r = RegEnable(rd_hitvec, io.out.ar.valid & ~rd_inflight)
 
     val rd_selvec_0 = VecInit(PriorityEncoderOH(rd_hitvec))
     val rd_selvec_1 = VecInit(PriorityEncoderOH(rd_hitvec_r))
     val rd_selvec   = Mux(rd_inflight, rd_selvec_1, rd_selvec_0)
+
+    val ar_has_done = RegInit(0.B)
+    when (io.out.ar.fire){
+        ar_has_done := 1.B
+    }.elsewhen(io.out.r.fire & io.out.r.bits.last){
+        ar_has_done := 0.B
+    }
+
+    val r_stage     = ar_has_done
 
     // AR
     io.out.ar.valid := Mux1H(rd_selvec, io.in.map(_.ar.valid))
@@ -53,9 +62,9 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
     }
 
     // R
-    io.out.r.ready := Mux1H(rd_selvec, io.in.map(_.r.ready)) & rd_inflight
+    io.out.r.ready := Mux1H(rd_selvec, io.in.map(_.r.ready)) & r_stage
     for (i <- 0 until io.in.length){
-        io.in(i).r.valid := rd_selvec(i) & io.out.r.valid & rd_inflight
+        io.in(i).r.valid := rd_selvec(i) & io.out.r.valid & r_stage
         io.in(i).r.bits  := io.out.r.bits
     }
 
@@ -75,15 +84,17 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
         w_has_done := 0.B
     }
 
+    val b_stage = w_has_done & aw_has_done
+
     val wr_inflight = RegInit(0.B)
-    when ((io.out.aw.fire | aw_has_done) & (io.out.w.fire & io.out.w.bits.last | w_has_done) & ~wr_inflight){
+    when (io.out.aw.valid){
         wr_inflight := 1.B
     }.elsewhen(io.out.b.fire){
         wr_inflight := 0.B
     }
 
-    val wr_hitvec   = VecInit(io.in.map(p => (p.aw.valid & ~wr_inflight)))
-    val wr_hitvec_r = RegEnable(wr_hitvec, io.out.aw.valid)
+    val wr_hitvec   = VecInit(io.in.map(p => p.aw.valid))
+    val wr_hitvec_r = RegEnable(wr_hitvec, io.out.aw.valid & ~wr_inflight)
 
     val wr_selvec_0 = VecInit(PriorityEncoderOH(wr_hitvec))
     val wr_selvec_1 = VecInit(PriorityEncoderOH(wr_hitvec_r))
@@ -104,9 +115,9 @@ class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
     }
 
     // B
-    io.out.b.ready := Mux1H(wr_selvec, io.in.map(_.b.ready)) & wr_inflight
+    io.out.b.ready := Mux1H(wr_selvec, io.in.map(_.b.ready)) & b_stage
     for (i <- 0 until io.in.length){
-        io.in(i).b.valid := wr_selvec(i) & io.out.b.valid & wr_inflight
+        io.in(i).b.valid := wr_selvec(i) & io.out.b.valid & b_stage
         io.in(i).b.bits  := io.out.b.bits
     }
 }

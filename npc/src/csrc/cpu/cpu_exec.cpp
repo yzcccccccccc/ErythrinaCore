@@ -48,7 +48,7 @@ VerilatedContext *contx = NULL;
 
 void init_wave_dmp(){
     if (trace_is_on){
-        printf("[INFO] Wave dump %senabled%s at cycle %ld.\n", FontGreen, Restore, cycle);
+        printf("[Info] Wave dump %senabled%s at cycle %ld.\n", FontGreen, Restore, cycle);
         tfp = new VerilatedFstC;
         contx->traceEverOn(true);
         dut->trace(tfp, 1);
@@ -148,7 +148,7 @@ void collect(){
     delete dut;
     if (DUMP_WAVE){
         if (!trace_is_on){
-            printf("[%sWarning%s] Simulation cycles are not in the window, no wave file generated.\n", FontYellow, Restore);
+            printf("[%sWarning%s] Simulation cycles didn't hit the window, no wave file was generated.\n", FontYellow, Restore);
         }
         else{
             tfp->close();
@@ -219,7 +219,7 @@ void init_nvboard(){
     nvboard_bind_all_pins(dut);
     nvboard_init();
     
-    printf("%s[INFO]%s NVBoard initialized.\n", FontGreen, Restore);
+    printf("%s[Info]%s NVBoard initialized.\n", FontGreen, Restore);
 #endif
 }
 

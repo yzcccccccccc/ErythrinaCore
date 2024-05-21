@@ -14,7 +14,7 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
 
     /*---------- Read Channel ----------*/
     val rd_inflight = RegInit(0.B)
-    when (in.ar.fire){
+    when (in.ar.valid){
         rd_inflight := 1.B
     }.elsewhen(in.r.fire & in.r.bits.last){
         rd_inflight := 0.B
@@ -22,11 +22,20 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
 
     val rd_hit_list     = addr_space.map(p => (p._1 <= in.ar.bits.addr) & (in.ar.bits.addr <= p._2))
     val rd_hit_vec      = VecInit(rd_hit_list)
-    val rd_hit_vec_r    = RegEnable(rd_hit_vec, in.ar.valid)
+    val rd_hit_vec_r    = RegEnable(rd_hit_vec, in.ar.valid & ~rd_inflight)
 
     val rd_selvec_0     = VecInit(PriorityEncoderOH(rd_hit_vec))
     val rd_selvec_1     = VecInit(PriorityEncoderOH(rd_hit_vec_r))
     val rd_selvec       = Mux(rd_inflight, rd_selvec_1, rd_selvec_0)
+
+    val ar_has_done     = RegInit(0.B)
+    when (in.ar.fire){
+        ar_has_done := 1.B
+    }.elsewhen(in.r.fire & in.r.bits.last){
+        ar_has_done := 0.B
+    }
+
+    val r_stage         = ar_has_done
 
     // AR
     in.ar.ready := Mux1H(rd_selvec, io.out.map(_.ar.ready))
@@ -36,10 +45,10 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
     }
 
     // R
-    in.r.valid  := Mux1H(rd_selvec, io.out.map(_.r.valid)) & rd_inflight
+    in.r.valid  := Mux1H(rd_selvec, io.out.map(_.r.valid)) & r_stage
     in.r.bits   := Mux1H(rd_selvec, io.out.map(_.r.bits))
     for (i <- 0 until addr_space.length){
-        io.out(i).r.ready := rd_selvec(i) & in.r.ready & rd_inflight
+        io.out(i).r.ready := rd_selvec(i) & in.r.ready & r_stage
     }
 
     /*---------- Write Channel ----------*/
@@ -57,8 +66,10 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
         w_has_done := 0.B
     }
 
+    val b_stage     = w_has_done & aw_has_done
+
     val wr_inflight = RegInit(0.B)
-    when ((in.aw.fire | aw_has_done) & (in.w.fire & in.w.bits.last | w_has_done) & ~wr_inflight){
+    when (in.aw.valid){
         wr_inflight := 1.B
     }.elsewhen(in.b.fire){
         wr_inflight := 0.B
@@ -66,7 +77,7 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
 
     val wr_hitlist  = addr_space.map(p => (p._1 <= in.aw.bits.addr) & (in.aw.bits.addr <= p._2))
     val wr_hitvec   = VecInit(wr_hitlist)
-    val wr_hitvec_r = RegEnable(wr_hitvec, in.aw.valid)
+    val wr_hitvec_r = RegEnable(wr_hitvec, in.aw.valid & ~wr_inflight)
 
     val wr_selvec_0 = VecInit(PriorityEncoderOH(wr_hitvec))
     val wr_selvec_1 = VecInit(PriorityEncoderOH(wr_hitvec_r))
@@ -87,9 +98,9 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
     }
 
     // B
-    in.b.valid := Mux1H(wr_selvec, io.out.map(_.b.valid)) & wr_inflight
+    in.b.valid := Mux1H(wr_selvec, io.out.map(_.b.valid)) & b_stage
     in.b.bits  := Mux1H(wr_selvec, io.out.map(_.b.bits))
     for (i <- 0 until addr_space.length){
-        io.out(i).b.ready := wr_selvec(i) & in.b.ready & wr_inflight
+        io.out(i).b.ready := wr_selvec(i) & in.b.ready & b_stage
     }
 }

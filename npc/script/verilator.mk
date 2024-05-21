@@ -56,6 +56,7 @@ $(Verilator_TAR): $(VSRCS)
 
 SIM_TAR			= $(OBJ_DIR)/V$(TOPNAME)
 $(SIM_TAR): $(VSRCS) $(CSRCS) $(HSRCS)
+	@ rm -rf wave.vcd
 	@ $(VERILATOR) $(Verilator_SFLG) --Mdir $(OBJ_DIR) --top-module $(TOPNAME) $(VSRCS) $(CSRCS)
 
 verilate: $(Verilator_TAR)
