@@ -39,8 +39,31 @@ FILE *diff_log, *perf_log;
 NPC_state npc_state;
 uint32_t npc_info;
 
+bool trace_is_on = DUMP_WAVE & !USE_WINDOW;
+
+// Soc DUT
+VSoc *dut = NULL;
+VerilatedFstC *tfp = NULL;
+VerilatedContext *contx = NULL;
+
+void init_wave_dmp(){
+    if (trace_is_on){
+        printf("[INFO] Wave dump %senabled%s at cycle %ld.\n", FontGreen, Restore, cycle);
+        tfp = new VerilatedFstC;
+        contx->traceEverOn(true);
+        dut->trace(tfp, 1);
+        tfp->open("wave.vcd");
+    }
+}
+
+void init_verilate(){
+    contx = new VerilatedContext;
+    dut = new VSoc(contx);
+    init_wave_dmp();
+}
+
 void wave_record(VerilatedFstC *tfp, VerilatedContext *contx){
-    if (DUMP_WAVE){
+    if (trace_is_on){
         tfp->dump(contx->time());
     }
 }
@@ -64,22 +87,10 @@ void single_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp){
     if (cycle > (uint64_t)CYCLE_BOUND){
         npc_state = CPU_ABORT_CYCLE_BOUND;
     }
-}
 
-// Soc DUT
-VSoc *dut = NULL;
-VerilatedFstC *tfp = NULL;
-VerilatedContext *contx = NULL;
-
-void init_verilate(){
-    contx = new VerilatedContext;
-    dut = new VSoc(contx);
-    tfp = (DUMP_WAVE) ? new VerilatedFstC : NULL;
-
-    if (DUMP_WAVE){
-        contx->traceEverOn(true);
-        dut->trace(tfp, 1); 
-        tfp->open("wave.vcd");
+    if (!trace_is_on && DUMP_WAVE && cycle > (uint64_t)WINDOW_BEGIN){
+        trace_is_on = true;
+        init_wave_dmp();
     }
 }
 
@@ -136,7 +147,12 @@ void report(){
 void collect(){
     delete dut;
     if (DUMP_WAVE){
-        tfp->close();
+        if (!trace_is_on){
+            printf("[%sWarning%s] Simulation cycles are not in the window, no wave file generated.\n", FontYellow, Restore);
+        }
+        else{
+            tfp->close();
+        }
     }
     delete contx;
     
@@ -189,7 +205,7 @@ void execute(uint32_t n){
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = end - start;
 
-    printf("[INFO] Total Cycles: %ld, Simulation Speed: %.2lf CPS\n", cycle, (double)cycle / duration.count());
+    printf("[Info] Total Cycles: %ld, Simulation Speed: %.2lf CPS\n", cycle, (double)cycle / duration.count());
     if (contx->gotFinish()){
         npc_state = CPU_HALT_BAD;
     }
