@@ -24,105 +24,89 @@ object AXI4MuxDummy {
     }
 }
 
-// TODO: improve efficiency
 class AXI4ArbiterNto1[T <: AXI4Lite](n:Int, _type: T = new AXI4) extends Module{
     val io = IO(new Bundle {
         val in  = Vec(n, Flipped(_type))
         val out = new AXI4
     })
 
-    val aw_has_fire = Reg(Bool())
-    val w_has_fire  = Reg(Bool())
-    val ar_has_fire = Reg(Bool())
-
-    // FSM
-    val sIdle :: sRead :: sWrite :: Nil = Enum(3)
-    val state   = RegInit(sIdle)
-
-    switch (state){
-        is (sIdle){
-            assert(~(io.out.ar.valid & io.out.aw.valid), "AXI4ArbiterNto1: Both ar and aw are valid!")
-            when (io.out.ar.valid){
-                state   := sRead
-            }.elsewhen(io.out.aw.valid){
-                state   := sWrite
-            }
-        }
-        is (sRead){
-            when (io.out.r.fire){
-                state   := sIdle
-            }
-        }
-        is (sWrite){
-            when (io.out.b.fire){
-                state   := sIdle
-            }
-        }
-    }
-
-    // Write Mark
-    when (io.out.aw.fire){
-        aw_has_fire := 1.B
-    }
-
-    when (io.out.w.fire){
-        w_has_fire  := 1.B
-    }
-
-    when (io.out.b.fire){
-        aw_has_fire := 0.B
-        w_has_fire  := 0.B
-    }
-
-    // Read Mark
+    /*---------- Read Channel ----------*/
+    val rd_inflight = RegInit(0.B)
     when (io.out.ar.fire){
-        ar_has_fire := 1.B
+        rd_inflight := 1.B
+    }.elsewhen(io.out.r.fire & io.out.r.bits.last){
+        rd_inflight := 0.B
     }
 
-    when (io.out.r.fire){
-        ar_has_fire := 0.B
-    }
+    val rd_hitvec   = VecInit(io.in.map(p => (p.ar.valid & ~rd_inflight)))
+    val rd_hitvec_r = RegEnable(rd_hitvec, io.out.ar.valid)
 
-    val hit_vec     = VecInit(io.in.map(p => ((p.ar.valid | p.aw.valid) & state === sIdle)))
-    val hit_vec_r   = RegEnable(hit_vec, (io.out.ar.valid | io.out.aw.valid) & state === sIdle)
-
-    val select_vec_idle = VecInit(PriorityEncoderOH(hit_vec))
-    val select_vec      = VecInit(PriorityEncoderOH(hit_vec_r))
-
-    val select_vec_use  = Mux(state === sIdle, select_vec_idle, select_vec)
+    val rd_selvec_0 = VecInit(PriorityEncoderOH(rd_hitvec))
+    val rd_selvec_1 = VecInit(PriorityEncoderOH(rd_hitvec_r))
+    val rd_selvec   = Mux(rd_inflight, rd_selvec_1, rd_selvec_0)
 
     // AR
-    io.out.ar.valid := Mux1H(select_vec_use, io.in.map(_.ar.valid))
-    io.out.ar.bits  := Mux1H(select_vec_use, io.in.map(_.ar.bits))
+    io.out.ar.valid := Mux1H(rd_selvec, io.in.map(_.ar.valid))
+    io.out.ar.bits  := Mux1H(rd_selvec, io.in.map(_.ar.bits))
     for (i <- 0 until io.in.length){
-        io.in(i).ar.ready   := select_vec_use(i) && io.out.ar.ready
-    }
-
-    // AW
-    io.out.aw.valid := Mux1H(select_vec_use, io.in.map(_.aw.valid))
-    io.out.aw.bits  := Mux1H(select_vec_use, io.in.map(_.aw.bits))
-    for (i <- 0 until io.in.length){
-        io.in(i).aw.ready   := select_vec_use(i) && io.out.aw.ready
+        io.in(i).ar.ready := rd_selvec(i) & io.out.ar.ready
     }
 
     // R
-    io.out.r.ready  := Mux1H(select_vec_use, io.in.map(_.r.ready)) && ar_has_fire
+    io.out.r.ready := Mux1H(rd_selvec, io.in.map(_.r.ready)) & rd_inflight
     for (i <- 0 until io.in.length){
-        io.in(i).r.valid    := select_vec_use(i) && io.out.r.valid && ar_has_fire
-        io.in(i).r.bits     := io.out.r.bits
+        io.in(i).r.valid := rd_selvec(i) & io.out.r.valid & rd_inflight
+        io.in(i).r.bits  := io.out.r.bits
+    }
+
+    /*---------- Write Channel ----------*/
+    val aw_has_done = RegInit(0.B)
+    val w_has_done  = RegInit(0.B)
+
+    when (io.out.aw.fire){
+        aw_has_done := 1.B
+    }.elsewhen(io.out.b.fire){
+        aw_has_done := 0.B
+    }
+
+    when (io.out.w.fire & io.out.w.bits.last){
+        w_has_done := 1.B
+    }.elsewhen(io.out.b.fire){
+        w_has_done := 0.B
+    }
+
+    val wr_inflight = RegInit(0.B)
+    when ((io.out.aw.fire | aw_has_done) & (io.out.w.fire & io.out.w.bits.last | w_has_done) & ~wr_inflight){
+        wr_inflight := 1.B
+    }.elsewhen(io.out.b.fire){
+        wr_inflight := 0.B
+    }
+
+    val wr_hitvec   = VecInit(io.in.map(p => (p.aw.valid & ~wr_inflight)))
+    val wr_hitvec_r = RegEnable(wr_hitvec, io.out.aw.valid)
+
+    val wr_selvec_0 = VecInit(PriorityEncoderOH(wr_hitvec))
+    val wr_selvec_1 = VecInit(PriorityEncoderOH(wr_hitvec_r))
+    val wr_selvec   = Mux(wr_inflight, wr_selvec_1, wr_selvec_0)
+
+    // AW
+    io.out.aw.valid := Mux1H(wr_selvec, io.in.map(_.aw.valid))
+    io.out.aw.bits  := Mux1H(wr_selvec, io.in.map(_.aw.bits))
+    for (i <- 0 until io.in.length){
+        io.in(i).aw.ready := wr_selvec(i) & io.out.aw.ready
     }
 
     // W
-    io.out.w.valid  := Mux1H(select_vec_use, io.in.map(_.w.valid))
-    io.out.w.bits   := Mux1H(select_vec_use, io.in.map(_.w.bits))
+    io.out.w.valid := Mux1H(wr_selvec, io.in.map(_.w.valid))
+    io.out.w.bits  := Mux1H(wr_selvec, io.in.map(_.w.bits))
     for (i <- 0 until io.in.length){
-        io.in(i).w.ready    := select_vec_use(i) && io.out.w.ready
+        io.in(i).w.ready := wr_selvec(i) & io.out.w.ready
     }
 
     // B
-    io.out.b.ready  := Mux1H(select_vec_use, io.in.map(_.b.ready)) && aw_has_fire && w_has_fire
+    io.out.b.ready := Mux1H(wr_selvec, io.in.map(_.b.ready)) & wr_inflight
     for (i <- 0 until io.in.length){
-        io.in(i).b.valid    := select_vec_use(i) && io.out.b.valid && aw_has_fire && w_has_fire
-        io.in(i).b.bits     := io.out.b.bits
+        io.in(i).b.valid := wr_selvec(i) & io.out.b.valid & wr_inflight
+        io.in(i).b.bits  := io.out.b.bits
     }
 }

@@ -1,7 +1,7 @@
 package top
 
 import chisel3._
-import bus.mem._
+import erythcore.mem._
 import erythcore._
 import bus.axi4._
 import device._

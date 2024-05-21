@@ -180,7 +180,7 @@ class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
         
         // R
         axi4.r.bits.id              := "h01".U
-        axi4.r.bits.last            := 0.B
+        axi4.r.bits.last            := 1.B
 
         // B
         axi4.b.bits.id              := "h01".U
