@@ -1,4 +1,4 @@
-package erythcore.mem
+package erythcore
 
 import chisel3._
 import chisel3.util._
@@ -39,6 +39,7 @@ import erythcore.CSRnum.mstatus
 */
 
 case class CacheConfig(
+    ro: Boolean = true,
     name: String = "cache",
     // [tag] [index] [offset]
     tagbits: Int = 24,
@@ -52,8 +53,8 @@ case class CacheConfig(
     banknum: Int = 8,       // 32 Bytes / 4 Bytes = 8
 
     // Cache range
-    cacheable_lbound: Int = 0xa0000000,
-    cacheable_ubound: Int = 0xbfffffff
+    cacheable_lbound: Long = 0xa0000000L,
+    cacheable_ubound: Long = 0xbfffffffL
 )
 
 class CacheIO(implicit cacheConfig:CacheConfig) extends Bundle {
@@ -68,7 +69,11 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     val mem_port = io.mem_port
 
     def get_bank(offset : UInt) = {
-        offset(cacheConfig.offsetbits - 1, 3)
+        offset(cacheConfig.offsetbits - 1, 2)
+    }
+
+    if (cacheConfig.ro){
+        assert(~cpu_port.req.bits.wen)
     }
 
     /* ---------- Cache Memory Def ---------- */
@@ -95,12 +100,12 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     val cache_c = SyncReadMem(cacheConfig.ways * cacheConfig.sets, Vec(cacheConfig.banknum, UInt(XLEN.W)))    // 4 way * 8 entry
 
     /* ---------- Cache Important Signals ---------- */
-    val isbypass    = Wire(Bool())          // valid in IDLE stage
+    val isbypass    = cpu_port.req.bits.addr < cacheConfig.cacheable_lbound.U  | cpu_port.req.bits.addr > cacheConfig.cacheable_ubound.U
     val ishit       = Wire(Bool())          // valid in LOOKUP stage
 
     val tag         = cpu_port.req.bits.addr(cacheConfig.tagbits + cacheConfig.indexbits + cacheConfig.offsetbits - 1, cacheConfig.indexbits + cacheConfig.offsetbits)
     val index       = cpu_port.req.bits.addr(cacheConfig.indexbits + cacheConfig.offsetbits - 1, cacheConfig.offsetbits)
-    val offset      = cpu_port.req.bits.addr(cacheConfig.offsetbits - 1, 2)
+    val offset      = cpu_port.req.bits.addr(cacheConfig.offsetbits - 1, 0)
 
     val tag_r       = RegEnable(tag, cpu_port.req.fire)
     val index_r     = RegEnable(index, cpu_port.req.fire)
@@ -108,7 +113,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     
     val victim_way      = RegEnable(LFSR(log2Ceil(cacheConfig.ways)), cpu_port.req.fire)
     val victim_dat_vec  = RegInit(VecInit(Seq.fill(cacheConfig.banknum)(0.U(XLEN.W))))
-    val isvicdirty       = Wire(Bool())          // victim cacheline is dirty
+    val isvicdirty      = Wire(Bool())          // victim cacheline is dirty
 
     val cpu_req_r   = RegEnable(cpu_port.req.bits, cpu_port.req.fire)
     val rd_dat_vec  = RegInit(VecInit(Seq.fill(cacheConfig.banknum)(0.U(XLEN.W))))      // cache read data
@@ -147,6 +152,9 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     }
 
     /* ---------- AXI_R FSM ---------- */
+    val sR_IDLE :: sR_REQ :: sR_RECV :: Nil = Enum(3)
+    val r_state = RegInit(sR_IDLE)
+
     val axi_r_bp    = m_state === sIDLE & cpu_port.req.fire & isbypass & ~cpu_port.req.bits.wen
     val axi_r_miss  = m_state === sLOOKUP & ~ishit
     val axi_r_en    = axi_r_bp | axi_r_miss
@@ -161,9 +169,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
         axi_r_bp_r      := 0.B
         axi_r_miss_r    := 0.B
     }
-
-    val sR_IDLE :: sR_REQ :: sR_RECV :: Nil = Enum(3)
-    val r_state = RegInit(sR_IDLE)
+ 
     switch (r_state){
         is (sR_IDLE){
             when (axi_r_en){
@@ -196,6 +202,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     mem_port.ar.bits.len    := Mux(axi_r_bp_r, 0.U, cacheConfig.banknum.U)
     mem_port.ar.bits.size   := Mux(axi_r_bp_r, cpu_req_r.size, log2Ceil(cacheConfig.blocksize / cacheConfig.banknum).U - 1.U)
     mem_port.ar.bits.burst  := Mux(axi_r_bp_r, AXI4Parameters.BURST_FIXED, AXI4Parameters.BURST_WRAP)
+    mem_port.ar.bits.id     := 0.U
 
     // R
     val rd_use_high = Reg(Bool())
@@ -212,11 +219,13 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     }
 
     val mem_rd_data = Mux(rd_use_high, mem_port.r.bits.data(63, 32), mem_port.r.bits.data(31, 0))
-    val cpu_wb_strb = MaskExpand(Mux(cpu_req_r.addr(2), cpu_req_r.mask(7, 4), cpu_req_r.mask(3, 0)))
+    val cpu_wb_strb = MaskExpand(cpu_req_r.mask)
     val cpu_wb_data = mem_rd_data & ~cpu_wb_strb | cpu_req_r.data & cpu_wb_strb
     when (mem_port.r.fire){
         rd_dat_vec(rd_ptr) := Mux(rd_ptr === offset_r, cpu_wb_data, mem_rd_data)
     }
+
+    mem_port.r.ready    := r_state  === sR_RECV
 
     /* ---------- AXI_W FSM ---------- */
     val axi_w_bp    = m_state === sIDLE & cpu_port.req.fire & isbypass & cpu_port.req.bits.wen
@@ -275,6 +284,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     mem_port.aw.bits.len    := Mux(axi_w_bp, 0.U, cacheConfig.banknum.U)
     mem_port.aw.bits.size   := Mux(axi_w_bp, cpu_req_r.size, log2Ceil(cacheConfig.blocksize / cacheConfig.banknum).U - 1.U)
     mem_port.aw.bits.burst  := Mux(axi_w_bp, AXI4Parameters.BURST_FIXED, AXI4Parameters.BURST_WRAP)
+    mem_port.aw.bits.id     := 0.U
 
     // W
     val wr_use_high = Reg(Bool())
@@ -311,6 +321,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     val hit_vec     = VecInit((0 until cacheConfig.ways).map(i => valid_vec(i) & tag_vec(i) === tag))
     val hit_way     = PriorityEncoder(hit_vec)
     ishit           := hit_vec.reduce(_ | _)
+    isvicdirty      := dirty_vec(victim_way)
 
     when (m_state === sLOOKUP & ~ishit){
         victim_dat_vec  := dat_vec(victim_way)

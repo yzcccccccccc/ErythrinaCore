@@ -3,7 +3,6 @@ package erythcore
 import chisel3._
 import chisel3.util._
 
-import bus.mem._
 import bus.ivybus._
 import bus.axi4._
 
@@ -59,14 +58,18 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     StageConnect(MEMU_inst.io.memu_wbu_zip, WBU_inst.io.memu_wbu_zip)
 
     // TODO: mem (change to LSU)
-    val ifu_conv    = Module(new Ivy2AXI4)
+    //val ifu_conv    = Module(new Ivy2AXI4)
     val memu_conv   = Module(new Ivy2AXI4)
 
-    ifu_conv.io.in  <> IFU_inst.io.ifu_mem
-    ifu_conv.io.out <> io.mem_port1
+    //ifu_conv.io.in  <> IFU_inst.io.ifu_mem
+    //ifu_conv.io.out <> io.mem_port1
 
     memu_conv.io.in  <> MEMU_inst.io.memu_mem
     memu_conv.io.out <> io.mem_port2
+
+    val icache  = Module(new Cache()(CacheConfig(name="icache")))
+    icache.io.cpu_port  <> IFU_inst.io.ifu_mem
+    icache.io.mem_port  <> io.mem_port1
     
     // commit
     io.InstCommit <> WBU_inst.io.inst_commit
