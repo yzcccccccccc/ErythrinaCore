@@ -67,12 +67,12 @@ class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with Erythrina
     io.out.r.ready      := LatencyPipeBit(state === sR_recv & io.in.resp.ready, LATENCY)
 
     // AXI-Write
-    io.out.aw.valid     := LatencyPipeBit(state === sW_req, LATENCY)
+    io.out.aw.valid     := LatencyPipeBit(state === sW_req & ~has_aw_fire, LATENCY)
     io.out.aw.bits.addr := req_info.addr
 
     val strb = Mux(req_info.addr(2), Cat(req_info.mask, Fill(MASKLEN, 0.B)), Cat(Fill(MASKLEN, 0.B), req_info.mask))
     val data = Mux(req_info.addr(2), Cat(req_info.data, Fill(XLEN, 0.B)), Cat(Fill(XLEN, 0.B), req_info.data))
-    io.out.w.valid      := LatencyPipeBit(state === sW_req, LATENCY)
+    io.out.w.valid      := LatencyPipeBit(state === sW_req & ~has_w_fire, LATENCY)
     io.out.w.bits.data  := (if (_type.getClass() == classOf[AXI4]) data else req_info.data)
     io.out.w.bits.strb  := (if (_type.getClass() == classOf[AXI4]) strb else req_info.mask)
 

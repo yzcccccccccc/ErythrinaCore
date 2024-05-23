@@ -192,15 +192,15 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     val ar_addr_r   = Reg(UInt(XLEN.W))
     when (axi_r_en){
         ar_addr_r   := Mux1H(Seq(
-            axi_r_bp_r -> cpu_port.req.bits.addr,
-            axi_r_miss_r -> Cat(cpu_req_r.addr(XLEN - 1, 2), 0.U(2.W))   // 4 Bytes aligned
+            axi_r_bp -> cpu_port.req.bits.addr,
+            axi_r_miss -> Cat(cpu_req_r.addr(XLEN - 1, 2), 0.U(2.W))   // 4 Bytes aligned
         ))
     }
 
     mem_port.ar.valid       := r_state === sR_REQ
     mem_port.ar.bits.addr   := ar_addr_r
-    mem_port.ar.bits.len    := Mux(axi_r_bp_r, 0.U, cacheConfig.banknum.U)
-    mem_port.ar.bits.size   := Mux(axi_r_bp_r, cpu_req_r.size, log2Ceil(cacheConfig.blocksize / cacheConfig.banknum).U - 1.U)
+    mem_port.ar.bits.len    := Mux(axi_r_bp_r, 0.U, cacheConfig.banknum.U - 1.U)
+    mem_port.ar.bits.size   := Mux(axi_r_bp_r, cpu_req_r.size, log2Ceil(cacheConfig.blocksize / cacheConfig.banknum).U)
     mem_port.ar.bits.burst  := Mux(axi_r_bp_r, AXI4Parameters.BURST_FIXED, AXI4Parameters.BURST_WRAP)
     mem_port.ar.bits.id     := 0.U
 
@@ -228,12 +228,26 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     mem_port.r.ready    := r_state  === sR_RECV
 
     /* ---------- AXI_W FSM ---------- */
+    val sW_IDLE :: sW_REQ :: sW_RESP :: Nil = Enum(3)
+    val w_state = RegInit(sW_IDLE)
+
     val axi_w_bp    = m_state === sIDLE & cpu_port.req.fire & isbypass & cpu_port.req.bits.wen
     val axi_w_miss  = m_state === sLOOKUP & ~ishit & isvicdirty
     val axi_w_en    = axi_w_bp | axi_w_miss
 
     val aw_has_fire = Reg(Bool())
     val w_has_fire  = Reg(Bool())
+
+    val axi_w_bp_r  = Reg(Bool())
+    val axi_w_miss_r= Reg(Bool())
+
+    when (axi_w_en){
+        axi_w_bp_r      := axi_w_bp
+        axi_w_miss_r    := axi_w_miss
+    }.elsewhen(w_state === sW_RESP & mem_port.b.fire){
+        axi_w_bp_r      := 0.B
+        axi_w_miss_r    := 0.B
+    }
 
     when (mem_port.aw.fire){
         aw_has_fire := 1.B
@@ -250,8 +264,6 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     val aw_has_done = aw_has_fire | mem_port.aw.fire
     val w_has_done  = w_has_fire | mem_port.w.fire & mem_port.w.bits.last
 
-    val sW_IDLE :: sW_REQ :: sW_RESP :: Nil = Enum(3)
-    val w_state = RegInit(sW_IDLE)
     switch (w_state){
         is (sW_IDLE){
             when (axi_w_en){
@@ -279,11 +291,11 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
         ))
     }
 
-    mem_port.aw.valid       := w_state === sW_REQ
+    mem_port.aw.valid       := w_state === sW_REQ & ~aw_has_fire
     mem_port.aw.bits.addr   := aw_addr_r
-    mem_port.aw.bits.len    := Mux(axi_w_bp, 0.U, cacheConfig.banknum.U)
-    mem_port.aw.bits.size   := Mux(axi_w_bp, cpu_req_r.size, log2Ceil(cacheConfig.blocksize / cacheConfig.banknum).U - 1.U)
-    mem_port.aw.bits.burst  := Mux(axi_w_bp, AXI4Parameters.BURST_FIXED, AXI4Parameters.BURST_WRAP)
+    mem_port.aw.bits.len    := Mux(axi_w_bp_r, 0.U, cacheConfig.banknum.U - 1.U)
+    mem_port.aw.bits.size   := Mux(axi_w_bp_r, cpu_req_r.size, log2Ceil(cacheConfig.blocksize / cacheConfig.banknum).U)
+    mem_port.aw.bits.burst  := Mux(axi_w_bp_r, AXI4Parameters.BURST_FIXED, AXI4Parameters.BURST_WRAP)
     mem_port.aw.bits.id     := 0.U
 
     // W
@@ -329,7 +341,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
 
     /* ---------- Cache Write ---------- */
     val cache_hit_update    = m_state === sLOOKUP & ishit & cpu_req_r.wen
-    val cache_miss_update   = RegNext(m_state === sMISS_WAIT & mem_port.r.fire & mem_port.r.bits.last & axi_r_miss_r)
+    val cache_miss_update   = RegNext(mem_port.r.fire & mem_port.r.bits.last & axi_r_miss_r)
     
     val cache_hit_wb_ptr    = get_bank(offset)
     val cache_hit_wb_strb   = MaskExpand(cpu_req_r.mask)
@@ -342,7 +354,7 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
 
     when (cache_miss_update){
         cache_v.write(victim_way * cacheConfig.sets.U + index_r, true.B)
-        cache_d.write(victim_way * cacheConfig.sets.U + index_r, true.B)
+        cache_d.write(victim_way * cacheConfig.sets.U + index_r, Mux(cpu_req_r.wen, true.B, false.B))
         cache_t.write(victim_way * cacheConfig.sets.U + index_r, tag_r)
         cache_c.write(victim_way * cacheConfig.sets.U + index_r, rd_dat_vec)
     }

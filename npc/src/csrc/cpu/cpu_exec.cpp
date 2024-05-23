@@ -179,13 +179,8 @@ void execute(uint32_t n){
     auto start = std::chrono::high_resolution_clock::now();
 
     for (;n > 0 && npc_state == CPU_RUN && !contx->gotFinish(); n--){
-        uint64_t cycle_start = cycle;
         while (!get_commit_valid(dut) && npc_state == CPU_RUN){
             single_cycle(dut, tfp, contx);
-            if (cycle - cycle_start > TIMEOUT_BOUND){
-                npc_state = CPU_ABORT_TIMEOUT;
-                break;
-            }
         }
         if (npc_state != CPU_RUN) break;
         instr++;

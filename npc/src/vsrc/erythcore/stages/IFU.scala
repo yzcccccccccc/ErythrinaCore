@@ -3,7 +3,6 @@ package erythcore
 import chisel3._
 import chisel3.util._
 
-import bus.mem._
 import bus.ivybus._
 
 import utils._

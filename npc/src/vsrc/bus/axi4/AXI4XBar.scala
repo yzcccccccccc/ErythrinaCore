@@ -23,6 +23,7 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
     val rd_hit_list     = addr_space.map(p => (p._1 <= in.ar.bits.addr) & (in.ar.bits.addr <= p._2))
     val rd_hit_vec      = VecInit(rd_hit_list)
     val rd_hit_vec_r    = RegEnable(rd_hit_vec, in.ar.valid & ~rd_inflight)
+    assert(~in.ar.valid | (rd_hit_vec.asUInt.orR), "AXI4XBar1toN: read address out of range")
 
     val rd_selvec_0     = VecInit(PriorityEncoderOH(rd_hit_vec))
     val rd_selvec_1     = VecInit(PriorityEncoderOH(rd_hit_vec_r))
@@ -78,6 +79,7 @@ class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new
     val wr_hitlist  = addr_space.map(p => (p._1 <= in.aw.bits.addr) & (in.aw.bits.addr <= p._2))
     val wr_hitvec   = VecInit(wr_hitlist)
     val wr_hitvec_r = RegEnable(wr_hitvec, in.aw.valid & ~wr_inflight)
+    assert(~in.aw.valid | (wr_hitvec.asUInt.orR), "AXI4XBar1toN: write address out of range")
 
     val wr_selvec_0 = VecInit(PriorityEncoderOH(wr_hitvec))
     val wr_selvec_1 = VecInit(PriorityEncoderOH(wr_hitvec_r))

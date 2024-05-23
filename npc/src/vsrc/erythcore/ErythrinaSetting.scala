@@ -16,6 +16,8 @@ trait ErythrinaDefault {
 
     val LATENCY = 0
     val MARCH = "P"
+
+    val USE_ICACHE  = true
 }
 
 class ErythrinaCommit extends Bundle with ErythrinaDefault with RegTrait{

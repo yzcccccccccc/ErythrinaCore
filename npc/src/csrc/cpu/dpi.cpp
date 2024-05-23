@@ -66,6 +66,13 @@ extern "C" void halt_UnknownINST(){
     return;
 }
 
+extern "C" void halt_watchdog(){
+    if (npc_state == CPU_RUN){
+        printf("[Halt Watchdog] watchdog timer expired\n");
+        npc_state = CPU_ABORT_TIMEOUT;
+    }
+}
+
 #ifdef __SIM__
 extern "C" int mem_read(int paddr){
     return pmem_read(paddr & (~0x3u));
