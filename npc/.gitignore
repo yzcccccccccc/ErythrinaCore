@@ -12,8 +12,9 @@
 !.scalafmt.conf
 !build.sc
 !README.md
+!debug/
+!debug/**
 build/
-!build/debug/
 
 !microtest/linker.ld
 !script/perf.sh
