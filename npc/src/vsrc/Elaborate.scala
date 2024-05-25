@@ -1,5 +1,6 @@
 import top._
 import circt.stage._
+import erythcore.fu.mul.Multiplier
 
 object Elaborate_Soc extends App {
   val firtoolOptions = Array("--lowering-options=" + List(
@@ -35,3 +36,16 @@ object Elaborate_Sim extends App{
   
   circt.stage.ChiselStage.emitSystemVerilogFile(new SimTop, args, firtoolOptions)
 }
+
+object Elaborate_Debug extends App{
+  val firtoolOptions = Array("--lowering-options=" + List(
+    // make yosys happy
+    // see https://github.com/llvm/circt/blob/main/docs/VerilogGeneration.md
+    "disallowLocalVariables",
+    "disallowPackedArrays",
+    "locationInfoStyle=wrapInAtSquareBracket"
+  ).reduce(_ + "," + _))
+  
+  circt.stage.ChiselStage.emitSystemVerilogFile(new Multiplier(33), args, firtoolOptions)
+}
+  

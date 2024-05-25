@@ -1,0 +1,18 @@
+package erythcore
+
+import chisel3._
+import chisel3.util._
+
+object RV32M extends InstrType{
+    def MUL     = BitPat("b0000001_?????_?????_000_?????_01100_11")
+    def MULH    = BitPat("b0000001_?????_?????_001_?????_01100_11")
+    def MULHSU  = BitPat("b0000001_?????_?????_010_?????_01100_11")
+    def MULHU   = BitPat("b0000001_?????_?????_011_?????_01100_11")
+
+    val table = Array(
+        MUL     -> List(TypeR, ALUop.mul, LSUop.nop, BPUop.nop, CSRop.nop),
+        MULH    -> List(TypeR, ALUop.mulh, LSUop.nop, BPUop.nop, CSRop.nop),
+        MULHSU  -> List(TypeR, ALUop.mulhsu, LSUop.nop, BPUop.nop, CSRop.nop),
+        MULHU   -> List(TypeR, ALUop.mulhu, LSUop.nop, BPUop.nop, CSRop.nop)
+    )
+}

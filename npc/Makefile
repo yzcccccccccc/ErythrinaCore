@@ -20,6 +20,7 @@ DIFF_SO ?= $(NEMU_HOME)/build/riscv32-nemu-interpreter-so
 -include ./script/verilator.mk
 -include ./script/nvboard.mk
 -include ./script/yosys.mk
+-include ./script/debug.mk
 
 GTKWAVERC = .gtkwaverc
 view_wave:

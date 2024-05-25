@@ -21,8 +21,9 @@ object LSUop{
   def sh      = "b0110".U
   def sw      = "b0111".U
 
-  def isLoad(op: UInt) = op(3, 2) === "b00".U
-  def isStore(op: UInt) = op(3, 2) === "b01".U
+  def isNop(op: UInt) = op(3)
+  def isStore(op: UInt) = op(2) & op(1, 0).orR
+  def isLoad(op: UInt) = ~isStore(op) & ~isNop(op)
 }
 
 class LSUIO extends Bundle with LSUtrait{

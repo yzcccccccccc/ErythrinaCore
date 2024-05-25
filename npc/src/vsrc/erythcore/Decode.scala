@@ -24,5 +24,5 @@ object SrcType {
 
 object Instructions extends InstrType{
   val decodeDefault = List(TypeER, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.nop)
-  def decode_table = RV32I.table ++ RV32CSR.table ++ Previledge.table
+  def decode_table = RV32I.table ++ RV32CSR.table ++ Previledge.table ++ RV32M.table
 }

@@ -59,11 +59,11 @@ void init_sdb(){
     }
 
 #ifdef __SOC__
-    printf("[Env] %sRunning on SoC sim! :)%s\n", FontGreen, Restore);
+    printf("[Env ] %sRunning on SoC sim! :)%s\n", FontGreen, Restore);
 #endif
 
 #ifdef __SIM__
-    printf("[Env] %sRunning on Core sim! :)%s\n", FontGreen, Restore);
+    printf("[Env ] %sRunning on Core sim! :)%s\n", FontGreen, Restore);
 #endif
 
     printf("\n%sWelcome to NPC Simulator! :)%s\n", FontBlue, Restore);

@@ -9,24 +9,31 @@ import utils._
 // ALU: for Arithmetic Operations
 
 trait ALUtrait extends ErythrinaDefault{
-  val ALUopLEN = 4
+  val ALUopLEN = 5
 }
 
 object ALUop{
-  def dir   = "b1001".U     // direct, for lui, jalr etc. (result in a reg write :D)
-  def nop   = "b1000".U     // don't use alu (wfi etc.)
-  def add   = "b0000".U
-  def sub   = "b0001".U
-  def slt   = "b0010".U
-  def sltu  = "b0011".U
-  def and   = "b0100".U
-  def or    = "b0101".U
-  def xor   = "b0110".U
-  def srl   = "b1010".U
-  def sra   = "b1011".U
-  def sll   = "b1100".U
+  def dir   = "b01001".U     // direct, for lui, jalr etc. (result in a reg write :D)
+  def nop   = "b01000".U     // don't use alu (wfi etc.)
+  def add   = "b00000".U
+  def sub   = "b00001".U
+  def slt   = "b00010".U
+  def sltu  = "b00011".U
+  def and   = "b00100".U
+  def or    = "b00101".U
+  def xor   = "b00110".U
+  def srl   = "b01010".U
+  def sra   = "b01011".U
+  def sll   = "b01100".U
+
+  def mul     = "b10000".U
+  def mulh    = "b10001".U
+  def mulhsu  = "b10010".U
+  def mulhu   = "b10011".U
 
   def usesub(aluop: UInt) = (aluop(3,2) === 0.U) & (aluop(1,0) =/= 0.U)
+  def usemul(aluop: UInt) = aluop(4) & ~aluop(2)
+  def usediv(aluop: UInt) = aluop(4) & aluop(2)
 }
 
 class ALUIO_in extends Bundle with ALUtrait{
