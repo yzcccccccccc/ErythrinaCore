@@ -1,7 +1,7 @@
 # UT level debug? 
 
 DEBUG_DIR 	= ./debug
-UT_NAME		= MulDebug
+UT_NAME		= DivDebug
 UT_FILE		= $(DEBUG_DIR)/$(UT_NAME).sv
 UT_DIR		= $(DEBUG_DIR)/picker_out_$(UT_NAME)
 

@@ -1,6 +1,7 @@
 import top._
 import circt.stage._
 import erythcore.fu.mul.MulDebug
+import erythcore.fu.div.DivDebug
 
 object Elaborate_Soc extends App {
   val firtoolOptions = Array("--lowering-options=" + List(
@@ -46,6 +47,6 @@ object Elaborate_Debug extends App{
     "locationInfoStyle=wrapInAtSquareBracket"
   ).reduce(_ + "," + _))
   
-  circt.stage.ChiselStage.emitSystemVerilogFile(new MulDebug, args, firtoolOptions)
+  circt.stage.ChiselStage.emitSystemVerilogFile(new DivDebug, args, firtoolOptions)
 }
   

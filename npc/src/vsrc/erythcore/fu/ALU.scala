@@ -32,6 +32,11 @@ object ALUop{
   def mulhsu  = "b10010".U
   def mulhu   = "b10011".U
 
+  def div     = "b10100".U
+  def divu    = "b10101".U
+  def rem     = "b10110".U
+  def remu    = "b10111".U
+
   def usesub(aluop: UInt) = (aluop(3,2) === 0.U) & (aluop(1,0) =/= 0.U)
   def usemul(aluop: UInt) = aluop(4) & ~aluop(2)
   def usediv(aluop: UInt) = aluop(4) & aluop(2)
@@ -76,7 +81,7 @@ class ALU extends Module with ALUtrait{
   val state = RegInit(sIDLE)
   switch (state){
     is (sIDLE){
-      when (isMul){
+      when (isMul & ~io.ALUin.flush){
         state := sENC
       }
     }
