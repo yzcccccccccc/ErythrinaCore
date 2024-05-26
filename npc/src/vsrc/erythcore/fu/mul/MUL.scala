@@ -37,7 +37,7 @@ class Multiplier(len: Int) extends Module{
     for (i <- Range(0, len, 2)){
         val x = if (i == 0) Cat(a(1, 0), 0.U(1.W)) else if (i + 1 == len) SignExt(a(i, i - 1), 3) else a(i + 1, i - 1)
 
-        val pp_tmp = MuxLookup(x, 0.U(3.W))(Seq(            // partial product
+        val pp_tmp = MuxLookup(x, 0.U)(Seq(            // partial product
             1.U -> b_sext,
             2.U -> b_sext,
             3.U -> bx2,
@@ -47,7 +47,7 @@ class Multiplier(len: Int) extends Module{
         ))
 
         val s = pp_tmp(len)         // sign
-        val t = MuxLookup(last_x, 0.U(3.W))(Seq(            // carry in
+        val t = MuxLookup(last_x, 0.U(2.W))(Seq(            // carry in
             4.U -> 2.U(2.W),
             5.U -> 1.U(2.W),
             6.U -> 1.U(2.W),
