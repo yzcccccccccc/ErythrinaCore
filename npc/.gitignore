@@ -15,6 +15,7 @@
 !debug/
 !debug/**
 *.pyc
+debug/picker_out_*/report
 build/
 
 !microtest/linker.ld
