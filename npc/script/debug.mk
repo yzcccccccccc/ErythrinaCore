@@ -1,15 +1,17 @@
 # UT level debug? 
 
 DEBUG_DIR 	= ./debug
-UT_NAME		= Multiplier
+UT_NAME		= MulDebug
 UT_FILE		= $(DEBUG_DIR)/$(UT_NAME).sv
 UT_DIR		= $(DEBUG_DIR)/picker_out_$(UT_NAME)
 
-debug_verilog: $(SCALA_FILES)
+$(UT_FILE): $(SCALA_SRCS)
 	$(call git_commit, "generate verilog")
 	mill -i __.test.runMain Elaborate_Debug --target-dir $(DEBUG_DIR) $(MILL_ARGS_ALL)
 
-$(UT_FILE): debug_verilog
-
+debug_verilog: $(UT_FILE)
+	
 gen_ut: $(UT_FILE)
-	picker $(UT_FILE) -l python -t $(UT_DIR) -w $(UT_NAME).fst
+	picker $(UT_FILE) -l python -t $(UT_DIR) -w $(UT_NAME).fst -c
+
+.PHONY: debug_verilog
