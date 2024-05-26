@@ -5,6 +5,7 @@ import chisel3.util._
 import utils.LookupTree
 import utils.LookupTreeDefault
 import utils._
+import erythcore.fu.mul.Multiplier
 
 // ALU: for Arithmetic Operations
 
@@ -37,8 +38,9 @@ object ALUop{
 }
 
 class ALUIO_in extends Bundle with ALUtrait{
-  val src1 = Input(UInt(XLEN.W))
-  val src2 = Input(UInt(XLEN.W))
+  val flush = Input(Bool())
+  val src1  = Input(UInt(XLEN.W))
+  val src2  = Input(UInt(XLEN.W))
   val aluop = Input(UInt(ALUopLEN.W))
 }
 
@@ -49,7 +51,7 @@ class ALUIO_out extends Bundle with ALUtrait{
 
 class ALUIO extends Bundle with ALUtrait{
   val ALUin   = new ALUIO_in
-  val ALUout  = new ALUIO_out
+  val ALUout  = Decoupled(new ALUIO_out)
 }
 
 class ALU extends Module with ALUtrait{
@@ -57,6 +59,7 @@ class ALU extends Module with ALUtrait{
 
   val (src1, src2, aluop) = (io.ALUin.src1, io.ALUin.src2, io.ALUin.aluop)
 
+  /* ---------- Normal ALU ---------- */
   val UseSub  = ALUop.usesub(aluop)
   val shamt   = src2(4, 0)
   val src2in  = src2 ^ Fill(XLEN, UseSub)
@@ -66,6 +69,34 @@ class ALU extends Module with ALUtrait{
   val overflow  = (src1(XLEN-1) & src2in(XLEN-1) & ~add_sub_res(XLEN-1)) | (~src1(XLEN-1) & ~src2in(XLEN-1) & add_sub_res(XLEN-1))
   val slt_res   = overflow ^ add_sub_res(XLEN-1)
 
+  /* ---------- Multiplier ---------- */
+  val isMul = ALUop.usemul(aluop)
+  // FSM
+  val sIDLE :: sENC :: sCAL :: Nil = Enum(3)
+  val state = RegInit(sIDLE)
+  switch (state){
+    is (sIDLE){
+      when (isMul){
+        state := sENC
+      }
+    }
+    is (sENC){
+      state := Mux(io.ALUin.flush, sIDLE, sCAL)
+    }
+    is (sCAL){
+      state := sIDLE
+    }
+  }
+
+  val mul_inst = Module(new Multiplier)
+  mul_inst.io.in_valid  := state === sIDLE & isMul
+  mul_inst.io.a         := src1
+  mul_inst.io.b         := src2
+  mul_inst.io.op        := aluop(1, 0)
+  val mul_valid   = mul_inst.io.res_valid | io.ALUin.flush
+  val mul_res     = mul_inst.io.res
+
+  /* ---------- Select Res ---------- */
   val res = LookupTreeDefault(aluop, add_sub_res, List(
     ALUop.dir   -> src1,
     ALUop.slt   -> ZeroExt(slt_res, XLEN),
@@ -78,6 +109,7 @@ class ALU extends Module with ALUtrait{
     ALUop.sll   -> (src1 << shamt)(XLEN-1, 0)
   ))
 
-  io.ALUout.res   := res
-  io.ALUout.zero  := (io.ALUout.res === 0.U)
+  io.ALUout.valid     := Mux(isMul, mul_valid, true.B)
+  io.ALUout.bits.res  := Mux(isMul, mul_res, res)
+  io.ALUout.bits.zero := (io.ALUout.bits.res === 0.U)
 }

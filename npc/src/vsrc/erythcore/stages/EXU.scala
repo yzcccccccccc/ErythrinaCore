@@ -21,11 +21,13 @@ class EXU extends Module with EXUtrait{
 
     // ALU
     val ALU0 = Module(new ALU)
-    val alu_res     = ALU0.io.ALUout.res
-    val alu_zero    = ALU0.io.ALUout.zero
+    val alu_res     = ALU0.io.ALUout.bits.res
+    val alu_zero    = ALU0.io.ALUout.bits.zero
+    ALU0.io.ALUin.flush := content_valid
     ALU0.io.ALUin.src1  := io.idu_exu_zip.bits.src1
     ALU0.io.ALUin.src2  := io.idu_exu_zip.bits.src2
     ALU0.io.ALUin.aluop := io.idu_exu_zip.bits.ALUop
+    ALU0.io.ALUout.ready := 1.B
 
     // to CSR
     val csrop = io.idu_exu_zip.bits.CSRop
@@ -42,14 +44,14 @@ class EXU extends Module with EXUtrait{
     io.exu_fwd_zip.valid    := 1.B
 
     // to BPU
-    io.exu_bpu_zip.aluout <> ALU0.io.ALUout
+    io.exu_bpu_zip.aluout <> ALU0.io.ALUout.bits
     io.exu_bpu_trigger := content_valid & io.exu_memu_zip.fire
 
     // to IDU
     io.idu_exu_zip.ready        := io.exu_memu_zip.ready & io.exu_memu_zip.valid
 
     // to MEM!
-    io.exu_memu_zip.valid       := 1.B
+    io.exu_memu_zip.valid       := ALU0.io.ALUout.valid
     io.exu_memu_zip.bits.content_valid   := content_valid
     io.exu_memu_zip.bits.inst            := io.idu_exu_zip.bits.inst
     io.exu_memu_zip.bits.pc              := io.idu_exu_zip.bits.pc

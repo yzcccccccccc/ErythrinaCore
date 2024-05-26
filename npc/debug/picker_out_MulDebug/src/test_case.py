@@ -12,7 +12,7 @@ async def mul_test(dut):
     mlvp.create_task(mlvp.start_clock(dut))
     print('\n')
     for i in range(100):
-        op  = 0
+        op  = random.randint(0, 3)
         a_s = 1 if op != 3 else 0               # signed or unsigned
         b_s = 1 if (op >> 1) == 0 else 0        # signed or unsigned
 
@@ -37,7 +37,9 @@ async def mul_test(dut):
         await mlvp.ClockCycles(dut, 2)
 
         res = dut.io_res.value
-        expected    = np.uint64(np.uint32(a_src) * np.uint32(b_src))
+        expected    = int(np.uint64(a_src) * np.uint64(b_src))
+        use_h       = 1 if op != 0 else 0
+        expected    = np.uint64(expected >> 32 if use_h == 1 else expected & 0xFFFFFFFF)
 
         # check
         print(f"op: {op:04b}, a: {a_src}, b: {b_src}, res: {res:#x}, expected: {expected:#x}")
