@@ -124,7 +124,7 @@ void perf_res_record(){
     fprintf(perf_log, "\tInst Resp Wait: \t\t\t%ld\n", perf_cnt.inst_resp_wait);
     fprintf(perf_log, "\tInst Total Delay: \t\t\t%ld\n", perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait);
     fprintf(perf_log, "\tInst Average Delay: \t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.get_instr_event);
-    fprintf(perf_log, "Inst-Mem-Delay Per Inst: \t\t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.instrs);
+    fprintf(perf_log, "\tInst-Mem-Delay Per Inst: \t%.10lf\n", (double)(perf_cnt.inst_req_wait + perf_cnt.inst_resp_wait) / perf_cnt.instrs);
     fprintf(perf_log, "\n");
     fprintf(perf_log, "\tCAL Instrs: \t\t\t\t%ld\n", perf_cnt.cal_instrs);
     fprintf(perf_log, "\tCSR Instrs: \t\t\t\t%ld\n", perf_cnt.csr_instrs);
