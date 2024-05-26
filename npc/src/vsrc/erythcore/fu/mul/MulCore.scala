@@ -119,7 +119,7 @@ class MulCore(len: Int) extends Module{
                 cout = c
             }
 
-            val needReg = depth == 4
+            val needReg = depth == 5
             // regEnables_1 : enable for Wallace tree encoding (depth = 4)
             val toNextLayer = if(needReg)
                 column_next.map(_.map(x => RegEnable(x, io.regEnables(1))))

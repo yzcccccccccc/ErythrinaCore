@@ -30,12 +30,12 @@ SECTIONS {
 
   /* ssbl will copy this*/
   _ssbl_cp_start  = LOADADDR(.text);
-  .text : ALIGN(32) {
-    . = ALIGN(32);
+  .text : ALIGN(8) {
+    . = ALIGN(8);
     _ssbl_cp_dst_start = .;
 
     *(.text*);
-    . = ALIGN(32);
+    . = ALIGN(8);
   }>pdram AT>flash
 
   .rodata : ALIGN(8){
