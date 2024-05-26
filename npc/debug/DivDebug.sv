@@ -50,88 +50,88 @@
   `endif // not def ENABLE_INITIAL_MEM_
 `endif // not def SYNTHESIS
 
-module DivCore(	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-  input         clock,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-                reset,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-                io_in_v,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:7:16]
-  input  [32:0] io_a,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:7:16]
-                io_b,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:7:16]
-  output [32:0] io_quot,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:7:16]
-                io_rem,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:7:16]
-  output        io_out_v	// @[src/vsrc/erythcore/fu/div/DivCore.scala:7:16]
+module DivCore(	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+  input         clock,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+                reset,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+                io_in_v,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:9:16]
+  input  [32:0] io_a,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:9:16]
+                io_b,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:9:16]
+  output [32:0] io_quot,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:9:16]
+                io_rem,	// @[src/vsrc/erythcore/fu/div/DivCore.scala:9:16]
+  output        io_out_v	// @[src/vsrc/erythcore/fu/div/DivCore.scala:9:16]
 );
 
-  reg  [5:0]  compute_cnt;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:19:30]
-  reg  [1:0]  state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:24]
-  reg  [1:0]  casez_tmp;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:22:19, :24:39]
-  always_comb begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:24, :22:19, :24:39, :29:51, :36:19]
-    casez (state)	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:24, :22:19, :24:39, :29:51, :36:19]
+  reg  [5:0]  compute_cnt;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:30]
+  reg  [1:0]  state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:23:24]
+  reg  [1:0]  casez_tmp;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:24:19, :26:39]
+  always_comb begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:23:24, :24:19, :26:39, :31:51, :38:19]
+    casez (state)	// @[src/vsrc/erythcore/fu/div/DivCore.scala:23:24, :24:19, :26:39, :31:51, :38:19]
       2'b00:
-        casez_tmp = io_in_v ? 2'h1 : state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :21:24, :22:19, :24:39, :25:23, :29:51, :36:19]
+        casez_tmp = io_in_v ? 2'h1 : state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :23:24, :24:19, :26:39, :27:23, :31:51, :38:19]
       2'b01:
-        casez_tmp = compute_cnt == 6'h1 ? 2'h2 : state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :19:30, :21:24, :22:19, :24:39, :29:{31,51}, :30:23, :31:33, :36:19]
+        casez_tmp = compute_cnt == 6'h0 ? 2'h2 : state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :21:30, :23:24, :24:19, :26:39, :31:{31,51}, :32:23, :33:33, :38:19]
       2'b10:
-        casez_tmp = 2'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :21:24, :22:19, :24:39, :29:51, :36:19]
+        casez_tmp = 2'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :23:24, :24:19, :26:39, :31:51, :38:19]
       default:
-        casez_tmp = state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:24, :22:19, :24:39, :29:51, :36:19]
-    endcase	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:24, :22:19, :24:39, :29:51, :36:19]
+        casez_tmp = state;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:23:24, :24:19, :26:39, :31:51, :38:19]
+    endcase	// @[src/vsrc/erythcore/fu/div/DivCore.scala:23:24, :24:19, :26:39, :31:51, :38:19]
   end // always_comb
-  reg  [32:0] quot_r;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:53:22]
-  reg  [32:0] rem_r;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:54:22]
-  wire        _GEN = state == 2'h1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :21:24, :22:19]
-  wire        _GEN_0 = state == 2'h0 & io_in_v;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :21:24, :22:19, :40:27]
-  wire [32:0] b = io_b[32] ? ~io_b + 33'h1 : io_b;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:48:22, :50:{16,26,32}]
-  wire [32:0] _neg_b_T_1 = ~b + 33'h1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:50:16, :51:{18,21}]
-  always @(posedge clock) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-    if (reset) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-      compute_cnt <= 6'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:19:30]
-      state <= 2'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :21:24]
+  wire [32:0] a = io_a[32] ? ~io_a + 33'h1 : io_a;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:49:22, :51:{16,26,32}]
+  wire [32:0] b = io_b[32] ? ~io_b + 33'h1 : io_b;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:50:22, :52:{16,26,32}]
+  wire [32:0] _neg_b_T_1 = ~b + 33'h1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:52:16, :53:{26,29}]
+  wire [33:0] neg_b = {_neg_b_T_1[32], _neg_b_T_1};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:53:29, src/vsrc/utils/BitsUtils.scala:9:20, :10:41]
+  reg  [32:0] quot_r;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:58:22]
+  reg  [33:0] rem_r;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:59:22]
+  wire [33:0] sub_res = rem_r + neg_b;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:59:22, :60:25, src/vsrc/utils/BitsUtils.scala:10:41]
+  wire        _GEN = state == 2'h1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :23:24, :24:19]
+  wire        _GEN_0 = state == 2'h0 & io_in_v;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :23:24, :24:19, :42:27]
+  always @(posedge clock) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+    if (reset) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+      compute_cnt <= 6'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:30]
+      state <= 2'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :23:24]
     end
-    else begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-      if (_GEN_0)	// @[src/vsrc/erythcore/fu/div/DivCore.scala:40:27]
-        compute_cnt <= 6'h20;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:19:30]
-      else if (_GEN)	// @[src/vsrc/erythcore/fu/div/DivCore.scala:22:19]
-        compute_cnt <= compute_cnt - 6'h1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:19:30, :43:36]
-      state <= casez_tmp;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:24, :22:19, :24:39]
+    else begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+      if (_GEN_0)	// @[src/vsrc/erythcore/fu/div/DivCore.scala:42:27]
+        compute_cnt <= 6'h21;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:30]
+      else if (_GEN)	// @[src/vsrc/erythcore/fu/div/DivCore.scala:24:19]
+        compute_cnt <= compute_cnt - 6'h1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:21:30, :45:36]
+      state <= casez_tmp;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:23:24, :24:19, :26:39]
     end
-    if (_GEN) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:22:19]
-      quot_r <= {quot_r[30:0], ~(rem_r[32]), 1'h0};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:53:22, :54:22, :57:{45,51}, :62:{22,32}]
-      rem_r <= {rem_r[31:0], 1'h0} + (rem_r[32] ? b : _neg_b_T_1);	// @[src/vsrc/erythcore/fu/div/DivCore.scala:50:16, :51:21, :54:22, :57:51, :66:{29,53,58}]
+    if (_GEN) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:24:19]
+      quot_r <= sub_res[33] ? {quot_r[31:0], 1'h0} : {quot_r[31:0], 1'h1};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:45:36, :58:22, :60:25, :68:{22,30,44,60}]
+      rem_r <= {sub_res[33] ? rem_r[32:0] : sub_res[32:0], quot_r[32]};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:58:22, :59:22, :60:25, :76:{21,30,40,48,68,83,89}]
     end
-    else if (_GEN_0) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:40:27]
-      quot_r <= 33'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:53:22]
-      rem_r <= (io_a[32] ? ~io_a + 33'h1 : io_a) + _neg_b_T_1;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:47:22, :49:{16,26,32}, :51:21, :54:22, :68:22]
+    else if (_GEN_0) begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:42:27]
+      quot_r <= a;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:51:16, :58:22]
+      rem_r <= 34'h0;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:59:22]
     end
   end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-    `ifdef FIRRTL_BEFORE_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-      `FIRRTL_BEFORE_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
+  `ifdef ENABLE_INITIAL_REG_	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+    `ifdef FIRRTL_BEFORE_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+      `FIRRTL_BEFORE_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
     `endif // FIRRTL_BEFORE_INITIAL
-    logic [31:0] _RANDOM[0:2];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-    initial begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-      `ifdef INIT_RANDOM_PROLOG_	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-        `INIT_RANDOM_PROLOG_	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
+    logic [31:0] _RANDOM[0:2];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+    initial begin	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+      `ifdef INIT_RANDOM_PROLOG_	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+        `INIT_RANDOM_PROLOG_	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
       `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
+      `ifdef RANDOMIZE_REG_INIT	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
         for (logic [1:0] i = 2'h0; i < 2'h3; i += 2'h1) begin
-          _RANDOM[i] = `RANDOM;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-        end	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-        compute_cnt = _RANDOM[2'h0][5:0];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :19:30]
-        state = _RANDOM[2'h0][7:6];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :19:30, :21:24]
-        quot_r = {_RANDOM[2'h0][31:8], _RANDOM[2'h1][8:0]};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :19:30, :53:22]
-        rem_r = {_RANDOM[2'h1][31:9], _RANDOM[2'h2][9:0]};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :53:22, :54:22]
+          _RANDOM[i] = `RANDOM;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+        end	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+        compute_cnt = _RANDOM[2'h0][5:0];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :21:30]
+        state = _RANDOM[2'h0][7:6];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :21:30, :23:24]
+        quot_r = {_RANDOM[2'h0][31:8], _RANDOM[2'h1][8:0]};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :21:30, :58:22]
+        rem_r = {_RANDOM[2'h1][31:9], _RANDOM[2'h2][10:0]};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :58:22, :59:22]
       `endif // RANDOMIZE_REG_INIT
     end // initial
-    `ifdef FIRRTL_AFTER_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
-      `FIRRTL_AFTER_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7]
+    `ifdef FIRRTL_AFTER_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
+      `FIRRTL_AFTER_INITIAL	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7]
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_quot =
-    io_a[32] ^ io_b[32]
-      ? {~(quot_r[31:0]), rem_r[32]} + 33'h1
-      : {quot_r[31:0], ~(rem_r[32])};	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :47:22, :48:22, :53:22, :54:22, :57:{31,51}, :75:{26,47}, :76:{19,27,37,47}]
-  assign io_rem = rem_r;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :54:22]
-  assign io_out_v = state == 2'h2;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:6:7, :21:24, :78:23]
+  assign io_quot = io_a[32] ^ io_b[32] ? ~quot_r + 33'h1 : quot_r;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :49:22, :50:22, :58:22, :81:{19,27,38,46}]
+  assign io_rem = io_a[32] ? ~(rem_r[33:1]) + 33'h1 : rem_r[33:1];	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :49:22, :59:22, :80:20, :82:{19,29,34}]
+  assign io_out_v = state == 2'h2;	// @[src/vsrc/erythcore/fu/div/DivCore.scala:8:7, :23:24, :83:23]
 endmodule
 
 module DivDebug(	// @[src/vsrc/erythcore/fu/div/Divisor.scala:7:7]
@@ -152,11 +152,11 @@ module DivDebug(	// @[src/vsrc/erythcore/fu/div/Divisor.scala:7:7]
     .reset    (reset),
     .io_in_v  (io_v),
     .io_a     ({~(io_op[0]) & io_a[31], io_a}),	// @[src/vsrc/erythcore/fu/div/Divisor.scala:21:{26,28}, :22:26, :26:{22,28}]
-    .io_b     ({~(io_op[1]) & io_b[31], io_b}),	// @[src/vsrc/erythcore/fu/div/Divisor.scala:23:{26,28}, :24:26, :27:{22,28}]
+    .io_b     ({~(io_op[0]) & io_b[31], io_b}),	// @[src/vsrc/erythcore/fu/div/Divisor.scala:21:26, :22:26, :23:{26,28}, :24:26, :26:{22,28}, :27:22]
     .io_quot  (_div_inst_io_quot),
     .io_rem   (_div_inst_io_rem),
     .io_out_v (io_res_valid)
   );	// @[src/vsrc/erythcore/fu/div/Divisor.scala:19:26]
-  assign io_res = io_op[1] ? _div_inst_io_rem[31:0] : _div_inst_io_quot[31:0];	// @[src/vsrc/erythcore/fu/div/Divisor.scala:7:7, :19:26, :27:28, :35:18]
+  assign io_res = io_op[1] ? _div_inst_io_rem[31:0] : _div_inst_io_quot[31:0];	// @[src/vsrc/erythcore/fu/div/Divisor.scala:7:7, :19:26, :28:24, :35:18]
 endmodule
 

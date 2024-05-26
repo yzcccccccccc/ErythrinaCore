@@ -9,7 +9,7 @@ class DivDebug extends Module with ErythrinaDefault{
         val v   = Input(Bool())
         val a   = Input(UInt(XLEN.W))
         val b   = Input(UInt(XLEN.W))
-        val op  = Input(UInt(2.W))              // 00: mul, 01: mulh, 10: mulhsu, 11: mulhu
+        val op  = Input(UInt(2.W))              // 00: div, 01: divu, 10: rem, 11: remu
         val res = Output(UInt(XLEN.W))
         val res_valid = Output(Bool())
     })
@@ -24,7 +24,7 @@ class DivDebug extends Module with ErythrinaDefault{
     val b_unsigned  = Cat(0.U(1.W), b)
 
     val a_src   = Mux(io.op(0), a_unsigned, a_signed)
-    val b_src   = Mux(io.op(1), b_unsigned, b_signed)
+    val b_src   = Mux(io.op(0), b_unsigned, b_signed)
     val use_rem = io.op(1)
 
     div_inst.io.in_v := io.v

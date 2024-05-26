@@ -3,6 +3,8 @@ package erythcore.fu.div
 import chisel3._
 import chisel3.util._
 
+import utils.SignExt
+
 class DivCore(len : Int) extends Module{
     val io = IO(new Bundle {
         val in_v = Input(Bool())
@@ -26,7 +28,7 @@ class DivCore(len : Int) extends Module{
             }
         }
         is (sCOMPUTE){
-            when (compute_cnt === 1.U & !io.flush){
+            when (compute_cnt === 0.U & !io.flush){
                 state := sDONE
             }.elsewhen(io.flush){
                 state := sIDLE
@@ -38,7 +40,7 @@ class DivCore(len : Int) extends Module{
     }
 
     when (state === sIDLE && io.in_v && !io.flush){
-        compute_cnt := (len - 1).U
+        compute_cnt := (len).U
     }.elsewhen (state === sCOMPUTE){
         compute_cnt := compute_cnt - 1.U
     }
@@ -48,32 +50,35 @@ class DivCore(len : Int) extends Module{
     val b_sign = io.b(len - 1)
     val a = Mux(a_sign, (~io.a + 1.U).asUInt, io.a)
     val b = Mux(b_sign, (~io.b + 1.U).asUInt, io.b)
-    val neg_b = (~b + 1.U).asUInt
+    val neg_b = SignExt((~b + 1.U).asUInt, len + 1)
+    dontTouch(a)
+    dontTouch(b)
+    dontTouch(neg_b)
 
     val quot_r  = Reg(UInt(len.W))
-    val rem_r   = Reg(UInt(len.W))
-    
+    val rem_r   = Reg(UInt((len + 1).W))
+    val sub_res = rem_r + neg_b
+    dontTouch(sub_res)
+
     // Quotient
-    val next_quot = Cat(quot_r(len - 2, 0), ~rem_r(len - 1))
     when (state === sIDLE && io.in_v && !io.flush){
-        quot_r := 0.U
+        quot_r := a
     }
     when (state === sCOMPUTE){
-        quot_r := Cat(next_quot(len - 2, 0), 0.U(1.W))      // shift left
+        quot_r := Mux(sub_res(len), quot_r << 1, Cat(quot_r(len - 2, 0), 1.U(1.W)))
     }
 
     // Remainder
-    val next_rem = Cat(rem_r(len - 2, 0), 0.U(1.W)) + Mux(rem_r(len - 1), b, neg_b)
     when (state === sIDLE && io.in_v && !io.flush){
-        rem_r   := a + neg_b
+        rem_r := 0.U
     }
     when (state === sCOMPUTE){
-        rem_r := next_rem
+        rem_r := Mux(~sub_res(len), Cat(sub_res(len - 1, 0), quot_r(len - 1)), Cat(rem_r(len - 1, 0), quot_r(len - 1)))
     }
 
     // Res
-    val tmp_quot    = Cat(quot_r(len - 2, 0), ~rem_r(len - 1))
-    io.quot := Mux(a_sign ^ b_sign, ~tmp_quot + 1.U, tmp_quot)
-    io.rem  := rem_r
-    io.out_v := state === sDONE | io.flush
+    val rem = rem_r(len, 1)
+    io.quot := Mux(a_sign ^ b_sign, (~quot_r + 1.U).asUInt, quot_r)
+    io.rem  := Mux(a_sign, (~rem + 1.U).asUInt, rem)
+    io.out_v := state === sDONE
 }
