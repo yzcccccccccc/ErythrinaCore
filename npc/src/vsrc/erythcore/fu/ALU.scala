@@ -90,7 +90,7 @@ class ALU extends Module with ALUtrait{
       mul_state := Mux(io.ALUin.flush, sM_IDLE, sM_CAL)
     }
     is (sM_CAL){
-      mul_state := Mux(io.ALUout.fire | io.ALUin.flush, sM_IDLE, sM_WAIT)
+      mul_state := Mux(io.ALUin.flush, sM_IDLE, sM_WAIT)
     }
     is (sM_WAIT){
       when (io.ALUout.fire | io.ALUin.flush){
@@ -104,9 +104,9 @@ class ALU extends Module with ALUtrait{
   mul_inst.io.a         := src1
   mul_inst.io.b         := src2
   mul_inst.io.op        := aluop(1, 0)
-  val mul_valid   = mul_inst.io.res_valid | mul_state === sM_WAIT | io.ALUin.flush
+  val mul_valid   = mul_state === sM_WAIT | io.ALUin.flush
   val mul_res_r   = RegEnable(mul_inst.io.res, mul_inst.io.res_valid)
-  val mul_res     = Mux(mul_state === sM_WAIT, mul_res_r, mul_inst.io.res)
+  val mul_res     = mul_res_r
 
   /* ---------- Divider ---------- */
   val isDiv = ALUop.usediv(aluop)

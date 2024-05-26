@@ -4,7 +4,7 @@
 // Wave
 #define DUMP_WAVE       0
 #define USE_WINDOW      0
-#define WINDOW_BEGIN    1832884547
+#define WINDOW_BEGIN    15000000
 
 #define CYCLE_BOUND -1
 #define INSTR_BOUND -1
@@ -15,6 +15,6 @@
 #define DTRACE 0
 
 //#define __SIM__
-#define __SOC__
+//#define __SOC__
 
 #endif

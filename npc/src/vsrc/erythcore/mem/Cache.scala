@@ -102,6 +102,14 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     // cacheline
     val cache_c = SyncReadMem(cacheConfig.ways * cacheConfig.sets, Vec(cacheConfig.banknum, UInt(XLEN.W)))    // 4 way * 8 entry
 
+    // victim cnt (LRU)
+    val lru_cnt = SyncReadMem(cacheConfig.sets, Vec(cacheConfig.ways, UInt(8.W)))
+    when (reset.asBool){
+        for (i <- 0 until cacheConfig.sets){
+            lru_cnt.write(i.U, VecInit(Seq.fill(cacheConfig.ways)("hff".U(8.W))))
+        }
+    }
+
     /* ---------- Cache Important Signals ---------- */
     val isbypass    = cpu_port.req.bits.addr < cacheConfig.cacheable_lbound.U  | cpu_port.req.bits.addr > cacheConfig.cacheable_ubound.U
     val ishit       = Wire(Bool())          // valid in LOOKUP stage
@@ -114,7 +122,8 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     val index_r     = RegEnable(index, cpu_port.req.fire)
     val offset_r    = RegEnable(offset, cpu_port.req.fire)
     
-    val victim_way      = RegEnable(LFSR(log2Ceil(cacheConfig.ways)), cpu_port.req.fire)
+    val victim_way      = Wire(UInt(log2Ceil(cacheConfig.ways).W))    // victim way
+    val victim_way_r    = Reg(UInt(log2Ceil(cacheConfig.ways).W))    // victim way
     val victim_dat_vec  = RegInit(VecInit(Seq.fill(cacheConfig.banknum)(0.U(XLEN.W))))
     val isvicdirty      = Wire(Bool())          // victim cacheline is dirty
 
@@ -342,6 +351,43 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
         victim_dat_vec  := dat_vec(victim_way)
     }
 
+    /* ---------- LRU Update ---------- */
+    def lru_max(lru_cnts : Vec[UInt], valid : Vec[Bool]) = {
+        val real_cnts       = VecInit((valid zip lru_cnts).map{case (v, c) => Mux(v, Cat(0.B, c), "h1ff".U(9.W))})
+        val real_max        = real_cnts.reduce(_ max _)
+        val real_max_idx    = real_cnts.indexWhere(_ === real_max)
+        real_max_idx
+    }
+
+    val lru_query   = m_state === sIDLE & cpu_port.req.fire
+    val lru_vec     = VecInit((0 until cacheConfig.sets).map(i => lru_cnt.read(i.U, lru_query)))
+    val lru_vec_way = lru_vec(index)
+
+    victim_way  := lru_max(lru_vec_way, valid_vec)
+    when (m_state === sLOOKUP & ~ishit){
+        victim_way_r := victim_way
+    }
+    val lru_vec_upt_hit     = Wire(Vec(cacheConfig.sets, Vec(cacheConfig.ways, UInt(8.W))))
+    val lru_vec_upt_miss    = Wire(Vec(cacheConfig.sets, Vec(cacheConfig.ways, UInt(8.W))))
+    for (i <- 0 until cacheConfig.sets){
+        for (j <- 0 until cacheConfig.ways){
+            lru_vec_upt_hit(i)(j)  := Mux(j.U === hit_way, 0.U, lru_vec_way(j) + 1.U)
+            lru_vec_upt_miss(i)(j) := Mux(j.U === victim_way, 0.U, lru_vec_way(j) + 1.U)
+        }
+    }
+
+    when (m_state === sLOOKUP & ishit){
+        for (i <- 0 until cacheConfig.sets){
+            lru_cnt.write(i.U, lru_vec_upt_hit(i))
+        }
+    }
+    when (m_state === sLOOKUP & ~ishit){
+        for (i <- 0 until cacheConfig.sets){
+            lru_cnt.write(i.U, lru_vec_upt_miss(i))
+        }
+    }
+
+
     /* ---------- Cache Write ---------- */
     val cache_hit_update    = m_state === sLOOKUP & ishit & cpu_req_r.wen
     val cache_miss_update   = RegNext(mem_port.r.fire & mem_port.r.bits.last & axi_r_miss_r)
@@ -356,10 +402,10 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
     }
 
     when (cache_miss_update){
-        cache_v.write(victim_way * cacheConfig.sets.U + index_r, true.B)
-        cache_d.write(victim_way * cacheConfig.sets.U + index_r, Mux(cpu_req_r.wen, true.B, false.B))
-        cache_t.write(victim_way * cacheConfig.sets.U + index_r, tag_r)
-        cache_c.write(victim_way * cacheConfig.sets.U + index_r, rd_dat_vec)
+        cache_v.write(victim_way_r * cacheConfig.sets.U + index_r, true.B)
+        cache_d.write(victim_way_r * cacheConfig.sets.U + index_r, Mux(cpu_req_r.wen, true.B, false.B))
+        cache_t.write(victim_way_r * cacheConfig.sets.U + index_r, tag_r)
+        cache_c.write(victim_way_r * cacheConfig.sets.U + index_r, rd_dat_vec)
     }
 
     /* ---------- cpu port ---------- */
