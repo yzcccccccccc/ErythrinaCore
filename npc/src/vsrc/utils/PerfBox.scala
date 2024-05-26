@@ -35,6 +35,12 @@ class PerfBPU extends Bundle{
     val miss_event  = Input(Bool())
 }
 
+class PerfCache extends Bundle{
+    val hit_event   = Input(Bool())
+    val miss_event  = Input(Bool())
+    val bypass_event = Input(Bool())
+}
+
 class PerfMEMU extends Bundle{
     val ld_data_event = Input(Bool())
     val st_data_event = Input(Bool())
@@ -49,6 +55,7 @@ class PerfBoxIO extends Bundle{
     //val exu_probe = new PerfEXU
     val memu_perf_probe = new PerfMEMU
     val bpu_perf_probe = new PerfBPU
+    val icache_perf_probe = new PerfCache
 }
 
 class PerfBox extends Module{
@@ -174,6 +181,28 @@ class PerfBox extends Module{
         dontTouch(total_bpu_miss)
         when(io.bpu_perf_probe.miss_event){
             total_bpu_miss := total_bpu_miss + 1.U
+        }
+
+        /* ---------------- iCache event ---------------- */
+        // total cache hit event
+        val total_icache_hit = RegInit(0.U(64.W))
+        dontTouch(total_icache_hit)
+        when(io.icache_perf_probe.hit_event){
+            total_icache_hit := total_icache_hit + 1.U
+        }
+
+        // total cache miss event
+        val total_icache_miss = RegInit(0.U(64.W))
+        dontTouch(total_icache_miss)
+        when(io.icache_perf_probe.miss_event){
+            total_icache_miss := total_icache_miss + 1.U
+        }
+
+        // total cache bypass event
+        val total_icache_bypass = RegInit(0.U(64.W))
+        dontTouch(total_icache_bypass)
+        when(io.icache_perf_probe.bypass_event){
+            total_icache_bypass := total_icache_bypass + 1.U
         }
     }
 }

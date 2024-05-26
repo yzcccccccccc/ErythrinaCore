@@ -57,6 +57,14 @@ class ErythrinaCore extends Module with ErythrinaDefault{
     StageConnect(EXU_inst.io.exu_memu_zip, MEMU_inst.io.exu_memu_zip)
     StageConnect(MEMU_inst.io.memu_wbu_zip, WBU_inst.io.memu_wbu_zip)
 
+    // Performance Counter
+    val perfbox    = Module(new PerfBox)
+    perfbox.io.inst_trigger := io.InstCommit.valid
+    perfbox.io.ifu_perf_probe   <> IFU_inst.io.ifu_perf_probe
+    perfbox.io.idu_perf_probe   <> IDU_inst.io.idu_perf_probe
+    perfbox.io.memu_perf_probe  <> MEMU_inst.io.memu_perf_probe
+    perfbox.io.bpu_perf_probe   <> BPU_inst.io.bpu_perf_probe
+
     // TODO: mem (change to LSU)
     val memu_conv   = Module(new Ivy2AXI4)
   
@@ -67,11 +75,16 @@ class ErythrinaCore extends Module with ErythrinaDefault{
         val icache  = Module(new Cache()(CacheConfig(name="icache")))
         icache.io.cpu_port  <> IFU_inst.io.ifu_mem
         icache.io.mem_port  <> io.mem_port1
+
+        perfbox.io.icache_perf_probe <> icache.io.cache_perf_probe
+
     }
     else{
         val ifu_conv    = Module(new Ivy2AXI4)
         ifu_conv.io.in  <> IFU_inst.io.ifu_mem
         ifu_conv.io.out <> io.mem_port1
+
+        perfbox.io.icache_perf_probe <> DontCare
     }
     
     // commit
@@ -82,12 +95,4 @@ class ErythrinaCore extends Module with ErythrinaDefault{
         val watchdog = Module(new WatchDog)
         watchdog.io.feed := io.InstCommit.valid
     }
-
-    // Performance Counter
-    val perfbox    = Module(new PerfBox)
-    perfbox.io.inst_trigger := io.InstCommit.valid
-    perfbox.io.ifu_perf_probe   <> IFU_inst.io.ifu_perf_probe
-    perfbox.io.idu_perf_probe   <> IDU_inst.io.idu_perf_probe
-    perfbox.io.memu_perf_probe  <> MEMU_inst.io.memu_perf_probe
-    perfbox.io.bpu_perf_probe   <> BPU_inst.io.bpu_perf_probe
 }

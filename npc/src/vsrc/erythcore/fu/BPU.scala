@@ -165,5 +165,3 @@ class BPU extends Module with BPUtrait{
     io.bpu_perf_probe.hit_event     := dnpc === snpc & bpuop =/= BPUop.nop
     io.bpu_perf_probe.miss_event    := dnpc =/= snpc & bpuop =/= BPUop.nop
 }
-
-// TODO: plan to implement a 2-bits guesser !

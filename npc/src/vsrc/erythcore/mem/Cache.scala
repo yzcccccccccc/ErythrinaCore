@@ -9,7 +9,7 @@ import chisel3.util.random.LFSR
 import utils.LookupTreeDefault
 import utils.LookupTree
 import utils.MaskExpand
-import erythcore.CSRnum.mstatus
+import utils.PerfCache
 
 /*  
     Raw information of cache
@@ -60,6 +60,9 @@ case class CacheConfig(
 class CacheIO(implicit cacheConfig:CacheConfig) extends Bundle {
     val cpu_port    = Flipped(new IvyBus())
     val mem_port    = new AXI4
+
+    // perf
+    val cache_perf_probe = Flipped(new PerfCache)
 }
 
 class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefault{
@@ -405,4 +408,9 @@ class Cache(implicit cacheConfig:CacheConfig) extends Module with ErythrinaDefau
         bypass_valid    -> bypass_res
     ))
     cpu_port.resp.bits.resp := 0.U
+
+    // Perf Cnt
+    io.cache_perf_probe.hit_event       := m_state === sLOOKUP & ishit
+    io.cache_perf_probe.miss_event      := m_state === sLOOKUP & ~ishit
+    io.cache_perf_probe.bypass_event    := m_state === sIDLE & isbypass
 }

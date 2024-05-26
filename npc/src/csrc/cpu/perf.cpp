@@ -1,5 +1,6 @@
 #include "common.h"
 #include <bits/types/time_t.h>
+#include <cstdint>
 #include <ctime>
 #include <perf.h>
 
@@ -33,6 +34,10 @@ struct perf_t{
 
     uint64_t bpu_hit_event;
     uint64_t bpu_miss_event;
+
+    uint64_t icache_hit_event;
+    uint64_t icache_miss_event;
+    uint64_t icache_bypass_event;
 } perf_cnt;
 
 // get data from dut
@@ -63,6 +68,11 @@ void perf_res_get(){
     // BPU Event
     perf_cnt.bpu_hit_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_hit;
     perf_cnt.bpu_miss_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_miss;
+
+    // icache Event
+    perf_cnt.icache_hit_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_icache_hit;
+    perf_cnt.icache_miss_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_icache_miss;
+    perf_cnt.icache_bypass_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_icache_bypass;
 #endif
 }
 
@@ -96,9 +106,13 @@ void perf_res_show(){
     printf("\tData Total Delay: \t\t\t%ld\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
     printf("\tData Average Delay: \t\t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
     printf("\tData-Mem-Delay Per Inst: \t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / perf_cnt.instrs);
-    printf("\n");
+    printf("BPU\n");
     printf("\tBPU Hit Event: \t\t\t\t%ld\n", perf_cnt.bpu_hit_event);
     printf("\tBPU Miss Event: \t\t\t%ld\n", perf_cnt.bpu_miss_event);
+    printf("icache\n");
+    printf("\tICache Hit Event: \t\t\t%ld\n", perf_cnt.icache_hit_event);
+    printf("\tICache Miss Event: \t\t\t%ld\n", perf_cnt.icache_miss_event);
+    printf("\tICache Bypass Event: \t\t\t%ld\n", perf_cnt.icache_bypass_event);
 #else
     printf("\t%sOnly support __SOC__%s\n", FontYellow, Restore);
 #endif
@@ -140,9 +154,13 @@ void perf_res_record(){
     fprintf(perf_log, "\tData Total Delay: \t\t\t%ld\n", perf_cnt.data_req_wait + perf_cnt.data_resp_wait);
     fprintf(perf_log, "\tData Average Delay: \t\t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / (perf_cnt.ld_data_event + perf_cnt.st_data_event));
     fprintf(perf_log, "\tData-Mem-Delay Per Inst: \t%.10lf\n", (double)(perf_cnt.data_req_wait + perf_cnt.data_resp_wait) / perf_cnt.instrs);
-    fprintf(perf_log, "\n");
+    fprintf(perf_log, "BPU\n");
     fprintf(perf_log, "\tBPU Hit Event: \t\t\t\t%ld\n", perf_cnt.bpu_hit_event);
     fprintf(perf_log, "\tBPU Miss Event: \t\t\t%ld\n", perf_cnt.bpu_miss_event);
+    fprintf(perf_log, "icache\n");
+    fprintf(perf_log, "\tICache Hit Event: \t\t\t%ld\n", perf_cnt.icache_hit_event);
+    fprintf(perf_log, "\tICache Miss Event: \t\t\t%ld\n", perf_cnt.icache_miss_event);
+    fprintf(perf_log, "\tICache Bypass Event: \t\t%ld\n", perf_cnt.icache_bypass_event);
 #endif
 
 #ifdef __SIM__
