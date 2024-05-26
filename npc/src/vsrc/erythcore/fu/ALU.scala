@@ -6,6 +6,7 @@ import utils.LookupTree
 import utils.LookupTreeDefault
 import utils._
 import erythcore.fu.mul.Multiplier
+import erythcore.fu.div.Divisor
 
 // ALU: for Arithmetic Operations
 
@@ -77,30 +78,66 @@ class ALU extends Module with ALUtrait{
   /* ---------- Multiplier ---------- */
   val isMul = ALUop.usemul(aluop)
   // FSM
-  val sIDLE :: sENC :: sCAL :: sWAIT :: Nil = Enum(4)
-  val state = RegInit(sIDLE)
-  switch (state){
-    is (sIDLE){
+  val sM_IDLE :: sM_ENC :: sM_CAL :: sM_WAIT :: Nil = Enum(4)
+  val mul_state = RegInit(sM_IDLE)
+  switch (mul_state){
+    is (sM_IDLE){
       when (isMul & ~io.ALUin.flush){
-        state := sENC
+        mul_state := sM_ENC
       }
     }
-    is (sENC){
-      state := Mux(io.ALUin.flush, sIDLE, sCAL)
+    is (sM_ENC){
+      mul_state := Mux(io.ALUin.flush, sM_IDLE, sM_CAL)
     }
-    is (sCAL){
-      state := Mux(io.ALUout.fire | io.ALUin.flush, sIDLE, sWAIT)
+    is (sM_CAL){
+      mul_state := Mux(io.ALUout.fire | io.ALUin.flush, sM_IDLE, sM_WAIT)
+    }
+    is (sM_WAIT){
+      when (io.ALUout.fire | io.ALUin.flush){
+        mul_state := sM_IDLE
+      }
     }
   }
 
   val mul_inst = Module(new Multiplier)
-  mul_inst.io.in_valid  := state === sIDLE & isMul
+  mul_inst.io.in_valid  := mul_state === sM_IDLE & isMul
   mul_inst.io.a         := src1
   mul_inst.io.b         := src2
   mul_inst.io.op        := aluop(1, 0)
-  val mul_valid   = mul_inst.io.res_valid | state === sWAIT | io.ALUin.flush
+  val mul_valid   = mul_inst.io.res_valid | mul_state === sM_WAIT | io.ALUin.flush
   val mul_res_r   = RegEnable(mul_inst.io.res, mul_inst.io.res_valid)
-  val mul_res     = Mux(state === sWAIT, mul_res_r, mul_inst.io.res)
+  val mul_res     = Mux(mul_state === sM_WAIT, mul_res_r, mul_inst.io.res)
+
+  /* ---------- Divider ---------- */
+  val isDiv = ALUop.usediv(aluop)
+  // FSM
+  val sD_IDLE :: sD_WORK :: sD_WAIT :: Nil = Enum(3)
+  val div_state = RegInit(sD_IDLE)
+  switch (div_state){
+    is (sD_IDLE){
+      when (isDiv & ~io.ALUin.flush){
+        div_state := sD_WORK
+      }
+    }
+    is (sD_WORK){
+      div_state := Mux(io.ALUout.fire | io.ALUin.flush, sD_WAIT, sD_IDLE)
+    }
+    is (sD_WAIT){
+      when (io.ALUout.fire | io.ALUin.flush){
+        div_state := sD_IDLE
+      }
+    }
+  }
+
+  val div_inst = Module(new Divisor)
+  div_inst.io.in_valid  := div_state === sD_IDLE & isDiv
+  div_inst.io.in_flush  := io.ALUin.flush
+  div_inst.io.a         := src1
+  div_inst.io.b         := src2
+  div_inst.io.op        := aluop(1, 0)
+  val div_valid   = div_inst.io.res_valid | div_state === sD_WAIT | io.ALUin.flush
+  val div_res_r   = RegEnable(div_inst.io.res, div_inst.io.res_valid)
+  val div_res     = Mux(div_state === sD_WAIT, div_res_r, div_inst.io.res)
 
   /* ---------- Select Res ---------- */
   val res = LookupTreeDefault(aluop, add_sub_res, List(
@@ -115,7 +152,15 @@ class ALU extends Module with ALUtrait{
     ALUop.sll   -> (src1 << shamt)(XLEN-1, 0)
   ))
 
-  io.ALUout.valid     := Mux(isMul, mul_valid, true.B)
-  io.ALUout.bits.res  := Mux(isMul, mul_res, res)
+  io.ALUout.valid     := Mux1H(Seq(
+    isMul -> mul_valid,
+    isDiv -> div_valid,
+    (~isMul & ~isDiv) -> 1.B
+  ))
+  io.ALUout.bits.res  := Mux1H(Seq(
+    isMul -> mul_res,
+    isDiv -> div_res,
+    (~isMul & ~isDiv) -> res
+  ))
   io.ALUout.bits.zero := (io.ALUout.bits.res === 0.U)
 }
