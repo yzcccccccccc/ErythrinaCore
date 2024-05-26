@@ -72,7 +72,7 @@ class ALU extends Module with ALUtrait{
   /* ---------- Multiplier ---------- */
   val isMul = ALUop.usemul(aluop)
   // FSM
-  val sIDLE :: sENC :: sCAL :: Nil = Enum(3)
+  val sIDLE :: sENC :: sCAL :: sWAIT :: Nil = Enum(4)
   val state = RegInit(sIDLE)
   switch (state){
     is (sIDLE){
@@ -84,7 +84,7 @@ class ALU extends Module with ALUtrait{
       state := Mux(io.ALUin.flush, sIDLE, sCAL)
     }
     is (sCAL){
-      state := sIDLE
+      state := Mux(io.ALUout.fire | io.ALUin.flush, sIDLE, sWAIT)
     }
   }
 
@@ -93,8 +93,9 @@ class ALU extends Module with ALUtrait{
   mul_inst.io.a         := src1
   mul_inst.io.b         := src2
   mul_inst.io.op        := aluop(1, 0)
-  val mul_valid   = mul_inst.io.res_valid | io.ALUin.flush
-  val mul_res     = mul_inst.io.res
+  val mul_valid   = mul_inst.io.res_valid | state === sWAIT | io.ALUin.flush
+  val mul_res_r   = RegEnable(mul_inst.io.res, mul_inst.io.res_valid)
+  val mul_res     = Mux(state === sWAIT, mul_res_r, mul_inst.io.res)
 
   /* ---------- Select Res ---------- */
   val res = LookupTreeDefault(aluop, add_sub_res, List(

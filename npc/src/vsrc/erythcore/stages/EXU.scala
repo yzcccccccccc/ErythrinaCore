@@ -23,7 +23,7 @@ class EXU extends Module with EXUtrait{
     val ALU0 = Module(new ALU)
     val alu_res     = ALU0.io.ALUout.bits.res
     val alu_zero    = ALU0.io.ALUout.bits.zero
-    ALU0.io.ALUin.flush := content_valid
+    ALU0.io.ALUin.flush := ~content_valid
     ALU0.io.ALUin.src1  := io.idu_exu_zip.bits.src1
     ALU0.io.ALUin.src2  := io.idu_exu_zip.bits.src2
     ALU0.io.ALUin.aluop := io.idu_exu_zip.bits.ALUop
@@ -40,8 +40,8 @@ class EXU extends Module with EXUtrait{
     io.exu_fwd_zip.datasrc  := Mux(LSUop.isLoad(io.idu_exu_zip.bits.LSUop), FwdDataSrc.FROM_MEM, Mux(csrop === CSRop.nop, FwdDataSrc.FROM_ALU, FwdDataSrc.FROM_CSR))
     io.exu_fwd_zip.rd       := io.idu_exu_zip.bits.rd
     io.exu_fwd_zip.wdata    := Mux(csrop === CSRop.nop, alu_res, csr_res)
-    io.exu_fwd_zip.wen      := io.idu_exu_zip.bits.rf_wen
-    io.exu_fwd_zip.valid    := 1.B
+    io.exu_fwd_zip.wen      := io.idu_exu_zip.bits.rf_wen & content_valid
+    io.exu_fwd_zip.valid    := ALU0.io.ALUout.valid
 
     // to BPU
     io.exu_bpu_zip.aluout <> ALU0.io.ALUout.bits
@@ -58,7 +58,7 @@ class EXU extends Module with EXUtrait{
     io.exu_memu_zip.bits.LSUop           := io.idu_exu_zip.bits.LSUop
     io.exu_memu_zip.bits.addr_or_res     := Mux(csrop === CSRop.nop, alu_res, csr_res)
     io.exu_memu_zip.bits.rd              := io.idu_exu_zip.bits.rd
-    io.exu_memu_zip.bits.rf_wen          := io.idu_exu_zip.bits.rf_wen
+    io.exu_memu_zip.bits.rf_wen          := io.idu_exu_zip.bits.rf_wen & content_valid
     io.exu_memu_zip.bits.data2store      := io.idu_exu_zip.bits.data2store
     io.exu_memu_zip.bits.exception.isEbreak  := content_valid & io.exu_csr_zip.isEBREAK
     io.exu_memu_zip.bits.exception.isUnknown := io.idu_exu_zip.bits.exception.isUnknown

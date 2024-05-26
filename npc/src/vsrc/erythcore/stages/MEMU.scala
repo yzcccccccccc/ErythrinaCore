@@ -173,7 +173,7 @@ class MEMU extends Module with MEMUtrait{
     io.memu_wbu_zip.bits.inst            := io.exu_memu_zip.bits.inst
     io.memu_wbu_zip.bits.RegWriteIO.waddr   := io.exu_memu_zip.bits.rd
     io.memu_wbu_zip.bits.RegWriteIO.wdata   := wdata
-    io.memu_wbu_zip.bits.RegWriteIO.wen     := io.exu_memu_zip.bits.rf_wen
+    io.memu_wbu_zip.bits.RegWriteIO.wen     := io.exu_memu_zip.bits.rf_wen & content_valid
 
     io.memu_wbu_zip.bits.mdata   := Mux(isload, LoadRes, st_data)
     io.memu_wbu_zip.bits.maddr   := addr
@@ -185,7 +185,7 @@ class MEMU extends Module with MEMUtrait{
     io.memu_fwd_zip.datasrc := FwdDataSrc.DONTCARE
     io.memu_fwd_zip.rd      := io.exu_memu_zip.bits.rd
     io.memu_fwd_zip.wdata   := wdata
-    io.memu_fwd_zip.wen     := io.exu_memu_zip.bits.rf_wen
+    io.memu_fwd_zip.wen     := io.exu_memu_zip.bits.rf_wen & content_valid
     io.memu_fwd_zip.valid   := data_valid
 
 

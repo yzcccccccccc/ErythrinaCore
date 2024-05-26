@@ -2,8 +2,8 @@
 #define __SETTING_H__
 
 // Wave
-#define DUMP_WAVE       0
-#define USE_WINDOW      1
+#define DUMP_WAVE       1
+#define USE_WINDOW      0
 #define WINDOW_BEGIN    1832884547
 
 #define CYCLE_BOUND -1
