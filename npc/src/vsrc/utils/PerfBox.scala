@@ -33,6 +33,7 @@ class PerfEXU extends Bundle{
 class PerfBPU extends Bundle{
     val hit_event   = Input(Bool())
     val miss_event  = Input(Bool())
+    val kick_event  = Input(Vec(64, Bool()))            // TODO: change 64 to parameter
 }
 
 class PerfCache extends Bundle{
@@ -181,6 +182,15 @@ class PerfBox extends Module{
         dontTouch(total_bpu_miss)
         when(io.bpu_perf_probe.miss_event){
             total_bpu_miss := total_bpu_miss + 1.U
+        }
+
+        // total BPU kick event
+        val total_bpu_kick = RegInit(VecInit(Seq.fill(64)(0.U(64.W))))
+        dontTouch(total_bpu_kick)
+        for (i <- 0 until 64){
+            when(io.bpu_perf_probe.kick_event(i)){
+                total_bpu_kick(i) := total_bpu_kick(i) + 1.U
+            }
         }
 
         /* ---------------- iCache event ---------------- */

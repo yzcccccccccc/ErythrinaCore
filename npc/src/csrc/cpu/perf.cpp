@@ -34,6 +34,7 @@ struct perf_t{
 
     uint64_t bpu_hit_event;
     uint64_t bpu_miss_event;
+    uint64_t bpu_kick_event[64];
 
     uint64_t icache_hit_event;
     uint64_t icache_miss_event;
@@ -41,8 +42,78 @@ struct perf_t{
 } perf_cnt;
 
 // get data from dut
+void perf_get_bpu_kick(){
+#ifdef __SOC__
+    perf_cnt.bpu_kick_event[0]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_0;
+    perf_cnt.bpu_kick_event[1]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_1;
+    perf_cnt.bpu_kick_event[2]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_2;
+    perf_cnt.bpu_kick_event[3]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_3;
+    perf_cnt.bpu_kick_event[4]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_4;
+    perf_cnt.bpu_kick_event[5]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_5;
+    perf_cnt.bpu_kick_event[6]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_6;
+    perf_cnt.bpu_kick_event[7]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_7;
+    perf_cnt.bpu_kick_event[8]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_8;
+    perf_cnt.bpu_kick_event[9]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_9;
+    perf_cnt.bpu_kick_event[10]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_10;
+    perf_cnt.bpu_kick_event[11]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_11;
+    perf_cnt.bpu_kick_event[12]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_12;
+    perf_cnt.bpu_kick_event[13]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_13;
+    perf_cnt.bpu_kick_event[14]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_14;
+    perf_cnt.bpu_kick_event[15]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_15;
+    perf_cnt.bpu_kick_event[16]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_16;
+    perf_cnt.bpu_kick_event[17]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_17;
+    perf_cnt.bpu_kick_event[18]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_18;
+    perf_cnt.bpu_kick_event[19]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_19;
+    perf_cnt.bpu_kick_event[20]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_20;
+    perf_cnt.bpu_kick_event[21]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_21;
+    perf_cnt.bpu_kick_event[22]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_22;
+    perf_cnt.bpu_kick_event[23]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_23;
+    perf_cnt.bpu_kick_event[24]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_24;
+    perf_cnt.bpu_kick_event[25]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_25;
+    perf_cnt.bpu_kick_event[26]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_26;
+    perf_cnt.bpu_kick_event[27]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_27;
+    perf_cnt.bpu_kick_event[28]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_28;
+    perf_cnt.bpu_kick_event[29]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_29;
+    perf_cnt.bpu_kick_event[30]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_30;
+    perf_cnt.bpu_kick_event[31]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_31;
+    perf_cnt.bpu_kick_event[32]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_32;
+    perf_cnt.bpu_kick_event[33]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_33;
+    perf_cnt.bpu_kick_event[34]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_34;
+    perf_cnt.bpu_kick_event[35]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_35;
+    perf_cnt.bpu_kick_event[36]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_36;
+    perf_cnt.bpu_kick_event[37]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_37;
+    perf_cnt.bpu_kick_event[38]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_38;
+    perf_cnt.bpu_kick_event[39]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_39;
+    perf_cnt.bpu_kick_event[40]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_40;
+    perf_cnt.bpu_kick_event[41]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_41;
+    perf_cnt.bpu_kick_event[42]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_42;
+    perf_cnt.bpu_kick_event[43]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_43;
+    perf_cnt.bpu_kick_event[44]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_44;
+    perf_cnt.bpu_kick_event[45]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_45;
+    perf_cnt.bpu_kick_event[46]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_46;
+    perf_cnt.bpu_kick_event[47]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_47;
+    perf_cnt.bpu_kick_event[48]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_48;
+    perf_cnt.bpu_kick_event[49]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_49;
+    perf_cnt.bpu_kick_event[50]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_50;
+    perf_cnt.bpu_kick_event[51]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_51;
+    perf_cnt.bpu_kick_event[52]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_52;
+    perf_cnt.bpu_kick_event[53]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_53;
+    perf_cnt.bpu_kick_event[54]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_54;
+    perf_cnt.bpu_kick_event[55]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_55;
+    perf_cnt.bpu_kick_event[56]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_56;
+    perf_cnt.bpu_kick_event[57]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_57;
+    perf_cnt.bpu_kick_event[58]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_58;
+    perf_cnt.bpu_kick_event[59]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_59;
+    perf_cnt.bpu_kick_event[60]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_60;
+    perf_cnt.bpu_kick_event[61]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_61;
+    perf_cnt.bpu_kick_event[62]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_62;
+    perf_cnt.bpu_kick_event[63]  = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_bpu_kick_63;
+#endif
+}
+
 void perf_res_get(){
 #ifdef __SOC__
+    perf_get_bpu_kick();
     perf_cnt.cycles = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_cycles;
     perf_cnt.instrs = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_insts;
 
@@ -109,6 +180,10 @@ void perf_res_show(){
     printf("BPU\n");
     printf("\tBPU Hit Event: \t\t\t\t%ld\n", perf_cnt.bpu_hit_event);
     printf("\tBPU Miss Event: \t\t\t%ld\n", perf_cnt.bpu_miss_event);
+    printf("BPU kick\n");
+    for(int i = 0; i < 64; i++){
+        printf("\tBPU Kick Event[%d]: \t\t\t%ld\n", i, perf_cnt.bpu_kick_event[i]);
+    }
     printf("icache\n");
     printf("\tICache Hit Event: \t\t\t%ld\n", perf_cnt.icache_hit_event);
     printf("\tICache Miss Event: \t\t\t%ld\n", perf_cnt.icache_miss_event);
@@ -157,6 +232,10 @@ void perf_res_record(){
     fprintf(perf_log, "BPU\n");
     fprintf(perf_log, "\tBPU Hit Event: \t\t\t\t%ld\n", perf_cnt.bpu_hit_event);
     fprintf(perf_log, "\tBPU Miss Event: \t\t\t%ld\n", perf_cnt.bpu_miss_event);
+    fprintf(perf_log, "BPU kick\n");
+    for(int i = 0; i < 64; i++){
+        fprintf(perf_log, "\tBPU Kick Event[%d]: \t\t\t%ld\n", i, perf_cnt.bpu_kick_event[i]);
+    }
     fprintf(perf_log, "icache\n");
     fprintf(perf_log, "\tICache Hit Event: \t\t\t%ld\n", perf_cnt.icache_hit_event);
     fprintf(perf_log, "\tICache Miss Event: \t\t\t%ld\n", perf_cnt.icache_miss_event);

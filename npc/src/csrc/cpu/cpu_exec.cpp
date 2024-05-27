@@ -11,8 +11,8 @@
 #include "perf.h"
 #include "trace.h"
 
-#include "verilated.h"
-#include "verilated_fst_c.h"
+#include <verilated.h>
+#include <verilated_fst_c.h>
 
 #include <cstdint>
 #include <cstdio>

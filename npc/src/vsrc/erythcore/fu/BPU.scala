@@ -62,6 +62,9 @@ class BHVIO extends Bundle with BPUtrait{
     val update_tak = Input(Bool())
     val update_tar = Input(UInt(BHVtarLEN.W))
     val ifu_zip    = new IFU_BPU_zip
+
+    // perf
+    val kick_event = Output(Vec(64, Bool()))
 }
 
 class BHV extends Module with BPUtrait{
@@ -87,9 +90,9 @@ class BHV extends Module with BPUtrait{
             bhv(io.update_idx).tar  := io.update_tar
         }.otherwise{
             bhv(io.update_idx).tag  := io.update_tag
-            bhv(io.update_idx).bits := "b00".U
+            bhv(io.update_idx).bits := "b10".U
             bhv(io.update_idx).tar  := io.update_tar
-        
+            
         }
     }
 
@@ -102,6 +105,11 @@ class BHV extends Module with BPUtrait{
     val pred_hit = bhv(idx).valid & (bhv(idx).tag === tag)
 
     io.ifu_zip.pred_pc := Mux(pred_hit, dnpc, snpc)
+
+    /* ------------- kick event ------------ */
+    for (i <- 0 until 64){
+        io.kick_event(i) := Mux(io.update_idx === i.U, bhv(io.update_idx).tag === io.update_tag & io.update_trigger, false.B)
+    }
 }
 
 class BPUIO extends Bundle with BPUtrait{
@@ -164,4 +172,5 @@ class BPU extends Module with BPUtrait{
     // perf
     io.bpu_perf_probe.hit_event     := dnpc === snpc & bpuop =/= BPUop.nop
     io.bpu_perf_probe.miss_event    := dnpc =/= snpc & bpuop =/= BPUop.nop
+    io.bpu_perf_probe.kick_event    := bhv.io.kick_event
 }
