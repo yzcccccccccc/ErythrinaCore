@@ -8,8 +8,8 @@ import utils._
 trait BPUtrait extends ErythrinaDefault{
     val BPUopLEN = 4
 
-    val BHVidxLEN   = 3
-    val BHVtagLEN   = 28
+    val BHVidxLEN   = 6
+    val BHVtagLEN   = 25
     val BHVbitsLEN  = 2
     val BHVtarLEN   = 31
 }
