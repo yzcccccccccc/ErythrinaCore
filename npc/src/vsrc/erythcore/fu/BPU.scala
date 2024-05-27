@@ -6,12 +6,14 @@ import chisel3.util._
 import utils._
 
 trait BPUtrait extends ErythrinaDefault{
+    // Assume every instruction is 4 bytes aligned
+
     val BPUopLEN = 4
 
     val BHVidxLEN   = 6
-    val BHVtagLEN   = 25
+    val BHVtagLEN   = 24
     val BHVbitsLEN  = 2
-    val BHVtarLEN   = 31
+    val BHVtarLEN   = 30
 }
 
 object BPUop{
@@ -97,11 +99,11 @@ class BHV extends Module with BPUtrait{
     }
 
     /*--------------- predict ---------------*/
-    val idx = io.ifu_zip.pc(BHVidxLEN, 1)
-    val tag = io.ifu_zip.pc(XLEN - 1, BHVidxLEN + 1)
+    val idx = io.ifu_zip.pc(BHVidxLEN + 1, 2)
+    val tag = io.ifu_zip.pc(XLEN - 1, BHVidxLEN + 2)
 
     val snpc = io.ifu_zip.pc + 4.U
-    val dnpc = Mux(bhv(idx).bits(1), Cat(bhv(idx).tar, 0.B), io.ifu_zip.pc + 4.U)
+    val dnpc = Mux(bhv(idx).bits(1), Cat(bhv(idx).tar, 0.U(2.W)), io.ifu_zip.pc + 4.U)
     val pred_hit = bhv(idx).valid & (bhv(idx).tag === tag)
 
     io.ifu_zip.pred_pc := Mux(pred_hit, dnpc, snpc)
@@ -157,10 +159,10 @@ class BPU extends Module with BPUtrait{
     // BHV
     val bhv = Module(new BHV)
     bhv.io.update_trigger   := io.exu_bpu_trigger & (bpuop =/= BPUop.nop)
-    bhv.io.update_idx       := pc_r(BHVidxLEN, 1)
-    bhv.io.update_tag       := pc_r(XLEN - 1, BHVidxLEN + 1)
+    bhv.io.update_idx       := pc_r(BHVidxLEN + 1, 2)
+    bhv.io.update_tag       := pc_r(XLEN - 1, BHVidxLEN + 2)
     bhv.io.update_tak       := redirect
-    bhv.io.update_tar       := dnpc(XLEN - 1, 1)
+    bhv.io.update_tar       := dnpc(XLEN - 1, 2)
     bhv.io.ifu_zip <> io.ifu_bpu_zip
 
     // to IF & ID
