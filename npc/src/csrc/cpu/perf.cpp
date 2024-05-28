@@ -26,6 +26,7 @@ struct perf_t{
     uint64_t st_instrs;
     uint64_t j_instrs;
     uint64_t b_instrs;
+    uint64_t pause_event;
 
     uint64_t ld_data_event;
     uint64_t st_data_event;
@@ -130,6 +131,9 @@ void perf_res_get(){
     perf_cnt.j_instrs = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_j_insts;
     perf_cnt.b_instrs = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_b_insts;
 
+    // IDU pause
+    perf_cnt.pause_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_pause_event;
+
     // Data Event
     perf_cnt.ld_data_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_ld_data_events;
     perf_cnt.st_data_event = dut->rootp->ysyxSoCFull__DOT__asic__DOT__cpu__DOT__cpu__DOT__erythrinacore__DOT__perfbox__DOT__total_st_data_events;
@@ -169,6 +173,7 @@ void perf_res_show(){
     printf("\tST Instrs: \t\t\t\t%ld\n", perf_cnt.st_instrs);
     printf("\tJ Instrs: \t\t\t\t%ld\n", perf_cnt.j_instrs);
     printf("\tB Instrs: \t\t\t\t%ld\n", perf_cnt.b_instrs);
+    printf("\tPause Event: \t\t\t\t%ld\n", perf_cnt.pause_event);
     printf("\n");
     printf("\tLD Data Event: \t\t\t\t%ld\n", perf_cnt.ld_data_event);
     printf("\tST Data Event: \t\t\t\t%ld\n", perf_cnt.st_data_event);
@@ -221,6 +226,7 @@ void perf_res_record(){
     fprintf(perf_log, "\tST Instrs: \t\t\t\t\t%ld\n", perf_cnt.st_instrs);
     fprintf(perf_log, "\tJ Instrs: \t\t\t\t\t%ld\n", perf_cnt.j_instrs);
     fprintf(perf_log, "\tB Instrs: \t\t\t\t\t%ld\n", perf_cnt.b_instrs);
+    fprintf(perf_log, "\tPause Event: \t\t\t\t%ld\n", perf_cnt.pause_event);
     fprintf(perf_log, "\n");
     fprintf(perf_log, "\tLD Data Event: \t\t\t\t%ld\n", perf_cnt.ld_data_event);
     fprintf(perf_log, "\tST Data Event: \t\t\t\t%ld\n", perf_cnt.st_data_event);

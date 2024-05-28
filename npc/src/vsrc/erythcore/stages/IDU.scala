@@ -133,10 +133,11 @@ class IDU extends Module with IDUtrait{
     io.idu_exu_zip.bits.exception.isUnknown  := instType === TypeER & content_valid
 
     // Perf
-    io.idu_perf_probe.cal_inst_event := content_valid & aluop =/= ALUop.nop 
-    io.idu_perf_probe.csr_inst_event := content_valid & csrop =/= CSRop.nop 
-    io.idu_perf_probe.ld_inst_event := content_valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu) 
-    io.idu_perf_probe.st_inst_event := content_valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb) 
-    io.idu_perf_probe.j_inst_event := content_valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr) 
-    io.idu_perf_probe.b_inst_event := content_valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu) 
+    io.idu_perf_probe.cal_inst_event    := content_valid & aluop =/= ALUop.nop 
+    io.idu_perf_probe.csr_inst_event    := content_valid & csrop =/= CSRop.nop 
+    io.idu_perf_probe.ld_inst_event     := content_valid & (lsuop === LSUop.lw || lsuop === LSUop.lh || lsuop === LSUop.lhu || lsuop === LSUop.lb || lsuop === LSUop.lbu) 
+    io.idu_perf_probe.st_inst_event     := content_valid & (lsuop === LSUop.sw || lsuop === LSUop.sh || lsuop === LSUop.sb) 
+    io.idu_perf_probe.j_inst_event      := content_valid & (bpuop === BPUop.jal || bpuop === BPUop.jalr) 
+    io.idu_perf_probe.b_inst_event      := content_valid & (bpuop === BPUop.beq || bpuop === BPUop.bne || bpuop === BPUop.blt || bpuop === BPUop.bge || bpuop === BPUop.bltu || bpuop === BPUop.bgeu) 
+    io.idu_perf_probe.pause_event       := fwd_pause
 }

@@ -12,12 +12,13 @@ class PerfIFU extends Bundle{
 }
 
 class PerfIDU extends Bundle{
-    val cal_inst_event = Input(Bool())
-    val csr_inst_event = Input(Bool())
-    val ld_inst_event = Input(Bool())       // Load
-    val st_inst_event = Input(Bool())       // Store
-    val j_inst_event = Input(Bool())    // Jump
-    val b_inst_event = Input(Bool())    // Branch
+    val cal_inst_event  = Input(Bool())
+    val csr_inst_event  = Input(Bool())
+    val ld_inst_event   = Input(Bool())       // Load
+    val st_inst_event   = Input(Bool())       // Store
+    val j_inst_event    = Input(Bool())    // Jump
+    val b_inst_event    = Input(Bool())    // Branch
+    val pause_event     = Input(Bool())    // Pause
 }
 
 class PerfEXU extends Bundle{
@@ -138,6 +139,13 @@ class PerfBox extends Module{
         dontTouch(total_b_insts)
         when(io.idu_perf_probe.b_inst_event){
             total_b_insts := total_b_insts + 1.U
+        }
+
+        // total pause event
+        val total_pause_event = RegInit(0.U(64.W))
+        dontTouch(total_pause_event)
+        when(io.idu_perf_probe.pause_event){
+            total_pause_event := total_pause_event + 1.U
         }
 
         /*----------------Data Path Events----------------*/

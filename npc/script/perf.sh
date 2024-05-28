@@ -11,27 +11,27 @@ benchname=$1
 # microbench
 if [ $benchname == "microbench" ]; then
     echo "Run microbench"
-    make -C ../am-kernels/benchmarks/microbench ARCH=riscv32e-ysyxsoc run mainargs=train
+    make -C ../am-kernels/benchmarks/microbench ARCH=riscv32i-ysyxsoc run mainargs=train
     echo "Finish microbench. Performance result in ./build/report/perf.log"
 fi
 
 # dhyrstone
 if [ $benchname == "dhrystone" ]; then
     echo "Run dhrystone"
-    make -C ../am-kernels/benchmarks/dhrystone ARCH=riscv32e-ysyxsoc run
+    make -C ../am-kernels/benchmarks/dhrystone ARCH=riscv32i-ysyxsoc run
     echo "Finish dhrystone. Performance result in ./build/report/perf.log"
 fi
 
 # coremark
 if [ $benchname == "coremark" ]; then
     echo "Run coremark"
-    make -C ../am-kernels/benchmarks/coremark ARCH=riscv32e-ysyxsoc run
+    make -C ../am-kernels/benchmarks/coremark ARCH=riscv32i-ysyxsoc run
     echo "Finish coremark. Performance result in ./build/report/perf.log"
 fi
 
 # dummy
 if [ $benchname == "dummy" ]; then
     echo "Run dummy"
-    make -C ../am-kernels/tests/cpu-tests ARCH=riscv32e-ysyxsoc ALL=dummy run
+    make -C ../am-kernels/tests/cpu-tests ARCH=riscv32i-ysyxsoc ALL=dummy run
     echo "Finish dummy. Performance result in ./build/report/perf.log"
 fi
