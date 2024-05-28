@@ -89,12 +89,17 @@ class BHV extends Module with BPUtrait{
         bhv(io.update_idx).valid := true.B
         when (bhv(io.update_idx).tag === io.update_tag){
             bhv(io.update_idx).bits := get_next_bit(bhv(io.update_idx).bits, io.update_tak)
-            bhv(io.update_idx).tar  := io.update_tar
+            when (io.update_tak){
+                bhv(io.update_idx).tar  := io.update_tar
+            }
         }.otherwise{
-            bhv(io.update_idx).tag  := io.update_tag
-            bhv(io.update_idx).bits := Mux(io.update_tak, "b10".U, "b01".U)
-            bhv(io.update_idx).tar  := io.update_tar
-            
+            when (io.update_tak){
+                bhv(io.update_idx).bits := "b10".U
+                bhv(io.update_idx).tag  := io.update_tag
+                bhv(io.update_idx).tar  := io.update_tar
+            }.otherwise{
+                bhv(io.update_idx).bits := "b01".U
+            }
         }
     }
 
@@ -110,7 +115,7 @@ class BHV extends Module with BPUtrait{
 
     /* ------------- kick event ------------ */
     for (i <- 0 until 64){
-        io.kick_event(i) := Mux(io.update_idx === i.U, bhv(io.update_idx).tag =/= io.update_tag & io.update_trigger, false.B)
+        io.kick_event(i) := Mux(io.update_idx === i.U, bhv(io.update_idx).tag =/= io.update_tag & io.update_trigger & ~io.update_tak, false.B)
     }
 }
 
