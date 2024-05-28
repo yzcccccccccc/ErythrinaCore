@@ -8,7 +8,7 @@
 
 #define CYCLE_BOUND -1
 #define INSTR_BOUND -1
-#define DIFF_TEST 1
+#define DIFF_TEST 0
 
 #define ITRACE 0
 #define MTRACE 0

@@ -9,7 +9,7 @@ package erythcore.fu.mul
 import chisel3._
 import chisel3.util._
 
-// CSA: Compressor-Selector-Adder
+// CSA
 
 // compressor: 2 bits -> 2 bits
 class C22 extends Module{

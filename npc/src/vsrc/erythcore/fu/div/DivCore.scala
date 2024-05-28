@@ -1,5 +1,11 @@
 package erythcore.fu.div
 
+/*
+    * A simple Radix2 Divider
+    * Author: yzcc
+    * Reference: https://soc.ustc.edu.cn/CECS/lab8/board.assets/%E4%B9%98%E6%B3%95%E5%99%A8%E4%B8%8E%E9%99%A4%E6%B3%95%E5%99%A8%E7%9A%84%E8%AE%BE%E8%AE%A1.pdf
+*/
+
 import chisel3._
 import chisel3.util._
 
