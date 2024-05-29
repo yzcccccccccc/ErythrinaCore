@@ -5,7 +5,7 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-#define BUFLEN 400
+#define BUFLEN 10000
 
 void my_print_num(long num){
   if (num < 0){
@@ -20,9 +20,8 @@ void my_print_num(long num){
   putch('0' + num % 10);
   return;
 }
-
+char pbuf[BUFLEN];
 int printf(const char *fmt, ...) {
-  char pbuf[BUFLEN];
 
   // write to pbuf
   va_list ap;
@@ -116,6 +115,10 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           case 'd': case 'x':
             state = sINT;
             break;
+          case 'p':
+            state = sLONG;
+            fmt--;
+            break;
           case 'l':
             state = sLONG;
             break;
@@ -149,7 +152,13 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       }
       case sLONG:{
         fmt++;
-        assert(*fmt == 'd' || *fmt == 'x');
+        assert(*fmt == 'd' || *fmt == 'x' || *fmt == 'p');
+        if (*fmt == 'p'){
+          *out = '0';
+          out++;
+          *out = 'x';
+          out++;
+        }
         d = va_arg(ap, long);
         out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
         state = sIDLE;
