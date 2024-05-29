@@ -10,7 +10,11 @@ Context* __am_irq_handle(Context *c) {
     Event ev = {0};
     switch (c->mcause) {
       case 11:          // environment call
-        ev.event = EVENT_YIELD;
+        if (c->GPR1 == -1)
+          ev.event = EVENT_YIELD;     // yield
+        else
+          ev.event = EVENT_SYSCALL; // system call
+
         c->mepc += 4;
         break;
       default: ev.event = EVENT_ERROR; break;

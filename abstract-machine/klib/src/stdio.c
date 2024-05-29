@@ -36,14 +36,13 @@ int printf(const char *fmt, ...) {
   return len;
 }
 
-char *int2str(long val, char *out, int pad_len, char pad_ch, int base){
+char *int2str(unsigned long long val, char *out, int pad_len, char pad_ch, int base, int sign){
   assert(base == 10 || base == 16);
-  if (val < 0){
+  char vsbuf[BUFLEN];
+  if (sign){
     *out = '-';
-    val = -val;
     out++;
   }
-  char vsbuf[BUFLEN];
   int len = 0;
   if (val == 0)
     vsbuf[len++] = '0';
@@ -77,6 +76,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 #define sLONG     3
 #define sINT      4
 #define sCHAR     5
+#define sULONG    6   // unsigned long
   int state = sIDLE;
 
   while (*fmt){
@@ -144,7 +144,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       }
       case sINT:{
         d = va_arg(ap, int);
-        out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
+        out = int2str(d > 0 ? d : -d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16, d < 0);
         state = sIDLE;
         pad_len = 0;
         fmt++;
@@ -153,14 +153,16 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       case sLONG:{
         fmt++;
         assert(*fmt == 'd' || *fmt == 'x' || *fmt == 'p');
+        d = va_arg(ap, long);
         if (*fmt == 'p'){
           *out = '0';
           out++;
           *out = 'x';
           out++;
+          out = int2str((unsigned long)d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16, 0);
         }
-        d = va_arg(ap, long);
-        out = int2str(d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16);
+        else
+          out = int2str(d > 0 ? d : -d, out, pad_len, pad_ch, *fmt == 'd' ? 10 : 16, d < 0);
         state = sIDLE;
         pad_len = 0;
         fmt++;
