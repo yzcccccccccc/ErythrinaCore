@@ -3,12 +3,12 @@
 
 // Wave
 #define DUMP_WAVE       0
-#define USE_WINDOW      0
-#define WINDOW_BEGIN    15000000
+#define USE_WINDOW      1
+#define WINDOW_BEGIN    50000000
 
 #define CYCLE_BOUND -1
 #define INSTR_BOUND -1
-#define DIFF_TEST 0
+#define DIFF_TEST 1
 
 #define ITRACE 0
 #define MTRACE 0

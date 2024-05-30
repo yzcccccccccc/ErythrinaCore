@@ -5,21 +5,8 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-#define BUFLEN 10000
+#define BUFLEN 1000
 
-void my_print_num(long num){
-  if (num < 0){
-    putch('-');
-    num = -num; 
-  }
-  if (num < 10){
-    putch('0' + num);
-    return;
-  }
-  my_print_num(num / 10);
-  putch('0' + num % 10);
-  return;
-}
 char pbuf[BUFLEN];
 int printf(const char *fmt, ...) {
 
@@ -36,9 +23,9 @@ int printf(const char *fmt, ...) {
   return len;
 }
 
+char vsbuf[BUFLEN];
 char *int2str(unsigned long long val, char *out, int pad_len, char pad_ch, int base, int sign){
   assert(base == 10 || base == 16);
-  char vsbuf[BUFLEN];
   if (sign){
     *out = '-';
     out++;
