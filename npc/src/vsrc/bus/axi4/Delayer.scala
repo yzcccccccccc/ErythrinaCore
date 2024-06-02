@@ -2,10 +2,10 @@ package bus.axi4
 
 import chisel3._
 import chisel3.util._
-import erythcore.ErythrinaDefault
+import erythcore._
 import utils._
 
-class AXI4DelayPipe[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
+class AXI4DelayPipe[T <: AXI4Lite](_type: T = new AXI4) extends Module with HasErythDefault{
     val io = IO(new Bundle {
         val master  = Flipped(_type)
         val slave   = _type

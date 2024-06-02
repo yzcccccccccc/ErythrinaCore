@@ -4,12 +4,12 @@ package bus.ivybus
 import chisel3._
 import chisel3.util._
 import bus.axi4._
-import erythcore.ErythrinaDefault
+import erythcore._
 import utils.LookupTreeDefault
 import utils.LatencyPipeBit
 
 // convert a Ivy request to AXI4
-class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
+class Ivy2AXI4[T <: AXI4Lite](_type: T = new AXI4) extends Module with HasErythDefault{
     val io = IO(new Bundle {
         val in  = Flipped(new IvyBus)
         val out = Flipped(Flipped(_type))
@@ -123,7 +123,7 @@ object Ivy2AXI4{
 
 // TODO: improve efficiency
 // convert a AXI request to Ivy request
-class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with ErythrinaDefault{
+class AXI42Ivy[T <: AXI4Lite](_type: T = new AXI4) extends Module with HasErythDefault{
     val io = IO(new Bundle {
         val in  = Flipped(_type)
         val out = new IvyBus

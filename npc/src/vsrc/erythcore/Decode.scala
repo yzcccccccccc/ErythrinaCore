@@ -2,27 +2,47 @@ package erythcore
 
 import chisel3._
 import chisel3.util._
+import erythcore.backend.fu._
+import erythcore.isa._
 
-// Instruction Type
-trait InstrType extends ErythrinaDefault{
-  def TypeI   = "b000".U
-  def TypeR   = "b001".U
-  def TypeS   = "b010".U
-  def TypeU   = "b011".U
-  def TypeJ   = "b100".U
-  def TypeB   = "b101".U
-  def TypeN   = "b110".U
-  def TypeER  = "b111".U    // error
+trait HasInstType{
+    def InstN   = "b0000".U
+    def InstI   = "b0100".U
+    def InstR   = "b0101".U
+    def InstS   = "b0010".U
+    def InstB   = "b0001".U
+    def InstU   = "b0110".U
+    def InstJ   = "b0111".U
+
+    def need_rf_wen(instType:UInt): Bool = instType(2)
 }
 
-object SrcType {
-  def reg   = "b00".U
-  def pc    = "b01".U
-  def const = "b10".U
-  def imm   = "b11".U
+object SrcType{
+    // TODO
+    def imm     = "b00".U
+    def reg     = "b01".U
+    def pc      = "b10".U
+    def const   = "b11".U
+
+    def apply() = UInt(3.W)
 }
 
-object Instructions extends InstrType{
-  val decodeDefault = List(TypeER, ALUop.nop, LSUop.nop, BPUop.nop, CSRop.nop)
-  def decode_table = RV32I.table ++ RV32CSR.table ++ Previledge.table ++ RV32M.table
+object FuType {
+    def alu = "b000".U      // ALU
+    def bru = "b001".U      // BRU (Branch)
+    def mdu = "b010".U      // MDU (Mul & Div)
+    def lsu = "b100".U      // LSU (Load & Store)
+    def csr = "b110".U      // CSR
+    
+    def apply() = UInt(2.W)
+}
+
+object FuOpType{
+    def apply() = UInt(7.W)
+}
+
+object Instructions extends HasInstType with HasErythDefault{
+    def nop = 0x00000013.U
+    val DecodeDefault   = List(InstN, FuType.alu, ALUOpType.nop)
+    val DecodeTable     = RVI.table
 }

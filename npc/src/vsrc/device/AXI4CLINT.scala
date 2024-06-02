@@ -5,14 +5,14 @@ import chisel3.util._
 import bus.axi4._
 import os.stat
 import utils.LookupTreeDefault
-import erythcore.ErythrinaDefault
+import erythcore.HasErythDefault
 
 object AXI4CLINTAddr{
     def rtc_l   = 0x02000000L.U
     def rtc_h   = 0x02000004L.U
 }
 
-class AXI4CLINT extends Module with ErythrinaDefault{
+class AXI4CLINT extends Module with HasErythDefault{
     val io = IO(Flipped(new AXI4))
 
     // FSM

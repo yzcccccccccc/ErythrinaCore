@@ -2,10 +2,10 @@ package bus.axi4
 
 import chisel3._
 import chisel3.util._
-import erythcore.ErythrinaDefault
+import erythcore._
 
 // 1 master, n slave
-class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new AXI4) extends Module with ErythrinaDefault{
+class AXI4XBar1toN[T <: AXI4Lite](addr_space: List[(UInt, UInt)], _type: T = new AXI4) extends Module with HasErythDefault{
     val io = IO(new Bundle {
         val in  = Flipped(_type)
         val out = Vec(addr_space.length, _type)

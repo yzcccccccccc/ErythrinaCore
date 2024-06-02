@@ -3,9 +3,9 @@ package bus.axi4
 import chisel3._
 import chisel3.util._
 
-import erythcore.ErythrinaDefault
+import erythcore.HasErythDefault
 
-class AXI4LiteParameters extends ErythrinaDefault{
+class AXI4LiteParameters extends HasErythDefault{
     val datalen     = XLEN
     val addrlen     = XLEN
     val strblen     = MASKLEN
