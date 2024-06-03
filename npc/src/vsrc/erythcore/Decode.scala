@@ -22,9 +22,8 @@ object SrcType{
     def imm     = "b00".U
     def reg     = "b01".U
     def pc      = "b10".U
-    def const   = "b11".U
 
-    def apply() = UInt(3.W)
+    def apply() = UInt(2.W)
 }
 
 object FuType {
