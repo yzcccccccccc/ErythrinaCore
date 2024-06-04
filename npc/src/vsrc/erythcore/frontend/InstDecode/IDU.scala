@@ -7,6 +7,8 @@ import erythcore._
 class IDU extends Module with HasErythDefault{
     val io = IO(new Bundle{
         val in  = Decoupled(Flipped(new InstFetchIO))
+
+        // reorder buffer idx
     })
 
     val decoder1 = Module(new Decoder)
@@ -20,4 +22,6 @@ class IDU extends Module with HasErythDefault{
     decoder2.io.in.instr        := io.in.bits.instr(1)
     decoder2.io.in.pc           := io.in.bits.pc + 4.U
     decoder2.io.in.instValid    := io.in.bits.instValid
+
+    val (dec1, dec2) = (decoder1.io.out, decoder2.io.out)
 }
