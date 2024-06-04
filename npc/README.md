@@ -1,3 +1,3 @@
 # Erythrinacore Project
 
-Out of Order, dual issues. TBD (Eryth-Zimao)
+Out of Order, single issue. TBD (Eryth-Zimao)

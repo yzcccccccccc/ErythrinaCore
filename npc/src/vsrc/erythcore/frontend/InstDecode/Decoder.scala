@@ -61,6 +61,8 @@ class Decoder extends Module with HasErythDefault{
     io.out.rs1      := Mux(instr(6, 0) === "b0110111".U, 0.U, rs1)
     io.out.rs2      := rs2
     io.out.rd       := rd
-    io.out.rf_wen   := Instructions.need_rf_wen(instType)
+    io.out.rf_wen   := Instructions.need_rf_wen(instType) & rd =/= 0.U
     io.out.imm      := imm
+
+    io.out.instValid := instvalid & !io.out.exceptionVec.reduce(_ | _)
 }

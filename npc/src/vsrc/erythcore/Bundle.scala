@@ -7,7 +7,7 @@ class InstFetchIO extends Bundle with HasErythDefault{
     val pc          = Output(UInt(XLEN.W))
     val pnpc        = Output(UInt(XLEN.W))
     val instValid   = Output(Bool())
-    val instr       = Output(Vec(2, UInt(XLEN.W)))
+    val instr       = Output(UInt(XLEN.W))
 }
 
 class BasicDecodeIn extends Bundle with HasErythDefault{
@@ -19,6 +19,7 @@ class BasicDecodeIn extends Bundle with HasErythDefault{
 class BasicDecodeOut extends Bundle with HasErythDefault{
     val exceptionVec = Output(Vec(ExceptionSetting.WIDTH, Bool()))
     
+    val instValid   = Output(Bool())
     val instType    = Output(UInt(4.W))
     val fuType      = Output(FuType())
     val fuOpType    = Output(FuOpType())

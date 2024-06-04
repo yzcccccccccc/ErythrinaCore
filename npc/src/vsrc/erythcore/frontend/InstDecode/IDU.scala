@@ -8,20 +8,32 @@ class IDU extends Module with HasErythDefault{
     val io = IO(new Bundle{
         val in  = Decoupled(Flipped(new InstFetchIO))
 
+        // RMT
+        val rmt_r = Vec(3, Flipped(new RMTrports))
+        val rmt_w = Flipped(new RMTwports)
+
         // reorder buffer idx
     })
 
-    val decoder1 = Module(new Decoder)
-    val decoder2 = Module(new Decoder)
+    // Decoder
+    val decoder = Module(new Decoder)
+    decoder.io.in.instValid := io.in.valid
+    decoder.io.in.instr     := io.in.bits.instr
+    decoder.io.in.pc        := io.in.bits.pc
+    val dec_out = decoder.io.out
+   
+    // RMT
+    val psrc1 = Wire(UInt(ARFbits.W))
+    val psrc2 = Wire(UInt(ARFbits.W))
+    val ppdst = Wire(UInt(ARFbits.W))
 
-    // Decoders
-    decoder1.io.in.instr        := io.in.bits.instr(0)
-    decoder1.io.in.pc           := io.in.bits.pc
-    decoder1.io.in.instValid    := io.in.bits.instValid
+    io.rmt_r(0).raddr := dec_out.rs1
+    io.rmt_r(1).raddr := dec_out.rs2
+    io.rmt_r(2).raddr := dec_out.rd
 
-    decoder2.io.in.instr        := io.in.bits.instr(1)
-    decoder2.io.in.pc           := io.in.bits.pc + 4.U
-    decoder2.io.in.instValid    := io.in.bits.instValid
+    psrc1 := io.rmt_r(0).rdata
+    psrc2 := io.rmt_r(1).rdata
+    ppdst := io.rmt_r(2).rdata
 
-    val (dec1, dec2) = (decoder1.io.out, decoder2.io.out)
+    
 }
