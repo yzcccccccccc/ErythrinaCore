@@ -45,4 +45,6 @@ class InstCtrlBlk extends Bundle with HasErythDefault{
     val src2_dat    = UInt(XLEN.W)
     val rdy1    = Bool()
     val rdy2    = Bool()
+
+    val rob_idx = UInt(ROBbits.W)
 }

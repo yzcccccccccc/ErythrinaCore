@@ -37,6 +37,9 @@ class FreeList extends Module with HasErythDefault{
     val free_list   = avail_tab.asUInt
     io.deq.bits.free_prf    := PriorityEncoder(free_list)
     io.deq.valid            := free_list.orR
+    when (io.deq.fire){
+        avail_tab(io.deq.bits.free_prf) := 0.B
+    }
 
     // Enqueue
     io.enq.ready := true.B
