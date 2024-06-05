@@ -34,6 +34,9 @@ class BasicDecodeBlk extends Bundle with HasErythDefault{
 
 class InstCtrlBlk extends Bundle with HasErythDefault{
     /* Extends from BasicDecodeBlk */
+    val pc          = UInt(XLEN.W)
+    val pnpc        = UInt(XLEN.W)
+    
     val basicInfo   = new BasicDecodeBlk
 
     val psrc1   = UInt(PRFbits.W)

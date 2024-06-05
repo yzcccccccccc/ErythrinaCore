@@ -2,6 +2,7 @@ package erythcore.backend.fu
 
 import chisel3._
 import chisel3.util._
+import erythcore._
 
 object BRUOpType{
     def nop  = "b0000".U
@@ -13,4 +14,14 @@ object BRUOpType{
     def bgeu = "b0110".U
     def jal  = "b1000".U
     def jalr = "b1001".U
+}
+
+class BRU extends Module with HasErythDefault{
+    val io = IO(new Bundle{
+        val src1    = Input(UInt(XLEN.W))
+        val src2    = Input(UInt(XLEN.W))
+        val bruop   = Input(FuOpType())
+
+        val res     = Output(Bool())
+    })
 }

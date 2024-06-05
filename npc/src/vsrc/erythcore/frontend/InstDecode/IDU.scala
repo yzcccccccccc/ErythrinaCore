@@ -115,6 +115,8 @@ class IDU extends Module with HasErythDefault{
     io.out.valid    := rob_valid & fl_valid | ~instValid
     io.in.ready     := io.out.ready & io.out.valid
 
+    io.out.bits.pc          := io.in.bits.pc
+    io.out.bits.pnpc        := io.in.bits.pnpc
     io.out.bits.basicInfo   := dec_out
     io.out.bits.psrc1       := psrc1
     io.out.bits.psrc2       := psrc2
