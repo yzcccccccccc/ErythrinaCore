@@ -77,6 +77,7 @@ class IDU extends Module with HasErythDefault{
     rob_entry.p_rd         := free_prf
     rob_entry.pp_rd        := ppdst
     rob_entry.pc           := io.in.bits.pc
+    rob_entry.rf_wen       := dec_out.rf_wen
     rob_entry.isDone       := false.B
 
     val sROB_Req :: sROB_Wait :: Nil = Enum(2)
@@ -101,6 +102,7 @@ class IDU extends Module with HasErythDefault{
     io.rob_query.psrc1  := psrc1
     io.rob_query.psrc2  := psrc2
     val (rdy1, rdy2)    = (io.rob_query.rdy1, io.rob_query.rdy2)
+    val (pause_idx1, pause_idx2) = (io.rob_query.pause_idx1, io.rob_query.pause_idx2)
 
     // RegFile
     io.rf_rports(0).raddr := psrc1
@@ -122,5 +124,7 @@ class IDU extends Module with HasErythDefault{
     io.out.bits.src2_dat    := psrc2_dat
     io.out.bits.rdy1        := rdy1
     io.out.bits.rdy2        := rdy2
+    io.out.bits.pause_rob_idx1 := pause_idx1
+    io.out.bits.pause_rob_idx2 := pause_idx2
     io.out.bits.rob_idx     := rob_idx
 }

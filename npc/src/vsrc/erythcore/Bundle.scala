@@ -45,6 +45,13 @@ class InstCtrlBlk extends Bundle with HasErythDefault{
     val src2_dat    = UInt(XLEN.W)
     val rdy1    = Bool()
     val rdy2    = Bool()
+    val pause_rob_idx1  = UInt(ROBbits.W)       // wait for this rob_idx
+    val pause_rob_idx2  = UInt(ROBbits.W)       // wait for this rob_idx
 
     val rob_idx = UInt(ROBbits.W)
+}
+
+class BypassBundle extends Bundle with HasErythDefault{
+    val rob_idx = UInt(ROBbits.W)
+    val res     = UInt(XLEN.W)
 }
