@@ -1,6 +1,5 @@
 # Erythrina Core
-![alt text](img/erythrina-qingyuan.jpg)
-
+ooo分支下是乱序核（咕咕咕）
 **Erythrina**：刺桐  
 
 ---  

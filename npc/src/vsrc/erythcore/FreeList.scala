@@ -10,19 +10,19 @@ import erythcore._
     * Write Ports   : 2 (for 2 inst retiring)
 */
 
-class DeqBundle extends Bundle with HasErythDefault{
+class FLDeqBundle extends Bundle with HasErythDefault{
     val free_prf = Output(UInt(PRFbits.W))
 }
 
-class EnqBundle extends Bundle with HasErythDefault{
+class FLEnqBundle extends Bundle with HasErythDefault{
     val free_prf = Input(Vec(2, UInt(PRFbits.W)))
     val wen      = Input(Vec(2, Bool()))
 }
 
 class FreeList extends Module with HasErythDefault{
     val io = IO(new Bundle{
-        val deq = Decoupled(new DeqBundle)
-        val enq = Decoupled(new EnqBundle)
+        val deq = Decoupled(new FLDeqBundle)
+        val enq = Decoupled(new FLEnqBundle)
     })
 
     // Available Table (Physical Register)

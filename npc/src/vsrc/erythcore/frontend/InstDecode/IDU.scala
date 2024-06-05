@@ -6,13 +6,17 @@ import erythcore._
 
 class IDU extends Module with HasErythDefault{
     val io = IO(new Bundle{
-        val in  = Decoupled(Flipped(new InstFetchIO))
+        val in  = Flipped(Decoupled(new InstFetchIO))
 
         // RMT
         val rmt_r = Vec(3, Flipped(new RMTrports))
         val rmt_w = Flipped(new RMTwports)
 
+        // FreeList
+        val fl_deq = Flipped(Decoupled(new FLDeqBundle))
+
         // reorder buffer idx
+
     })
 
     // Decoder
@@ -35,5 +39,7 @@ class IDU extends Module with HasErythDefault{
     psrc2 := io.rmt_r(1).rdata
     ppdst := io.rmt_r(2).rdata
 
-    
+    // FreeList
+    io.fl_deq.valid := dec_out.rf_wen & dec_out.instValid
+    val free_prf    = io.fl_deq.bits.free_prf
 }

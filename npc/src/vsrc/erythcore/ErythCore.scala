@@ -14,4 +14,7 @@ trait HasErythDefault{
     val NR_PRF  = 64
     val ARFbits = log2Ceil(NR_ARF)
     val PRFbits = log2Ceil(NR_PRF)
+
+    val NR_ROB  = 32
+    val ROBbits = log2Ceil(NR_ROB)
 }

@@ -8,8 +8,8 @@ import erythcore.backend.fu._
 
 class Decoder extends Module with HasErythDefault{
     val io = IO(new Bundle{
-        val in  = new BasicDecodeIn
-        val out = new BasicDecodeOut
+        val in  = new DecoderIn
+        val out = Output(new BasicDecodeBlk)
     })
 
     val (instr, pc) = (io.in.instr, io.in.pc)

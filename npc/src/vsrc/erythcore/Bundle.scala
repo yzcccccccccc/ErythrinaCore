@@ -10,24 +10,38 @@ class InstFetchIO extends Bundle with HasErythDefault{
     val instr       = Output(UInt(XLEN.W))
 }
 
-class BasicDecodeIn extends Bundle with HasErythDefault{
+class DecoderIn extends Bundle with HasErythDefault{
     val instr       = Input(UInt(XLEN.W))
     val pc          = Input(UInt(XLEN.W))
     val instValid   = Input(Bool())
 }
 
-class BasicDecodeOut extends Bundle with HasErythDefault{
-    val exceptionVec = Output(Vec(ExceptionSetting.WIDTH, Bool()))
+class BasicDecodeBlk extends Bundle with HasErythDefault{
+    val exceptionVec = Vec(ExceptionSetting.WIDTH, Bool())
+
+    val instValid   = Bool()
+    val instType    = UInt(4.W)
+    val fuType      = FuType()
+    val fuOpType    = FuOpType()
+    val rs1Type     = SrcType()
+    val rs2Type     = SrcType()
+    val rs1         = UInt(ARFbits.W)
+    val rs2         = UInt(ARFbits.W)
+    val rd          = UInt(ARFbits.W)
+    val rf_wen      = Bool()
+    val imm         = UInt(XLEN.W)
+}
+
+class InstCtrlBlk extends BasicDecodeBlk{
+    /* Extends from BasicDecodeBlk */
     
-    val instValid   = Output(Bool())
-    val instType    = Output(UInt(4.W))
-    val fuType      = Output(FuType())
-    val fuOpType    = Output(FuOpType())
-    val rs1Type     = Output(SrcType())
-    val rs2Type     = Output(SrcType())
-    val rs1         = Output(UInt(ARFbits.W))
-    val rs2         = Output(UInt(ARFbits.W))
-    val rd          = Output(UInt(ARFbits.W))
-    val rf_wen      = Output(Bool())
-    val imm         = Output(UInt(XLEN.W))
+    val psrc1   = UInt(PRFbits.W)
+    val psrc2   = UInt(PRFbits.W)
+    val ppdst   = UInt(PRFbits.W)
+    val pdst    = UInt(PRFbits.W)
+
+    val src1    = UInt(XLEN.W)
+    val rdy1    = Bool()
+    val src2    = UInt(XLEN.W)
+    val rdy2    = Bool()
 }
