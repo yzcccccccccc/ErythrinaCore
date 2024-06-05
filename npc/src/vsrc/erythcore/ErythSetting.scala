@@ -18,3 +18,8 @@ trait HasErythDefault{
     val NR_ROB  = 32
     val ROBbits = log2Ceil(NR_ROB)
 }
+
+object ErythSetting{
+    var RESETVEC    = 0x30000000L
+    var isSTA       = false
+}
