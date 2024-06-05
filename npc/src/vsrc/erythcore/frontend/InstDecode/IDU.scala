@@ -108,6 +108,11 @@ class IDU extends Module with HasErythDefault{
     val (psrc1_dat, psrc2_dat) = (io.rf_rports(0).rdata, io.rf_rports(1).rdata)
 
     // Output
+    val rob_valid   = io.rob_enq.fire | rob_state === sROB_Wait
+    val fl_valid    = ~dec_out.rf_wen | dec_out.rf_wen & (io.fl_deq.fire | fl_state === sFL_Wait)
+    io.out.valid    := rob_valid & fl_valid | ~instValid
+    io.in.ready     := io.out.ready & io.out.valid
+
     io.out.bits.basicInfo   := dec_out
     io.out.bits.psrc1       := psrc1
     io.out.bits.psrc2       := psrc2
