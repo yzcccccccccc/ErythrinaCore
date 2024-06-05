@@ -32,16 +32,17 @@ class BasicDecodeBlk extends Bundle with HasErythDefault{
     val imm         = UInt(XLEN.W)
 }
 
-class InstCtrlBlk extends BasicDecodeBlk{
+class InstCtrlBlk extends Bundle with HasErythDefault{
     /* Extends from BasicDecodeBlk */
-    
+    val basicInfo   = new BasicDecodeBlk
+
     val psrc1   = UInt(PRFbits.W)
     val psrc2   = UInt(PRFbits.W)
     val ppdst   = UInt(PRFbits.W)
     val pdst    = UInt(PRFbits.W)
 
-    val src1    = UInt(XLEN.W)
+    val src1_dat    = UInt(XLEN.W)
+    val src2_dat    = UInt(XLEN.W)
     val rdy1    = Bool()
-    val src2    = UInt(XLEN.W)
     val rdy2    = Bool()
 }

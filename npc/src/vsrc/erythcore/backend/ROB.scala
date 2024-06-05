@@ -26,9 +26,16 @@ class ROBEnq extends Bundle with HasErythDefault{
     val rob_idx = Output(UInt(ROBbits.W))
 }
 
+class ROBDeq extends Bundle with HasErythDefault{
+    val entry_vec   = Output(Vec(2, new ROBEntry))
+    val rob_idx_vec = Output(Vec(2, UInt(ROBbits.W)))
+    val valid_vec   = Output(Vec(2, Bool()))
+}
+
 class ROB extends Module with HasErythDefault{
     val io = IO(new Bundle {
         val enq = Decoupled(new ROBEnq)
+        val deq = new ROBDeq
     })
 
     val rob = Mem(NR_ROB, new ROBEntry)
@@ -42,6 +49,40 @@ class ROB extends Module with HasErythDefault{
     io.enq.bits.rob_idx := rob_tail
     when (io.enq.valid && io.enq.ready){
         rob(io.enq.bits.rob_idx) := io.enq.bits.entry
-        rob_count := rob_count + 1.U
     }
+
+    def in_range(idx: UInt): Bool = {
+        val res = Mux(rob_head <= rob_tail, rob_head <= idx && idx < rob_tail, idx < rob_tail || rob_head <= idx)
+        res
+    }
+
+    val psrc1_hit   = Wire(Vec(NR_ROB, Bool()))
+    val psrc2_hit   = Wire(Vec(NR_ROB, Bool()))
+    for (i <- 0 until NR_ROB){
+        psrc1_hit(i) := in_range(i.U) & rob(i).p_rd === io.enq.bits.psrc1
+        psrc2_hit(i) := in_range(i.U) & rob(i).p_rd === io.enq.bits.psrc2
+    }
+    io.enq.bits.rdy1    := !psrc1_hit.contains(true.B)
+    io.enq.bits.rdy2    := !psrc2_hit.contains(true.B)
+
+    // Commit(Deq) 2 Entries?
+    io.deq.valid_vec(0) := rob_count >= 1.U & rob(rob_head).isDone
+    io.deq.entry_vec(0) := rob(rob_head)
+    io.deq.rob_idx_vec(0)   := rob_head
+    
+    io.deq.valid_vec(1) := rob_count >= 2.U & rob(rob_head + 1.U).isDone & rob(rob_head).isDone
+    io.deq.entry_vec(1) := rob(rob_head + 1.U)
+    io.deq.rob_idx_vec(1)   := rob_head + 1.U
+
+    // ptr update
+    val deq_count   = io.deq.valid_vec.count(_ === 1.B)
+    rob_head    := rob_head + deq_count
+    when (io.enq.fire){
+        rob_tail    := rob_tail + 1.U
+        rob_count   := rob_count + 1.U - deq_count
+    }.otherwise{
+        rob_count   := rob_count - deq_count
+    }
+
+    // TODO: add branch and exception handler
 }
