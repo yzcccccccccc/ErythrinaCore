@@ -1,2 +1,0 @@
-package erythcore.frontend
-

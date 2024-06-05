@@ -1,7 +1,8 @@
-package erythcore
+package erythcore.common
 
 import chisel3._
 import chisel3.util._
+import erythcore._
 
 class RFrports extends Bundle with HasErythDefault{
     val raddr   = Input(UInt(PRFbits.W))

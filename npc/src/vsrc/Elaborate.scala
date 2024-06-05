@@ -1,4 +1,3 @@
-import top._
 import circt.stage._
 
 object Elaborate_Soc extends App {

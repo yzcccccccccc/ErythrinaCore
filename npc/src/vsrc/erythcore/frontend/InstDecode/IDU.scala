@@ -3,7 +3,7 @@ package erythcore.frontend.InstDecode
 import chisel3._
 import chisel3.util._
 import erythcore._
-import erythcore.backend._
+import erythcore.common._
 
 class IDU extends Module with HasErythDefault{
     val io = IO(new Bundle{
