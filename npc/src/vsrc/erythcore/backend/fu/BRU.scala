@@ -25,6 +25,7 @@ class RedirectBundle extends Bundle with HasErythDefault{
 
 class BRU extends Module with HasErythDefault{
     val io = IO(new Bundle{
+        val en      = Input(Bool())
         val pc      = Input(UInt(XLEN.W))
         val pnpc    = Input(UInt(XLEN.W))
         val src1    = Input(UInt(XLEN.W))
@@ -60,6 +61,6 @@ class BRU extends Module with HasErythDefault{
         BRUOpType.jalr  -> jr_target
     ))
 
-    io.redir.need_redirect := true_target =/= io.pnpc
+    io.redir.need_redirect := true_target =/= io.pnpc & io.en
     io.redir.redirect_tar  := true_target
 }

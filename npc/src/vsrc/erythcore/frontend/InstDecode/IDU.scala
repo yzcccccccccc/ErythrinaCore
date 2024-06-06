@@ -129,4 +129,5 @@ class IDU extends Module with HasErythDefault{
     io.out.bits.pause_rob_idx1 := pause_idx1
     io.out.bits.pause_rob_idx2 := pause_idx2
     io.out.bits.rob_idx     := rob_idx
+    io.out.bits.res         := DontCare
 }

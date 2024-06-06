@@ -51,6 +51,7 @@ class InstCtrlBlk extends Bundle with HasErythDefault{
     val pause_rob_idx1  = UInt(ROBbits.W)       // wait for this rob_idx
     val pause_rob_idx2  = UInt(ROBbits.W)       // wait for this rob_idx
 
+    val res     = UInt(XLEN.W)
     val rob_idx = UInt(ROBbits.W)
 }
 
