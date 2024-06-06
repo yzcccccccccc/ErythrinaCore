@@ -49,7 +49,7 @@ class ALU extends Module with HasErythDefault{
         ALUOpType.or    -> (src1 | src2),
         ALUOpType.srl   -> (src1 >> shamt),
         ALUOpType.sra   -> (SignExt(src1, 2 * XLEN) >> shamt)(XLEN - 1, 0),
-        ALUOpType.sll   -> (src1 << shamt)(XLEN - 1, 0)
+        ALUOpType.sll   -> (src1 << shamt)(XLEN - 1, 0),
     ))
 
     io.res  := res

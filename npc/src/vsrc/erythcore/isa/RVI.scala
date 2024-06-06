@@ -58,7 +58,7 @@ object RV32I_alu extends HasInstType{
         AND     -> List(InstR, FuType.alu, ALUOpType.and),
 
         AUIPC   -> List(InstU, FuType.alu, ALUOpType.add),
-        LUI     -> List(InstU, FuType.alu, ALUOpType.nop)
+        LUI     -> List(InstU, FuType.alu, ALUOpType.add)
     )
 }
 
