@@ -17,7 +17,7 @@ class RS extends Module with HasRSTrait{
     val io = IO(new Bundle{
         val enq = Decoupled(Input(new InstCtrlBlk))
         val deq = Flipped(Decoupled(Output(new InstCtrlBlk)))
-        val bypass  = Input(Vec(2, new BypassBundle))
+        val bypass  = Input(Vec(2, Valid(new BypassBundle)))
     })
 
     // Stack Status
@@ -29,10 +29,10 @@ class RS extends Module with HasRSTrait{
     def gen_new_entry(old_entry:InstCtrlBlk):InstCtrlBlk = {
         val new_entry   = old_entry
 
-        val hit1 = io.bypass(0).rob_idx === new_entry.pause_rob_idx1 & ~new_entry.rdy1
-        val hit2 = io.bypass(0).rob_idx === new_entry.pause_rob_idx2 & ~new_entry.rdy2
-        new_entry.src1_dat  := Mux(hit1, io.bypass(0).res, new_entry.src1_dat)
-        new_entry.src2_dat  := Mux(hit2, io.bypass(0).res, new_entry.src2_dat)
+        val hit1 = io.bypass(0).bits.rob_idx === new_entry.pause_rob_idx1 & ~new_entry.rdy1 & io.bypass(0).valid
+        val hit2 = io.bypass(0).bits.rob_idx === new_entry.pause_rob_idx2 & ~new_entry.rdy2 & io.bypass(0).valid
+        new_entry.src1_dat  := Mux(hit1, io.bypass(0).bits.res, new_entry.src1_dat)
+        new_entry.src2_dat  := Mux(hit2, io.bypass(0).bits.res, new_entry.src2_dat)
         new_entry.rdy1      := Mux(hit1, true.B, new_entry.rdy1)
         new_entry.rdy2      := Mux(hit2, true.B, new_entry.rdy2)
         new_entry

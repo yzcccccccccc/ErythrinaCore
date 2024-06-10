@@ -127,6 +127,10 @@ class LSU extends Module with HasErythDefault{
   io.ld_port.req.bits.mask  := DontCare
   io.ld_port.req.bits.size  := size
 
+  // out
+  instblk.res := loadRes
+  io.out.bits := instblk
+
   // Decoupled
   io.in.ready := io.out.ready & io.out.valid
   val ld_data_ok  = state === sRECV & (io.ld_port.resp.fire | has_resp_fire | bp_hit)

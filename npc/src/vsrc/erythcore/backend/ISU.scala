@@ -16,7 +16,7 @@ class ISU extends Module with HasErythDefault{
 
         val out = Vec(2, Decoupled(Output(new InstCtrlBlk)))
 
-        val bypass  = Input(Vec(2, new BypassBundle))
+        val bypass  = Input(Vec(2, Valid(new BypassBundle)))
     })
 
     val intRS = Module(new RS)

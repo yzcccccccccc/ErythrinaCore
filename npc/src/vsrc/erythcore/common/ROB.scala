@@ -12,6 +12,7 @@ class ROBEntry extends Bundle with HasErythDefault{
     val p_rd            = UInt(PRFbits.W)
     val pp_rd           = UInt(PRFbits.W)       // previous physical destination of a_rd, for rolling back
     val pc              = UInt(XLEN.W)
+    val res             = UInt(XLEN.W)
     val rf_wen          = Bool()
     val isDone          = Bool()
 }
@@ -38,11 +39,19 @@ class ROBDeqBundle extends Bundle with HasErythDefault{
     val valid_vec   = Output(Vec(2, Bool()))
 }
 
+class ROBWbBundle extends Bundle with HasErythDefault{
+    val res     = Output(UInt(XLEN.W))
+    val rob_idx = Output(UInt(ROBbits.W))
+}
+
 class ROB extends Module with HasErythDefault{
     val io = IO(new Bundle {
         val enq = Decoupled(new ROBEnqBundle)
         val deq = new ROBDeqBundle
+
         val query = new ROBQueryBundle
+
+        val wb  = Vec(2, Flipped(Valid(new ROBWbBundle)))
     })
 
     val rob = Mem(NR_ROB, new ROBEntry)
@@ -58,7 +67,7 @@ class ROB extends Module with HasErythDefault{
         rob(io.enq.bits.rob_idx) := io.enq.bits.entry
     }
 
-    // Query
+    // Query (for pause detect)
     def in_range(idx: UInt): Bool = {
         val res = Mux(rob_head <= rob_tail, rob_head <= idx && idx < rob_tail, idx < rob_tail || rob_head <= idx)
         res
@@ -95,6 +104,14 @@ class ROB extends Module with HasErythDefault{
         rob_count   := rob_count + 1.U - deq_count
     }.otherwise{
         rob_count   := rob_count - deq_count
+    }
+
+    // wb
+    for (i <- 0 until 2){
+        when (io.wb(i).valid){
+            rob(io.wb(i).bits.rob_idx).res := io.wb(i).bits.res
+            rob(io.wb(i).bits.rob_idx).isDone := true.B
+        }
     }
 
     // TODO: add branch and exception handler

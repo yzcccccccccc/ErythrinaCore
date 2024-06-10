@@ -75,14 +75,15 @@ class IDU extends Module with HasErythDefault{
 
     // ROB: Allocate a entry in ROB
     val rob_entry   = Wire(new ROBEntry)
-    rob_entry.exceptionVec := dec_out.exceptionVec
-    rob_entry.instType     := dec_out.instType
-    rob_entry.a_rd         := dec_out.rd
-    rob_entry.p_rd         := free_prf
-    rob_entry.pp_rd        := ppdst
-    rob_entry.pc           := io.in.bits.pc
-    rob_entry.rf_wen       := dec_out.rf_wen
-    rob_entry.isDone       := false.B
+    rob_entry.exceptionVec  := dec_out.exceptionVec
+    rob_entry.instType      := dec_out.instType
+    rob_entry.a_rd          := dec_out.rd
+    rob_entry.p_rd          := free_prf
+    rob_entry.pp_rd         := ppdst
+    rob_entry.pc            := io.in.bits.pc
+    rob_entry.rf_wen        := dec_out.rf_wen
+    rob_entry.res           := DontCare
+    rob_entry.isDone        := false.B
 
     val sROB_Req :: sROB_Wait :: Nil = Enum(2)
     val rob_state = RegInit(sROB_Req)
