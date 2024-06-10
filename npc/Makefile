@@ -38,6 +38,11 @@ perf:
 	@echo "Running Perf Test, bench: $(PERF_BENCH)"
 	bash ./script/perf.sh $(PERF_BENCH)
 
+# count
+count:
+	@echo "Counting Lines"
+	@bash ./script/count.sh 69b289af273d636b0bfa12a6d6441df9d13d7026
+
 clean:
 	-rm -rf $(BUILD_DIR)
 	-rm -rf wave.vcd
