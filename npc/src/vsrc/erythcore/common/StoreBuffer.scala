@@ -25,9 +25,21 @@ class SBEntry extends Bundle with HasErythDefault{
   val typ   = LSUOpType()
 }
 
+class LdBpBundle extends Bundle with HasErythDefault{
+    val addr    = Input(UInt(XLEN.W))
+    val hit     = Output(Bool())
+    val data    = Output(UInt(XLEN.W))
+}
+
 class SBEnqBundle extends Bundle with HasErythDefault{
     val sb_entry    = Input(new SBEntry)
     val sb_idx      = Output(UInt(SBbits.W))
+}
+
+class SBCompleteBundle extends Bundle with HasErythDefault{
+    val sb_idx  = Output(UInt(SBbits.W))
+    val addr    = Output(UInt(XLEN.W))
+    val data    = Output(UInt(XLEN.W))
 }
 
 class StoreBuffer extends Module with HasErythDefault{
@@ -35,11 +47,7 @@ class StoreBuffer extends Module with HasErythDefault{
         val enq = Decoupled(new SBEnqBundle)
 
         // finish store calculation
-        val complete_info   = Decoupled(Input(new Bundle {
-            val sb_idx  = UInt(SBbits.W)
-            val addr    = UInt(XLEN.W)
-            val data    = UInt(XLEN.W)
-        }))
+        val complete_info   = Flipped(Decoupled(new SBCompleteBundle))
 
         // retire store
         val retire_info = Vec(2, Flipped(Decoupled(Input(UInt(SBbits.W)))))
@@ -48,11 +56,7 @@ class StoreBuffer extends Module with HasErythDefault{
         val st_port = new IvyBus
 
         // load bypass
-        val load_bypass = new Bundle{
-            val addr    = Input(UInt(XLEN.W))
-            val hit     = Output(Bool())
-            val data    = Output(UInt(XLEN.W))
-        }
+        val load_bypass = new LdBpBundle
     })
 
     val sb  = Mem(NR_SB, new SBEntry)
