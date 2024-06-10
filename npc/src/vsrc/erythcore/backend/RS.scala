@@ -47,7 +47,7 @@ class RS extends Module with HasRSTrait{
     val iss_valid   = rs_rdy.asUInt =/= 0.U
 
     // Update
-    when (io.deq.fire & ~io.enq.fire){
+    when (io.deq.fire & ~io.enq.fire){      // only dequeue
         var new_entry   = Wire(new InstCtrlBlk)
         for (i <- 0 until RS_DEPTH - 1){
             when (i.U >= iss_idx){
@@ -58,13 +58,13 @@ class RS extends Module with HasRSTrait{
         }
         rs_rdy(RS_DEPTH - 1) := false.B
         sc := sc - 1.U
-    }.elsewhen(~io.deq.fire & io.enq.fire){
+    }.elsewhen(~io.deq.fire & io.enq.fire){ // only enqueue
         var new_entry   = Wire(new InstCtrlBlk)
         new_entry   := gen_new_entry(io.enq.bits)
         rs(sc)      := new_entry
         rs_rdy(sc)  := chk_rdy(new_entry)
         sc := sc + 1.U
-    }.elsewhen(io.deq.fire & io.enq.fire){
+    }.elsewhen(io.deq.fire & io.enq.fire){  // both
         var new_entry   = Wire(new InstCtrlBlk)
         for (i <- 0 until RS_DEPTH - 1){
             when (i.U >= iss_idx){

@@ -53,6 +53,8 @@ class InstCtrlBlk extends Bundle with HasErythDefault{
 
     val res     = UInt(XLEN.W)
     val rob_idx = UInt(ROBbits.W)
+
+    val sb_idx  = UInt(SBbits.W)
 }
 
 class BypassBundle extends Bundle with HasErythDefault{

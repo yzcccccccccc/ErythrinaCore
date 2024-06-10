@@ -23,3 +23,15 @@ object MaskExpand{
     Cat(m.asBools.map(Fill(8, _)).reverse)
   }
 }
+
+object GenLshiftedVec{
+  def apply[T <: Data](v: Vec[T], n: UInt) = {
+    val res = Wire(Vec(v.size, v(0)))
+    var idx = Wire(UInt((log2Ceil(v.length)).W))
+    for (i <- 0 until v.length){
+      idx := (i.U + idx).asUInt
+      res(i) := v(idx)
+    }
+    res
+  }
+}

@@ -3,6 +3,7 @@ package erythcore.common
 import chisel3._
 import chisel3.util._
 import erythcore._
+import utils._
 
 class ROBEntry extends Bundle with HasErythDefault{
     val exceptionVec    = Vec(ExceptionSetting.WIDTH, Bool())
@@ -63,31 +64,19 @@ class ROB extends Module with HasErythDefault{
         res
     }
 
-    def gen_lshifted_vec(vec: Vec[Bool], shift: UInt): Vec[Bool] = {
-        // generate a vector that is left shifted by shift
-        val res = Wire(Vec(NR_ROB, Bool()))
-        var idx = Wire(UInt(ROBbits.W))
-        for (i <- 0 until NR_ROB){
-            idx := (i.U + shift).asUInt
-            res(i) := vec(idx)
-        }
-        res
-    }
-
     val psrc1_hit_vec_o = Wire(Vec(NR_ROB, Bool()))     // origin
     val psrc2_hit_vec_o = Wire(Vec(NR_ROB, Bool()))
     for (i <- 0 until NR_ROB){
         psrc1_hit_vec_o(i) := rob(i).p_rd === io.query.psrc1 & in_range(i.U) & ~rob(i).isDone & rob(i).rf_wen
         psrc2_hit_vec_o(i) := rob(i).p_rd === io.query.psrc2 & in_range(i.U) & ~rob(i).isDone & rob(i).rf_wen
     }
-    val psrc1_hit_vec   = gen_lshifted_vec(psrc1_hit_vec_o, rob_head)
-    val psrc2_hit_vec   = gen_lshifted_vec(psrc2_hit_vec_o, rob_head)
+    val psrc1_hit_vec   = GenLshiftedVec(psrc1_hit_vec_o, rob_head)
+    val psrc2_hit_vec   = GenLshiftedVec(psrc2_hit_vec_o, rob_head)
 
     io.query.rdy1   := psrc1_hit_vec.contains(1.B)
     io.query.rdy2   := psrc1_hit_vec.contains(1.B)
     io.query.pause_idx1 := (psrc1_hit_vec.lastIndexWhere(_ === 1.B) + rob_head).asUInt
     io.query.pause_idx2 := (psrc2_hit_vec.lastIndexWhere(_ === 1.B) + rob_head).asUInt
-
 
     // Commit(Deq) 2 Entries?
     io.deq.valid_vec(0) := rob_count >= 1.U & rob(rob_head).isDone

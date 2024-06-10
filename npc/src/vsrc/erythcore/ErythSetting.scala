@@ -17,6 +17,9 @@ trait HasErythDefault{
 
     val NR_ROB  = 32
     val ROBbits = log2Ceil(NR_ROB)
+
+    val NR_SB   = 8
+    val SBbits  = log2Ceil(NR_SB)
 }
 
 object ErythSetting{

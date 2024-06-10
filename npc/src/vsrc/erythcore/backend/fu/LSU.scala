@@ -2,6 +2,7 @@ package erythcore.backend.fu
 
 import chisel3._
 import chisel3.util._
+import erythcore._
 
 object LSUOpType{
   def lb      = "b000".U
@@ -16,4 +17,6 @@ object LSUOpType{
 
   def isStore(op: UInt) = op(2) & op(1, 0).orR
   def isLoad(op: UInt)  = ~isStore(op)
+
+  def apply() = UInt(3.W)
 }
