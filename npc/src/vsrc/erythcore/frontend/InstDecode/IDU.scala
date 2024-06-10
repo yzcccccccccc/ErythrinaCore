@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import erythcore._
 import erythcore.common._
+import erythcore.backend.fu.LSUOpType
 
 class IDU extends Module with HasErythDefault{
     val io = IO(new Bundle{
@@ -22,6 +23,9 @@ class IDU extends Module with HasErythDefault{
 
         // RegFile
         val rf_rports   = Flipped(Vec(2, new RFrports))
+
+        // Store Buffer
+        val sb_enq      = Flipped(Decoupled(new SBEnqBundle))
 
         val out = Decoupled(Output(new InstCtrlBlk))
     })
@@ -109,6 +113,35 @@ class IDU extends Module with HasErythDefault{
     io.rf_rports(1).raddr := psrc2
     val (psrc1_dat, psrc2_dat) = (io.rf_rports(0).rdata, io.rf_rports(1).rdata)
 
+    // Store Buffer
+    val sb_entry = Wire(new SBEntry)
+    sb_entry.stat   := SBstat.pending
+    sb_entry.typ    := dec_out.fuOpType
+    sb_entry.addr   := DontCare
+    sb_entry.data   := DontCare
+
+    val need_sb = LSUOpType.isStore(dec_out.fuOpType) & dec_out.fuType === FuType.lsu
+
+    val sSB_Req :: sSB_Wait :: Nil = Enum(2)
+    val sb_state = RegInit(sSB_Req)
+    switch(sb_state){
+        is(sSB_Req){
+            when(io.sb_enq.fire & ~io.out.fire){
+                sb_state := sSB_Wait
+            }
+        }
+        is(sSB_Wait){
+            when(io.out.fire){
+                sb_state := sSB_Req
+            }
+        }
+    }
+
+    io.sb_enq.valid         := need_sb & sb_state === sSB_Req & dec_out.instValid
+    io.sb_enq.bits.sb_entry := sb_entry
+    val sb_idx_r    = RegEnable(io.sb_enq.bits.sb_idx, io.sb_enq.fire)
+    val sb_idx      = Mux(sb_state === sSB_Wait, sb_idx_r, io.sb_enq.bits.sb_idx)
+
     // Output
     val rob_valid   = io.rob_enq.fire | rob_state === sROB_Wait
     val fl_valid    = ~dec_out.rf_wen | dec_out.rf_wen & (io.fl_deq.fire | fl_state === sFL_Wait)
@@ -129,5 +162,6 @@ class IDU extends Module with HasErythDefault{
     io.out.bits.pause_rob_idx1 := pause_idx1
     io.out.bits.pause_rob_idx2 := pause_idx2
     io.out.bits.rob_idx     := rob_idx
+    io.out.bits.sb_idx      := sb_idx
     io.out.bits.res         := DontCare
 }

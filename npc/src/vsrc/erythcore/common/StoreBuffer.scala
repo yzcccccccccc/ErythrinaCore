@@ -25,12 +25,14 @@ class SBEntry extends Bundle with HasErythDefault{
   val typ   = LSUOpType()
 }
 
+class SBEnqBundle extends Bundle with HasErythDefault{
+    val sb_entry    = Input(new SBEntry)
+    val sb_idx      = Output(UInt(SBbits.W))
+}
+
 class StoreBuffer extends Module with HasErythDefault{
     val io = IO(new Bundle {
-        val enq = Decoupled(new Bundle {
-            val sb_entry    = Input(new SBEntry)
-            val sb_idx      = Output(UInt(SBbits.W))
-        })
+        val enq = Decoupled(new SBEnqBundle)
 
         // finish store calculation
         val complete_info   = Decoupled(Input(new Bundle {
