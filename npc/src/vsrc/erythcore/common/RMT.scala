@@ -47,6 +47,8 @@ class RMT extends Module with HasRMTDefault{
     when (io.w.wen){
         rmt(io.w.waddr) := io.w.wdata
     }
+
+    // TODO: Add Checkpoints here
 }
 
 /* TODO:

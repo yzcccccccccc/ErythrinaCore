@@ -21,6 +21,7 @@ object BRUOpType{
 class RedirectBundle extends Bundle with HasErythDefault{
     val need_redirect   = Bool()
     val redirect_tar    = UInt(XLEN.W)
+    val br_robidx       = UInt(ROBbits.W)
 }
 
 class BRU extends Module with HasErythDefault{

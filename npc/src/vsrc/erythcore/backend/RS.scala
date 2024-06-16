@@ -18,6 +18,8 @@ class RS extends Module with HasRSTrait{
         val enq = Decoupled(Input(new InstCtrlBlk))
         val deq = Flipped(Decoupled(Output(new InstCtrlBlk)))
         val bypass  = Input(Vec(2, Valid(new BypassBundle)))
+
+        val hptr    = Input(UInt(ROBbits.W))
     })
 
     // Stack Status

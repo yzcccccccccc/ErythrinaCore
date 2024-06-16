@@ -68,7 +68,7 @@ class IDU extends Module with HasErythDefault{
         }
     }
 
-    io.fl_deq.valid := dec_out.rf_wen & dec_out.instValid & fl_state === sFL_Req
+    io.fl_deq.valid := dec_out.hasRd & fl_state === sFL_Req
     val free_prf    = io.fl_deq.bits.free_prf
     val free_prf_r  = RegEnable(free_prf, io.fl_deq.fire)
     val prf         = Mux(fl_state === sFL_Wait, free_prf_r, free_prf)

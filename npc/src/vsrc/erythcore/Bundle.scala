@@ -30,6 +30,8 @@ class BasicDecodeBlk extends Bundle with HasErythDefault{
     val rd          = UInt(ARFbits.W)
     val rf_wen      = Bool()
     val imm         = UInt(XLEN.W)
+
+    def hasRd = rf_wen & instValid & rd =/= 0.U
 }
 
 class InstCtrlBlk extends Bundle with HasErythDefault{
@@ -54,7 +56,7 @@ class InstCtrlBlk extends Bundle with HasErythDefault{
     val res     = UInt(XLEN.W)
     val rob_idx = UInt(ROBbits.W)
 
-    val sb_idx  = UInt(SBbits.W)
+    val sb_idx  = UInt(SBbits.W)        // Store buffer
 }
 
 class BypassBundle extends Bundle with HasErythDefault{

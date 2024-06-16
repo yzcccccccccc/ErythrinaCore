@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import erythcore._
 import utils._
+import chisel3.util.experimental.BoringUtils
 
 class ROBEntry extends Bundle with HasErythDefault{
     val exceptionVec    = Vec(ExceptionSetting.WIDTH, Bool())
@@ -52,6 +53,8 @@ class ROB extends Module with HasErythDefault{
         val query = new ROBQueryBundle
 
         val wb  = Vec(2, Flipped(Valid(new ROBWbBundle)))
+
+        val hptr    = Output(UInt(ROBbits.W))   // head ptr
     })
 
     val rob = Mem(NR_ROB, new ROBEntry)
@@ -114,5 +117,8 @@ class ROB extends Module with HasErythDefault{
         }
     }
 
+    // hptr
+    io.hptr := rob_head
+    
     // TODO: add branch and exception handler
 }
