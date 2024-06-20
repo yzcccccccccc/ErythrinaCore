@@ -31,7 +31,10 @@ void set_batch_mode(){
 
 void init_sdb(){
     if (DUMP_WAVE){
-      printf("[Tool] %sWaveform dumping is enabled! :)%s\n", FontGreen, Restore);
+      if (!USE_REPLAY)
+        printf("[Tool] %sWaveform DUMPING is enabled! :)%s\n", FontGreen, Restore);
+      else
+        printf("[Tool] %sWaveform REPLAY is enabled! :)%s\n", FontGreen, Restore);
     }
     else{
       printf("[Tool] %sWaveform dumping is disabled! :(%s\n", FontYellow, Restore);
