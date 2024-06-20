@@ -3,8 +3,9 @@
 
 // Wave
 #define DUMP_WAVE       0
-#define USE_WINDOW      1
-#define WINDOW_BEGIN    50000000
+
+#define USE_REPLAY      1
+#define REPLAY_INTERVAL 1000000 // Record every 1M cycles
 
 #define CYCLE_BOUND -1
 #define INSTR_BOUND -1

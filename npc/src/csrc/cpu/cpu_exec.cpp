@@ -2,6 +2,7 @@
 #include "common.h"
 #include "difftest.h"
 #include "isa.h"
+#include "replay.h"
 #include "setting.h"
 #include "memory.h"
 #include "cpu.h"
@@ -39,7 +40,7 @@ FILE *diff_log, *perf_log;
 NPC_state npc_state;
 uint32_t npc_info;
 
-bool trace_is_on = DUMP_WAVE & !USE_WINDOW;
+bool trace_is_on = DUMP_WAVE;
 
 // Soc DUT
 VSoc *dut = NULL;
@@ -83,14 +84,12 @@ void single_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp){
     
     half_cycle(dut, tfp, contextp);
 
+    // for replay
+    add_chk(cycle);
+
     cycle++;
     if (cycle > (uint64_t)CYCLE_BOUND){
         npc_state = CPU_ABORT_CYCLE_BOUND;
-    }
-
-    if (!trace_is_on && DUMP_WAVE && cycle > (uint64_t)WINDOW_BEGIN){
-        trace_is_on = true;
-        init_wave_dmp();
     }
 }
 
@@ -145,10 +144,12 @@ void report(){
 }
 
 void collect(){
+    if (USE_REPLAY)
+        replay(cycle);
     delete dut;
     if (DUMP_WAVE){
         if (!trace_is_on){
-            printf("[%sWarning%s] Simulation cycles didn't hit the window, no wave file was generated.\n", FontYellow, Restore);
+            printf("[%sWarning%s] No wave file was generated.\n", FontYellow, Restore);
         }
         else{
             tfp->close();

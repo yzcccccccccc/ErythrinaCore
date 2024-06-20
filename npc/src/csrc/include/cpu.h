@@ -43,6 +43,14 @@ typedef VysyxSoCFull VSoc;
 typedef VSimTop VSoc;
 #endif
 extern VSoc *dut;
+extern VerilatedFstC *tfp;
+extern VerilatedContext *contx;
+extern bool trace_is_on;
+extern void init_wave_dmp();
+
+extern void half_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp);
+extern void single_cycle(VSoc *dut, VerilatedFstC *tfp, VerilatedContext* contextp);
+extern uint64_t cycle;
 
 extern FILE  *diff_log, *perf_log;
 extern uint64_t cycle, instr;
