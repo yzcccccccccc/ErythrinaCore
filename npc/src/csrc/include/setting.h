@@ -2,7 +2,7 @@
 #define __SETTING_H__
 
 // Wave
-#define DUMP_WAVE       0
+#define DUMP_WAVE       1
 
 #define USE_REPLAY      1
 #define REPLAY_INTERVAL 1000000 // Record every 1M cycles

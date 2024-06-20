@@ -6,6 +6,7 @@
 #include "cpu.h"
 #include "replay.h"
 #include "setting.h"
+#include "verilated_fst_c.h"
 #include <cstdio>
 #include <verilated.h>
 #include <cstdint>
@@ -26,9 +27,6 @@ void save_model(const char *filenamep){
 }
 
 void retore_model(const char *filenamep){
-    // open new context
-    contx = new VerilatedContext;
-
     VerilatedRestore os;
     os.open(filenamep);
 
@@ -42,11 +40,11 @@ void retore_model(const char *filenamep){
 }
 
 void add_chk(uint64_t cycle){
-    if (USE_REPLAY){
+    if (USE_REPLAY & DUMP_WAVE){
         if (cycle % REPLAY_INTERVAL == 0){
             save_model(chkpoint1);
         }
-        if (cycle % REPLAY_INTERVAL != 0 & cycle % (REPLAY_INTERVAL / 2) == 0){
+        if (cycle % REPLAY_INTERVAL != 0 & cycle % (REPLAY_INTERVAL / 2) == 0 | cycle == 0){
             save_model(chkpoint2);
         }
     }
@@ -59,26 +57,31 @@ void replay_1_cycle(){
 }
 
 void replay(uint64_t wrong_point){
-    printf("---------------------------------------------------------------------------");
-    printf("[Info] Replay the wrong point at cycle %ld.\n", wrong_point);
-    // Restore Check Point
-    if (wrong_point % REPLAY_INTERVAL > (REPLAY_INTERVAL / 2)){
-        retore_model(chkpoint1);   
-        cycle = (wrong_point / REPLAY_INTERVAL) * REPLAY_INTERVAL;
-    }
-    else{
-        retore_model(chkpoint2);
-        cycle = (wrong_point / REPLAY_INTERVAL) * REPLAY_INTERVAL + REPLAY_INTERVAL / 2;
-    }
-    npc_state = CPU_RUN;
+    printf("---------------------------------------------------------------------------\n");
+    printf("[Info] Replay the point at cycle %ld.\n", wrong_point);
 
     // Run the simulation
     trace_is_on = true;
-    init_wave_dmp();
+    
+    // open trace
+    tfp = new VerilatedFstC;
+    contx->traceEverOn(true);
+    dut->trace(tfp, 1);
+    tfp->open("wavefile");
+
+    // Restore Check Point
+    if (wrong_point % REPLAY_INTERVAL > (REPLAY_INTERVAL / 2)){
+        retore_model(chkpoint1);   
+    }
+    else{
+        retore_model(chkpoint2);
+    }
+    npc_state = CPU_RUN;
+
     while (npc_state == CPU_RUN & cycle <= wrong_point){
         replay_1_cycle();
         cycle++;
     }
     printf("[Info] Replay finished at cycle %ld.\n", cycle);
-    printf("---------------------------------------------------------------------------");
+    printf("---------------------------------------------------------------------------\n");
 }

@@ -40,7 +40,7 @@ FILE *diff_log, *perf_log;
 NPC_state npc_state;
 uint32_t npc_info;
 
-bool trace_is_on = DUMP_WAVE;
+bool trace_is_on = DUMP_WAVE & ~USE_REPLAY;
 
 // Soc DUT
 VSoc *dut = NULL;
@@ -53,7 +53,7 @@ void init_wave_dmp(){
         tfp = new VerilatedFstC;
         contx->traceEverOn(true);
         dut->trace(tfp, 1);
-        tfp->open("wave.vcd");
+        tfp->open("wavefile");
     }
 }
 
@@ -144,7 +144,7 @@ void report(){
 }
 
 void collect(){
-    if (USE_REPLAY)
+    if (USE_REPLAY & DUMP_WAVE)
         replay(cycle);
     delete dut;
     if (DUMP_WAVE){
